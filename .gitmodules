@@ -1,6 +1,3 @@
-[submodule "guld-api"]
-	path = src/guld-api
-	url = https://guld.io/repos/guld-api.git
 [submodule "guld-cas"]
 	path = src/guld-cas
 	url = https://guld.io/repos/guld-cas.git

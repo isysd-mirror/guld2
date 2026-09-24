@@ -1,8 +1,8 @@
 # Soft-launch — Guld (guld.io)
 
-**Stack:** static **guld.io** repo + FastAPI on **127.0.0.1:8004** · user **`guld`** · No Docker · standalone guld deploy
+**Stack:** `guld-node` (`--http` + `--http-static`) behind nginx TLS · No Docker · **Not** iramillercom CD
 
-Two checkouts: `/home/isysd/Projects/guld` (protocol) and `/home/isysd/Projects/guld.io` (website). You run all `sudo` lines.
+Checkout: `/home/isysd/Projects/guld2` (or the published umbrella). You run all `sudo` lines.
 
 ## 0. Meta-FS content root
 
@@ -14,7 +14,7 @@ sudo chown guld:guld /srv/guld
 ## 1. Bind mount + nginx snippets
 
 ```bash
-cd /home/isysd/Projects/guld
+cd /home/isysd/Projects/guld2
 sudo ./deploy/install-nginx-snippets.sh
 sudo ./deploy/install-bind-mount.sh
 ```
@@ -27,17 +27,15 @@ sudo ln -sf ../sites-available/guld.io /etc/nginx/sites-enabled/guld.io
 sudo nginx -t && sudo systemctl reload nginx
 ```
 
-## 3. API (dev as isysd or prod as guld)
+## 3. guld-node (isysd user unit)
 
 ```bash
-cd /home/isysd/Projects/guld/src/guld-api
-poetry install
-cp .env.example .env
-# set DATABASE_* and GULD_REPO_ROOT=/srv/guld
-poetry run uvicorn guld_api.main:app --host 127.0.0.1 --port 8004
+install -m 0644 deploy/guld-node.service ~/.config/systemd/user/guld-node.service
+systemctl --user daemon-reload
+systemctl --user enable --now guld-node.service
 ```
 
-Prod unit template: `deploy/guld-api.service` → install under user `guld` or system unit with `User=guld`.
+See `deploy/guld-node.service` and [`docs/HOSTING.md`](../docs/HOSTING.md).
 
 ## 4. TLS
 

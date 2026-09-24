@@ -1,6 +1,6 @@
 import "./chrome.js";
 import {
-  DEFAULT_RPC_URL,
+  defaultRpcUrl,
   escapeHtml,
   formatTime,
   persistRpcUrl,
@@ -28,7 +28,7 @@ const blockCache = new Map();
 if (rpcInput instanceof HTMLInputElement) {
   rpcInput.value = rpcUrl;
   rpcInput.addEventListener("change", () => {
-    rpcUrl = rpcInput.value.trim() || DEFAULT_RPC_URL;
+    rpcUrl = rpcInput.value.trim() || defaultRpcUrl();
     persistRpcUrl(rpcUrl);
     blockCache.clear();
     route();
@@ -73,7 +73,7 @@ async function route() {
       hostEl.innerHTML = `
         <div class="explorer__empty">
           <p>Could not reach the node at <code>${escapeHtml(rpcUrl)}</code>.</p>
-          <p>Start <code>guld-node</code> (default RPC <code>127.0.0.1:8545</code>), or set another URL above.</p>
+          <p>Local node: <code>http://127.0.0.1:8545</code>. On this site use same-origin <code>/rpc</code> (or clear a stuck loopback URL above).</p>
           <p><a href="/explorer/legacy/">Legacy block 0 import details</a> (static snapshot)</p>
         </div>`;
     }

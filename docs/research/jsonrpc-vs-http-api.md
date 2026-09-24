@@ -212,6 +212,6 @@ Cross-dapp interactive flows use the **same HTTP API** over HTTPS (browser-media
 ## 10. References in repo
 
 - Node handler today: `src/guld-node/src/main.rs` (`POST /`, `POST /rpc`) + `http_api.rs` (`--http` `/api/v1/…`)
-- Deprecated façade: `src/guld-api/` (do not use for reference wallet)
+- Former Python façade `guld-api` — **removed** from the umbrella (use `guld-node --http`)
 - Reference client: repo root static PWA (serve via `--http-static .` or any static host)
 - Specs: [`12-rpc.md`](../specs/12-rpc.md), [`11-leaf-host.md`](../specs/11-leaf-host.md), [`04-proofs.md`](../specs/04-proofs.md), [`09-p2p.md`](../specs/09-p2p.md)

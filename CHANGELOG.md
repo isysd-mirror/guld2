@@ -1,5 +1,11 @@
 # Changelog
 
+## [Unreleased]
+
+### Removed
+
+- `guld-api` submodule, catalog entries, and `deploy/guld-api.service` — HTTP surface is `guld-node --http` only
+
 ## [0.1.0] - 2026-09-24
 
 ### Added
@@ -19,8 +25,7 @@
 
 - **Repo root is the static website** (former `src/guld.io/` lifted). Site CSS/JS live at `src/css`, `src/js` beside Rust crates.
 - Docs are served from `/docs/` directly — no mirror/`sync-docs` copy step.
-- `guld-api` deprecated for the reference wallet path (prefer node `--http`).
-- Software remotes are in-tree `repos/` served by **guld-node**; `/srv/guld` remains content homes only. nginx on guld.io is optional reverse proxy only.
+- Software remotes are in-tree `repos/` served by **guld-node** (not iramillercom `igithost`); `/srv/guld` remains content homes only. nginx on guld.io is optional reverse proxy only.
 
 ### Notes
 

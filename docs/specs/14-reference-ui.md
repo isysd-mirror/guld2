@@ -47,7 +47,7 @@ Intent: [`../intents/pwa-reference-wallet.md`](../intents/pwa-reference-wallet.m
 
 Clients MUST NOT embed consensus validation; they talk to a node via the **HTTP API** (JSON-RPC remains a transitional adapter on `--rpc`).
 
-`guld-api` (Python) is **deprecated** for the reference wallet — superseded by `guld-node --http`.
+The former Python `guld-api` façade was **removed**; the reference wallet uses `guld-node --http` only.
 
 ## 4. Reference webapp (guld.io tree)
 

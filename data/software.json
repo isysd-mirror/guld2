@@ -121,16 +121,6 @@
       "home": "here",
       "href": "/software/guld-js/",
       "topics": ["javascript"]
-    },
-    {
-      "id": "guld-api",
-      "title": "guld-api",
-      "summary": "Deprecated Python HTTP façade — use guld-node --http",
-      "kind": "software",
-      "home": "here",
-      "href": "/software/guld-api/",
-      "topics": ["python", "deprecated"],
-      "activity": "inactive"
     }
   ]
 }

@@ -6,13 +6,7 @@
       "name": "guld",
       "path": ".",
       "branch": "guld",
-      "commit": "a6365f7ae30ad818b3b43ae5385944dad720b472"
-    },
-    {
-      "name": "guld-api",
-      "path": "src/guld-api",
-      "branch": "main",
-      "commit": "16af62f1f546e2bb6d5071f1c0969ac29a103760"
+      "commit": "f1cf8fabf341747ca7c123183bab17da4a4df030"
     },
     {
       "name": "guld-cas",
@@ -60,7 +54,7 @@
       "name": "guld-node",
       "path": "src/guld-node",
       "branch": "main",
-      "commit": "40cdd37e606439d56ee53a78035d86d0fcd0cc14"
+      "commit": "f2ca39d8acc8e04cff435a3f5e31a6e50d99a5c9"
     },
     {
       "name": "guld-state",
