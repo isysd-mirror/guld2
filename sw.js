@@ -1,5 +1,5 @@
 /* Guld.io service worker — offline shell, network-first for pages. */
-const CACHE = "guld-io-v10";
+const CACHE = "guld-io-v11";
 const PRECACHE = [
   "/",
   "/index.html",
@@ -19,6 +19,8 @@ const PRECACHE = [
   "/login/index.html",
   "/settings/",
   "/settings/index.html",
+  "/claim/",
+  "/claim/index.html",
   "/gateway/",
   "/gateway/index.html",
   "/src/css/wallet.css",
@@ -27,6 +29,8 @@ const PRECACHE = [
   "/src/js/register-page.js",
   "/src/js/login-page.js",
   "/src/js/settings-page.js",
+  "/src/js/claim-page.js",
+  "/src/js/lib/claim.js",
   "/src/js/gateway-page.js",
   "/data/legacy-accounts.json",
   "/manifest.webmanifest",

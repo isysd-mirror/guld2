@@ -88,7 +88,11 @@ function render() {
         ? row.pgp_fingerprints.map((fp) => `<div class="explorer-fp">${escapeHtml(fp)}</div>`).join("")
         : `<span class="explorer-fp">—</span>`;
     tr.innerHTML = `
-      <td><strong>${escapeHtml(row.name)}</strong></td>
+      <td><strong>${escapeHtml(row.name)}</strong>${
+        row.claim_state === "locked"
+          ? ` <a class="explorer-claim-link" href="/claim/?name=${encodeURIComponent(row.name)}">claim</a>`
+          : ""
+      }</td>
       <td class="num">${escapeHtml(row.balance)}</td>
       <td>${fps}</td>
       <td><span class="claim-pill claim-pill--${escapeHtml(row.claim_state)}">${escapeHtml(row.claim_state)}</span></td>

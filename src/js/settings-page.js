@@ -1,6 +1,6 @@
 import "./chrome.js";
 import { apiDelete, apiGet, apiPost, persistApiBase, resolveApiBase } from "./lib/api.js";
-import { GATEWAY_HREF, getLocalIdentity, LOGIN_HREF } from "./lib/auth.js";
+import { CLAIM_HREF, GATEWAY_HREF, getLocalIdentity, LOGIN_HREF } from "./lib/auth.js";
 import {
   deskInviteUrl,
   isGatewayConfigured,
@@ -46,6 +46,15 @@ async function render() {
           <input name="apiBase" type="text" value="${escapeHtml(apiBase)}" spellcheck="false" />
         </label>
         <p class="wallet__meta">Same-origin <code>/api/v1</code> when the node serves this tree.</p>
+      </fieldset>
+
+      <fieldset>
+        <legend>Legacy 1.0 claim</legend>
+        <p class="wallet__meta">
+          ~2,217 imported holders unlock balances with a PGP proof — not part of normal
+          registration. Same flow as the desktop wallet and extension.
+        </p>
+        <a class="btn btn--outline" href="${CLAIM_HREF}">Open legacy claim</a>
       </fieldset>
 
       <fieldset>

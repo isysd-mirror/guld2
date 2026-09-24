@@ -9,6 +9,7 @@ export const HEADER_NAV = [
 
 /** Docs / meta — footer only. */
 export const FOOTER_NAV = [
+  { href: "/claim/", label: "Legacy claim" },
   { href: "/whitepaper/", label: "Whitepaper" },
   { href: "/specs/", label: "Specs" },
   { href: "/help/", label: "Help" },

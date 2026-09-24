@@ -285,3 +285,26 @@
   line-height: 1;
   cursor: pointer;
 }
+
+.claim-form fieldset[disabled] {
+  opacity: 0.55;
+  pointer-events: none;
+}
+
+.claim-info {
+  margin: 0.75rem 0 0;
+  padding: 0.85rem 1rem;
+  background: color-mix(in srgb, var(--guld-mist) 80%, transparent);
+  border-radius: 0.35rem;
+  border: 1px solid color-mix(in srgb, var(--guld-ink) 10%, transparent);
+}
+
+.claim-info p {
+  margin: 0.25rem 0;
+}
+
+.claim-done {
+  margin-top: 0.5rem;
+  font-weight: 600;
+  color: var(--guld-primary);
+}

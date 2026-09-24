@@ -3,7 +3,7 @@
  */
 
 import * as ed from "../vendor/ed25519.js";
-import { concat, fromHex, toHex, u16Be, u64Be } from "./hex.js";
+import { concat, fromHex, toHex, u16Be, u32Be, u64Be } from "./hex.js";
 
 async function sha256(data) {
   const buf = await crypto.subtle.digest("SHA-256", data);
@@ -88,6 +88,33 @@ export async function registerMessage(
     ...keysHex.map((h) => fromHex(h)),
   );
   return taggedHash("guld/register/v1", payload);
+}
+
+/** Spec 15 claim message (`guld/claim_legacy/v1`). */
+export async function claimMessage(
+  chainId,
+  name,
+  keysHex,
+  threshold,
+  initialMasterHex,
+  nonce,
+) {
+  const keysPayload = concat(...keysHex.map((h) => fromHex(h)), u16Be(threshold));
+  const keysHash = await taggedHash("guld/claim_legacy/keys/v1", keysPayload);
+  const payload = concat(
+    u32Be(chainId),
+    new TextEncoder().encode(name),
+    new Uint8Array([0]),
+    keysHash,
+    fromHex(initialMasterHex),
+    u64Be(nonce),
+  );
+  return taggedHash("guld/claim_legacy/v1", payload);
+}
+
+/** Claim message hex without 0x prefix (PGP clearsign payload). */
+export function claimMessageHex(hash32) {
+  return toHex(hash32, false);
 }
 
 export { toHex, fromHex };

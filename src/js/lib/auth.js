@@ -11,6 +11,7 @@ export const AUTH_EVENT = "guld:auth";
 export const LOGIN_HREF = "/login/";
 export const REGISTER_HREF = "/register/";
 export const SETTINGS_HREF = "/settings/";
+export const CLAIM_HREF = "/claim/";
 export const GATEWAY_HREF = "/gateway/";
 
 /**
