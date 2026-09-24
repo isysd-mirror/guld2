@@ -1,0 +1,123 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <meta name="theme-color" content="#000000" />
+    <meta
+      name="description"
+      content="Guld 2.0 — a global, identity-focused DeFi layer-1. Address by name. Commit by hash. Authorize by proof."
+    />
+    <meta property="og:url" content="https://guld.io/" />
+    <meta property="og:title" content="Guld 2.0" />
+    <meta
+      property="og:description"
+      content="Identity-focused L1: names, hash-tree homes, threshold proofs. The network is a witness — not a general VM."
+    />
+    <meta property="og:image" content="https://guld.io/assets/og.jpg" />
+    <meta
+      http-equiv="Content-Security-Policy"
+      content="default-src 'self'; base-uri 'self'; form-action 'self'; object-src 'none'; img-src 'self' data:; font-src 'self'; style-src 'self'; script-src 'self'; connect-src 'self'; worker-src 'self'; manifest-src 'self'"
+    />
+    <link rel="manifest" href="/manifest.webmanifest" />
+    <link rel="icon" href="/assets/favicon.png" type="image/png" />
+    <link rel="apple-touch-icon" href="/assets/guld256x256.png" />
+    <link rel="stylesheet" href="/src/css/tokens.css" />
+    <link rel="stylesheet" href="/src/css/base.css" />
+    <link rel="stylesheet" href="/src/css/layout.css" />
+    <link rel="stylesheet" href="/src/css/docs.css" />
+    <title>Guld 2.0</title>
+  </head>
+  <body>
+    <header class="site-header">
+      <a class="site-header__brand" href="/" aria-label="Guld home">
+        <img src="/assets/logo.svg" width="120" height="40" alt="Guld" />
+      </a>
+      <nav class="site-header__nav" aria-label="Primary">
+        <a href="/whitepaper/">Whitepaper</a>
+        <a href="/specs/">Specs</a>
+        <a href="/explorer/">Explorer</a>
+        <a href="/wallet/">Wallet</a>
+        <a href="#thesis">Thesis</a>
+      </nav>
+    </header>
+
+    <main>
+      <section class="hero" aria-label="Guld">
+        <div class="hero__plane" role="presentation"></div>
+        <div class="hero__content">
+          <img
+            class="hero__logo"
+            src="/assets/logo.svg"
+            width="280"
+            height="93"
+            alt="Guld"
+          />
+          <p class="hero__version">2.0</p>
+          <h1 class="hero__title">Address by name. Commit by hash.</h1>
+          <p class="hero__lede">
+            A global, identity-focused DeFi layer-1. People and groups are first-class
+            citizens. The chain witnesses tips — it does not run leaf politics.
+          </p>
+          <div class="hero__actions">
+            <a class="btn btn--primary" href="/whitepaper/">Read the whitepaper</a>
+            <a class="btn btn--ghost" href="/specs/">Browse specs</a>
+          </div>
+        </div>
+      </section>
+
+      <section id="thesis" class="section">
+        <h2>Authorize by proof. Leave leaf law to the leaf.</h2>
+        <p>
+          Guld 2.0 is a <strong>hard fork</strong> of Guld 1.0: preserve historical
+          balances where possible; do not preserve blockchain-in-git as the product
+          model. Validators stay lean — fixed transaction schemas, hashes, signatures,
+          and a small set of built-in state updates. Custom operations live in leaves.
+        </p>
+        <div class="pillars">
+          <div class="pillar">
+            <h3>Identity-first</h3>
+            <p>Transfers, bonds, and tips bind to usernames and groups — not opaque key hashes alone.</p>
+          </div>
+          <div class="pillar">
+            <h3>Network as witness</h3>
+            <p>L1 verifies enumerated leaf-consensus proofs and records new master hashes.</p>
+          </div>
+          <div class="pillar">
+            <h3>Lean validators</h3>
+            <p>No general VM. No requirement to index social graphs or execute leaf interpreters.</p>
+          </div>
+        </div>
+      </section>
+
+      <section id="architecture" class="section section--alt">
+        <h2>Three planes</h2>
+        <p>
+          <strong>Consensus</strong> commits headers and fees.
+          <strong>State</strong> maps names to accounts, keys, thresholds, and balances.
+          <strong>Objects</strong> hold content-addressed homes — optional git and PGP stay leaf tools, not the consensus bus.
+        </p>
+        <p>
+          Fees follow a Bitcoin-style weight market in GULD. The reserved account
+          <code>guld</code> carries protocol software; full nodes must clone it.
+        </p>
+        <p style="margin-top: 1.5rem">
+          <a class="btn btn--primary" href="/whitepaper/">Whitepaper (draft)</a>
+          <a class="btn btn--outline" href="/specs/?doc=00-overview" style="margin-left: 0.5rem">Spec overview</a>
+        </p>
+      </section>
+    </main>
+
+    <footer class="site-footer">
+      <img src="/assets/guld.svg" width="32" height="32" alt="" />
+      <p>
+        Guld 2.0 · <a href="https://guld.io/">guld.io</a> ·
+        <a href="/whitepaper/">Whitepaper</a> ·
+        <a href="/specs/">Specs</a> ·
+        <a href="/explorer/">Explorer</a>
+      </p>
+    </footer>
+
+    <script type="module" src="/src/js/app.js"></script>
+  </body>
+</html>

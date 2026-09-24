@@ -1,0 +1,12 @@
+{
+  "name": "guld",
+  "private": true,
+  "type": "module",
+  "description": "Guld open-source tree + static PWA — framework-less JS; npm for tests only.",
+  "scripts": {
+    "test": "node --test test/*.test.js"
+  },
+  "engines": {
+    "node": ">=20"
+  }
+}

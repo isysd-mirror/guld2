@@ -1,0 +1,42 @@
+[workspace]
+resolver = "2"
+members = [
+    "src/guld-types",
+    "src/guld-crypto",
+    "src/guld-state",
+    "src/guld-consensus",
+    "src/guld-cas",
+    "src/guld-legacy",
+    "src/guld-node",
+    "src/guld-client",
+    "src/guld-wallet",
+]
+default-members = [
+    "src/guld-types",
+    "src/guld-crypto",
+    "src/guld-state",
+    "src/guld-consensus",
+    "src/guld-cas",
+    "src/guld-legacy",
+    "src/guld-node",
+    "src/guld-client",
+]
+
+[workspace.package]
+edition = "2021"
+license = "MIT OR Apache-2.0"
+repository = "https://iramiller.com/git/guld.git"
+
+[workspace.dependencies]
+sha2 = "0.10"
+ed25519-dalek = { version = "2", features = ["rand_core"] }
+hex = "0.4"
+thiserror = "2"
+serde = { version = "1", features = ["derive"] }
+serde_json = "1"
+tokio = { version = "1", features = ["rt-multi-thread", "macros", "net"] }
+axum = "0.8"
+tower-http = { version = "0.6", features = ["cors", "fs"] }
+clap = { version = "4", features = ["derive"] }
+tracing = "0.1"
+tracing-subscriber = { version = "0.3", features = ["env-filter"] }

@@ -1,0 +1,26 @@
+# Archives (local shelves — never commit)
+archives/
+experiment-Q1-2026
+legacy-guld
+github-mirror
+
+# Secrets / local
+.env
+.env.*
+!.env.example
+.guld-data/
+.guld-data-dev/
+**/.venv/
+**/__pycache__/
+**/*.pyc
+**/.mypy_cache/
+**/.ruff_cache/
+**/.pytest_cache/
+**/htmlcov/
+**/.coverage
+**/node_modules/
+**/coverage/
+**/target/
+.DS_Store
+*.bak
+repos

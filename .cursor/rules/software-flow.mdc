@@ -1,0 +1,31 @@
+---
+description: Canonical software loop — intent → implement → commit → dev QA → version → maintainer signed tag → prod
+alwaysApply: true
+---
+
+# Software flow (all Projects)
+
+SoT: [`iramillercom/docs/SOFTWARE_FLOW.md`](../../iramillercom/docs/SOFTWARE_FLOW.md).
+
+## Loop
+
+1. **Intent** — maintainer documents feature/bug/chore first.
+2. **Implement** — agents assist in `/home/isysd/Projects/<app>` (no unprompted commits).
+3. **Commit** — only via explicit `/publish-commit` (hooks on; push / leaf-to-trunk when asked).
+4. **Dev** — `dev.*` serves Projects (see `iramillercom/deploy/dev/`).
+5. **QA + docs** — verify on `dev.*`; doc updates as needed.
+6. **Release prep** — bump version + changelog, then `/publish-commit` again.
+7. **Release** — **maintainer only**: PGP-signed annotated tag. Agents never tag.
+8. **Prod** — CD picks up **signed tags only** (not branch tips).
+
+## Hosting
+
+Canonical clone/docs/tree/blob URLs are on **iramiller.com** — see `iramiller-hosting.mdc`.
+New or imported repos: run `igithost` (bash CLI in `iramillercom/tools/igithost/`).
+
+## Agent stops
+
+- Do not create tags, unsigned releases, or tell the user that `main` alone ships prod.
+- Do not bypass hooks. Suggest `/publish-commit` when they ask to “just commit.”
+- Do not treat GitHub as the canonical host for Projects software.
+- Do not run `igithost` steps that need **sudo**; ask the human to run `igithost` in their terminal.

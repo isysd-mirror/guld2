@@ -1,0 +1,80 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <meta name="theme-color" content="#000000" />
+    <meta
+      name="description"
+      content="Guld 2.0 explorer — recent blocks and transactions from a connected node."
+    />
+    <meta property="og:url" content="https://guld.io/explorer/" />
+    <meta property="og:title" content="Guld explorer" />
+    <meta property="og:image" content="https://guld.io/assets/og.jpg" />
+    <meta
+      http-equiv="Content-Security-Policy"
+      content="default-src 'self'; base-uri 'self'; form-action 'self'; object-src 'none'; img-src 'self' data:; font-src 'self'; style-src 'self'; script-src 'self'; connect-src 'self' http: https:; worker-src 'self'; manifest-src 'self'"
+    />
+    <link rel="manifest" href="/manifest.webmanifest" />
+    <link rel="icon" href="/assets/favicon.png" type="image/png" />
+    <link rel="stylesheet" href="/src/css/tokens.css" />
+    <link rel="stylesheet" href="/src/css/base.css" />
+    <link rel="stylesheet" href="/src/css/layout.css" />
+    <link rel="stylesheet" href="/src/css/docs.css" />
+    <link rel="stylesheet" href="/src/css/explorer.css" />
+    <title>Explorer — Guld</title>
+  </head>
+  <body>
+    <header class="site-header site-header--solid">
+      <a class="site-header__brand" href="/" aria-label="Guld home">
+        <img src="/assets/logo.svg" width="120" height="40" alt="Guld" />
+      </a>
+      <nav class="site-header__nav" aria-label="Primary">
+        <a href="/whitepaper/">Whitepaper</a>
+        <a href="/specs/">Specs</a>
+        <a href="/explorer/" aria-current="page">Explorer</a>
+        <a href="/wallet/">Wallet</a>
+      </nav>
+    </header>
+
+    <main class="explorer" id="main">
+      <header class="explorer__head">
+        <h1>Explorer</h1>
+        <p>
+          Live blocks and transactions from a <code>guld-node</code> JSON-RPC endpoint.
+          Genesis import balances are under
+          <a href="#/block/0">block 0</a> /
+          <a href="/explorer/legacy/">legacy details</a>.
+        </p>
+        <div class="explorer__status-row">
+          <p class="explorer__meta" data-explorer-status data-state="pending">Connecting…</p>
+          <div class="explorer__rpc">
+            <label>
+              RPC
+              <input type="url" data-explorer-rpc spellcheck="false" autocomplete="off" />
+            </label>
+            <button type="button" class="btn btn--outline explorer__refresh" data-explorer-refresh>
+              Refresh
+            </button>
+          </div>
+        </div>
+      </header>
+
+      <div data-explorer-host>
+        <p class="doc-status">Loading…</p>
+      </div>
+    </main>
+
+    <footer class="site-footer">
+      <img src="/assets/guld.svg" width="32" height="32" alt="" />
+      <p>
+        Read-only ·
+        <a href="/explorer/legacy/">Legacy block 0</a> ·
+        <a href="/specs/?doc=12-rpc">RPC</a> ·
+        <a href="/specs/?doc=14-reference-ui">Reference UI</a>
+      </p>
+    </footer>
+
+    <script type="module" src="/src/js/explorer-page.js"></script>
+  </body>
+</html>

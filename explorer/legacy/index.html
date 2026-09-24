@@ -1,0 +1,91 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <meta name="theme-color" content="#000000" />
+    <meta
+      name="description"
+      content="Guld block 0 legacy import — 1.0 balances, PGP bindings, and ClaimLegacy status."
+    />
+    <meta property="og:url" content="https://guld.io/explorer/legacy/" />
+    <meta property="og:title" content="Legacy block 0 — Guld" />
+    <meta property="og:image" content="https://guld.io/assets/og.jpg" />
+    <meta
+      http-equiv="Content-Security-Policy"
+      content="default-src 'self'; base-uri 'self'; form-action 'self'; object-src 'none'; img-src 'self' data:; font-src 'self'; style-src 'self'; script-src 'self'; connect-src 'self'; worker-src 'self'; manifest-src 'self'"
+    />
+    <link rel="manifest" href="/manifest.webmanifest" />
+    <link rel="icon" href="/assets/favicon.png" type="image/png" />
+    <link rel="stylesheet" href="/src/css/tokens.css" />
+    <link rel="stylesheet" href="/src/css/base.css" />
+    <link rel="stylesheet" href="/src/css/layout.css" />
+    <link rel="stylesheet" href="/src/css/docs.css" />
+    <link rel="stylesheet" href="/src/css/explorer.css" />
+    <title>Legacy block 0 — Guld</title>
+  </head>
+  <body>
+    <header class="site-header site-header--solid">
+      <a class="site-header__brand" href="/" aria-label="Guld home">
+        <img src="/assets/logo.svg" width="120" height="40" alt="Guld" />
+      </a>
+      <nav class="site-header__nav" aria-label="Primary">
+        <a href="/whitepaper/">Whitepaper</a>
+        <a href="/specs/">Specs</a>
+        <a href="/explorer/" aria-current="page">Explorer</a>
+      </nav>
+    </header>
+
+    <main class="explorer" id="main">
+      <header class="explorer__head">
+        <nav class="explorer__crumb">
+          <a href="/explorer/">Explorer</a>
+          <span aria-hidden="true">/</span>
+          <a href="/explorer/#/block/0">Block 0</a>
+          <span aria-hidden="true">/</span>
+          <span>Legacy</span>
+        </nav>
+        <h1>Legacy block 0</h1>
+        <p>
+          Guld 1.0 member <code>Assets</code> balances prepared for 2.0 genesis import
+          (<a href="/specs/?doc=15-ledger-import">spec 15</a>). Spend stays
+          <strong>locked</strong> until <code>ClaimLegacy</code>. Unbound rows have a
+          balance but no key in <code>archives/keys-pgp</code>.
+        </p>
+        <p class="explorer__meta" data-explorer-meta>Loading snapshot…</p>
+      </header>
+
+      <div class="explorer__toolbar">
+        <label class="explorer__search">
+          <span class="visually-hidden">Search names or fingerprints</span>
+          <input type="search" data-explorer-q placeholder="Search name or PGP fingerprint…" autocomplete="off" />
+        </label>
+        <label>
+          Claim state
+          <select data-explorer-state>
+            <option value="all">All</option>
+            <option value="locked">Locked (PGP ready)</option>
+            <option value="unbound">Unbound (no PGP)</option>
+            <option value="claimed">Claimed</option>
+          </select>
+        </label>
+      </div>
+
+      <div class="explorer__table-wrap" data-explorer-table>
+        <p class="doc-status">Loading…</p>
+      </div>
+    </main>
+
+    <footer class="site-footer">
+      <img src="/assets/guld.svg" width="32" height="32" alt="" />
+      <p>
+        Snapshot ·
+        <a href="/data/legacy-accounts.json">legacy-accounts.json</a> ·
+        <a href="/explorer/#/block/0">Block 0</a> ·
+        <a href="/specs/?doc=15-ledger-import">Ledger import</a>
+      </p>
+    </footer>
+
+    <script type="module" src="/src/js/legacy-explorer-page.js"></script>
+  </body>
+</html>

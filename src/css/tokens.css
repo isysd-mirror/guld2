@@ -1,0 +1,13 @@
+:root {
+  --guld-ink: #353e55;
+  --guld-navy: #264175;
+  --guld-primary: #274175;
+  --guld-theme: #000000;
+  --guld-paper: #f4f6fa;
+  --guld-mist: #e8ecf4;
+  --guld-white: #ffffff;
+  --font-display: "Avenir Next", "Century Gothic", Futura, sans-serif;
+  --font-body: "Avenir Next", "Trebuchet MS", sans-serif;
+  --space: clamp(1rem, 2vw, 1.5rem);
+  --measure: 40rem;
+}

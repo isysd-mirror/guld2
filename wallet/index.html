@@ -1,0 +1,81 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <meta name="theme-color" content="#000000" />
+    <meta
+      name="description"
+      content="Guld reference wallet — register, send, and look up names via the PWA."
+    />
+    <meta property="og:url" content="https://guld.io/wallet/" />
+    <meta property="og:title" content="Guld wallet" />
+    <meta property="og:image" content="https://guld.io/assets/og.jpg" />
+    <meta
+      http-equiv="Content-Security-Policy"
+      content="default-src 'self'; base-uri 'self'; form-action 'self'; object-src 'none'; img-src 'self' data:; font-src 'self'; style-src 'self'; script-src 'self'; connect-src 'self' http://127.0.0.1:* http://localhost:*; worker-src 'self'; manifest-src 'self'"
+    />
+    <link rel="manifest" href="/manifest.webmanifest" />
+    <link rel="icon" href="/assets/favicon.png" type="image/png" />
+    <link rel="stylesheet" href="/src/css/tokens.css" />
+    <link rel="stylesheet" href="/src/css/base.css" />
+    <link rel="stylesheet" href="/src/css/layout.css" />
+    <link rel="stylesheet" href="/src/css/docs.css" />
+    <link rel="stylesheet" href="/src/css/wallet.css" />
+    <title>Wallet — Guld</title>
+  </head>
+  <body>
+    <header class="site-header site-header--solid">
+      <a class="site-header__brand" href="/" aria-label="Guld home">
+        <img src="/assets/logo.svg" width="120" height="40" alt="Guld" />
+      </a>
+      <nav class="site-header__nav" aria-label="Primary">
+        <a href="/whitepaper/">Whitepaper</a>
+        <a href="/specs/">Specs</a>
+        <a href="/explorer/">Explorer</a>
+        <a href="/wallet/" aria-current="page">Wallet</a>
+      </nav>
+    </header>
+
+    <main class="wallet" id="main">
+      <header class="wallet__head">
+        <h1>Wallet</h1>
+        <p>
+          Reference wallet on guld.io — lookup today; register and send coming soon.
+          Keys stay in your browser (encrypted) or sign externally if you prefer.
+        </p>
+      </header>
+
+      <div class="wallet__bar">
+        <label>
+          API base
+          <input type="url" data-wallet-api spellcheck="false" autocomplete="off" />
+        </label>
+        <div class="wallet__lookup">
+          <label style="flex: 1">
+            Name
+            <input type="text" data-wallet-name placeholder="isysd" spellcheck="false" autocomplete="off" />
+          </label>
+          <button type="button" class="btn btn--primary" data-wallet-lookup>Look up</button>
+        </div>
+        <button type="button" class="btn btn--outline" data-wallet-refresh>Refresh</button>
+      </div>
+
+      <p class="wallet__status" data-wallet-status data-state="pending">Connecting…</p>
+      <div data-wallet-host>
+        <p class="wallet__empty">Look up a name to see balance and recent activity.</p>
+      </div>
+    </main>
+
+    <footer class="site-footer">
+      <img src="/assets/guld.svg" width="32" height="32" alt="" />
+      <p>
+        <a href="/explorer/">Explorer</a> ·
+        <a href="/specs/?doc=12-rpc">RPC</a> ·
+        <a href="/api/docs">API docs</a> (dev)
+      </p>
+    </footer>
+
+    <script type="module" src="/src/js/wallet-page.js"></script>
+  </body>
+</html>

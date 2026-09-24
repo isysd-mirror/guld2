@@ -1,0 +1,19 @@
+[Unit]
+Description=Guld FastAPI (uvicorn) — guld_api
+After=network.target postgresql.service
+Wants=network-online.target
+
+[Service]
+Type=simple
+User=guld
+Group=guld
+WorkingDirectory=/home/guld/guld/src/guld-api
+EnvironmentFile=-/home/guld/guld/src/guld-api/.env
+ExecStart=/home/guld/guld/src/guld-api/.venv/bin/uvicorn guld_api.main:app --host 127.0.0.1 --port 8004
+Restart=on-failure
+RestartSec=3
+NoNewPrivileges=true
+PrivateTmp=true
+
+[Install]
+WantedBy=multi-user.target

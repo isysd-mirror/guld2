@@ -1,0 +1,364 @@
+.explorer {
+  padding: clamp(1.5rem, 4vw, 2.5rem);
+  max-width: 72rem;
+  margin: 0 auto;
+}
+
+.explorer__head h1 {
+  margin: 0 0 0.5rem;
+  font-size: clamp(1.75rem, 3vw, 2.25rem);
+}
+
+.explorer__crumb {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.4rem;
+  align-items: center;
+  margin: 0 0 0.75rem;
+  font-size: 0.88rem;
+  color: color-mix(in srgb, var(--guld-ink) 70%, transparent);
+}
+
+.explorer__crumb a {
+  color: var(--guld-primary);
+  text-decoration: none;
+}
+
+.explorer__crumb a:hover {
+  text-decoration: underline;
+}
+
+.explorer__meta {
+  font-size: 0.9rem;
+  color: color-mix(in srgb, var(--guld-ink) 75%, transparent);
+  max-width: none;
+  margin: 0;
+}
+
+.explorer__meta[data-state="offline"] {
+  color: #8a3b12;
+}
+
+.explorer__status-row {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 1rem;
+  align-items: flex-end;
+  justify-content: space-between;
+  margin-top: 1rem;
+}
+
+.explorer__rpc {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.65rem;
+  align-items: flex-end;
+}
+
+.explorer__rpc label {
+  display: grid;
+  gap: 0.35rem;
+  font-size: 0.8rem;
+  font-weight: 600;
+  color: var(--guld-navy);
+}
+
+.explorer__rpc input {
+  font: inherit;
+  font-weight: 400;
+  font-family: ui-monospace, "Cascadia Code", Menlo, monospace;
+  font-size: 0.82rem;
+  padding: 0.55rem 0.7rem;
+  border: 1px solid color-mix(in srgb, var(--guld-ink) 18%, transparent);
+  border-radius: 0.3rem;
+  background: var(--guld-white);
+  color: var(--guld-ink);
+  min-width: min(22rem, 70vw);
+}
+
+.explorer__refresh {
+  padding: 0.5rem 0.9rem;
+  font-size: 0.88rem;
+}
+
+.explorer__grid {
+  display: grid;
+  gap: 1.5rem;
+  margin-top: 1.25rem;
+}
+
+@media (min-width: 960px) {
+  .explorer__grid {
+    grid-template-columns: 1fr 1fr;
+    align-items: start;
+  }
+}
+
+.explorer__panel {
+  min-width: 0;
+}
+
+.explorer__panel-head {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.5rem 1rem;
+  align-items: baseline;
+  justify-content: space-between;
+  margin-bottom: 0.65rem;
+}
+
+.explorer__panel-head h2 {
+  margin: 0;
+  font-size: 1.1rem;
+}
+
+.explorer__panel-head p {
+  margin: 0;
+  font-size: 0.82rem;
+  color: color-mix(in srgb, var(--guld-ink) 65%, transparent);
+}
+
+.explorer__block-nav {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 1rem;
+  margin: 0 0 1rem;
+  font-size: 0.92rem;
+}
+
+.explorer__banner {
+  margin: 0 0 1.25rem;
+  padding: 0.9rem 1rem;
+  background: var(--guld-mist);
+  border-left: 3px solid var(--guld-primary);
+  border-radius: 0 0.3rem 0.3rem 0;
+}
+
+.explorer__banner p {
+  margin: 0;
+}
+
+.explorer__banner p + p {
+  margin-top: 0.4rem;
+}
+
+.explorer-kv-grid {
+  display: grid;
+  gap: 0.35rem 1rem;
+  margin: 0;
+  padding: 0.75rem 1rem;
+  background: var(--guld-white);
+  border: 1px solid color-mix(in srgb, var(--guld-ink) 12%, transparent);
+  border-radius: 0.35rem;
+}
+
+@media (min-width: 640px) {
+  .explorer-kv-grid {
+    grid-template-columns: 1fr 1fr;
+  }
+}
+
+.explorer-kv {
+  display: grid;
+  grid-template-columns: 7.5rem minmax(0, 1fr);
+  gap: 0.5rem;
+  align-items: baseline;
+  padding: 0.35rem 0;
+  border-bottom: 1px solid color-mix(in srgb, var(--guld-ink) 8%, transparent);
+}
+
+.explorer-kv:last-child {
+  border-bottom: 0;
+}
+
+.explorer-kv dt {
+  margin: 0;
+  font-size: 0.78rem;
+  font-weight: 600;
+  color: var(--guld-navy);
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+}
+
+.explorer-kv dd {
+  margin: 0;
+  font-size: 0.85rem;
+  overflow-wrap: anywhere;
+}
+
+.explorer-kv code {
+  font-size: 0.8rem;
+  background: transparent;
+  padding: 0;
+}
+
+.tx-pill {
+  display: inline-block;
+  padding: 0.12rem 0.4rem;
+  border-radius: 0.2rem;
+  font-size: 0.72rem;
+  font-weight: 600;
+  letter-spacing: 0.02em;
+  text-transform: uppercase;
+  background: color-mix(in srgb, var(--guld-primary) 12%, transparent);
+  color: var(--guld-navy);
+  white-space: nowrap;
+}
+
+.explorer-inline-link {
+  font-size: 0.75rem;
+  margin-left: 0.25rem;
+}
+
+.explorer__more,
+.explorer__foot-note {
+  margin: 0.75rem 0 0;
+  font-size: 0.88rem;
+  color: color-mix(in srgb, var(--guld-ink) 75%, transparent);
+}
+
+.explorer-table a {
+  color: var(--guld-primary);
+  text-decoration: none;
+  font-weight: 600;
+}
+
+.explorer-table a:hover {
+  text-decoration: underline;
+}
+
+.explorer__toolbar {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 1rem;
+  align-items: flex-end;
+  margin: 1.5rem 0 1rem;
+}
+
+.explorer__search {
+  flex: 1 1 16rem;
+}
+
+.explorer__toolbar label {
+  display: grid;
+  gap: 0.35rem;
+  font-size: 0.8rem;
+  font-weight: 600;
+  color: var(--guld-navy);
+}
+
+.explorer__toolbar input,
+.explorer__toolbar select {
+  font: inherit;
+  font-weight: 400;
+  padding: 0.55rem 0.7rem;
+  border: 1px solid color-mix(in srgb, var(--guld-ink) 18%, transparent);
+  border-radius: 0.3rem;
+  background: var(--guld-white);
+  color: var(--guld-ink);
+  min-width: 12rem;
+}
+
+.explorer__table-wrap {
+  overflow-x: auto;
+  border: 1px solid color-mix(in srgb, var(--guld-ink) 12%, transparent);
+  border-radius: 0.35rem;
+  background: var(--guld-white);
+}
+
+.explorer-table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 0.9rem;
+}
+
+.explorer-table th,
+.explorer-table td {
+  padding: 0.55rem 0.75rem;
+  text-align: left;
+  border-bottom: 1px solid color-mix(in srgb, var(--guld-ink) 10%, transparent);
+  vertical-align: top;
+}
+
+.explorer-table th {
+  background: var(--guld-mist);
+  color: var(--guld-navy);
+  font-weight: 600;
+  white-space: nowrap;
+  position: sticky;
+  top: 0;
+}
+
+.explorer-table th button {
+  font: inherit;
+  font-weight: 600;
+  color: inherit;
+  background: none;
+  border: 0;
+  padding: 0;
+  cursor: pointer;
+}
+
+.explorer-table th button:hover {
+  color: var(--guld-primary);
+}
+
+.explorer-table tr:last-child td {
+  border-bottom: 0;
+}
+
+.explorer-table .num {
+  font-variant-numeric: tabular-nums;
+  text-align: right;
+  white-space: nowrap;
+}
+
+.explorer-fp {
+  font-family: ui-monospace, "Cascadia Code", Menlo, monospace;
+  font-size: 0.78rem;
+  word-break: break-all;
+  color: color-mix(in srgb, var(--guld-ink) 85%, transparent);
+}
+
+.claim-pill {
+  display: inline-block;
+  padding: 0.15rem 0.45rem;
+  border-radius: 0.2rem;
+  font-size: 0.75rem;
+  font-weight: 600;
+  letter-spacing: 0.02em;
+  text-transform: uppercase;
+}
+
+.claim-pill--locked {
+  background: color-mix(in srgb, var(--guld-primary) 14%, transparent);
+  color: var(--guld-navy);
+}
+
+.claim-pill--unbound {
+  background: color-mix(in srgb, #a67c00 18%, transparent);
+  color: #6b4f00;
+}
+
+.claim-pill--claimed {
+  background: color-mix(in srgb, #0b6e4f 16%, transparent);
+  color: #0b6e4f;
+}
+
+.visually-hidden {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  padding: 0;
+  margin: -1px;
+  overflow: hidden;
+  clip: rect(0, 0, 0, 0);
+  border: 0;
+}
+
+.explorer__empty {
+  margin: 0;
+  padding: 1.25rem;
+  color: color-mix(in srgb, var(--guld-ink) 70%, transparent);
+}

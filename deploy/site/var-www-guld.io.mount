@@ -1,0 +1,13 @@
+[Unit]
+Description=Bind mount guld.io static site to /var/www/guld.io
+Before=nginx.service
+After=local-fs.target
+
+[Mount]
+What=/home/isysd/Projects/guld.io
+Where=/var/www/guld.io
+Type=none
+Options=bind
+
+[Install]
+WantedBy=multi-user.target

@@ -1,0 +1,413 @@
+.site-header--solid {
+  position: sticky;
+  top: 0;
+  background: color-mix(in srgb, var(--guld-theme) 92%, transparent);
+  backdrop-filter: blur(8px);
+  border-bottom: 1px solid rgba(255, 255, 255, 0.08);
+}
+
+.site-header--solid .site-header__brand img {
+  filter: brightness(0) invert(1);
+}
+
+.site-header--solid .site-header__nav a {
+  color: rgba(255, 255, 255, 0.88);
+}
+
+.doc-layout {
+  display: grid;
+  gap: clamp(1.5rem, 4vw, 2.5rem);
+  padding: clamp(1.5rem, 4vw, 2.5rem);
+  max-width: 72rem;
+  margin: 0 auto;
+}
+
+@media (min-width: 960px) {
+  .doc-layout {
+    grid-template-columns: 14rem minmax(0, 1fr);
+    align-items: start;
+  }
+}
+
+.doc-aside {
+  position: sticky;
+  top: 4.5rem;
+  max-height: calc(100dvh - 5rem);
+  overflow-y: auto;
+  overscroll-behavior: contain;
+  padding-right: 0.35rem;
+  scrollbar-gutter: stable;
+}
+
+.doc-aside[hidden] {
+  display: none;
+}
+
+@media (max-width: 959px) {
+  .doc-aside {
+    display: none;
+  }
+}
+
+.doc-toc {
+  padding-bottom: 1rem;
+}
+
+.doc-toc__title {
+  margin: 0 0 0.75rem;
+  font-size: 0.75rem;
+  font-weight: 600;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--guld-ink);
+  opacity: 0.65;
+}
+
+.doc-toc__list {
+  margin: 0;
+  padding: 0;
+  list-style: none;
+  display: grid;
+  gap: 0.35rem;
+}
+
+.doc-toc__item a {
+  text-decoration: none;
+  font-size: 0.88rem;
+  color: var(--guld-ink);
+  opacity: 0.8;
+}
+
+.doc-toc__item a:hover {
+  color: var(--guld-primary);
+  opacity: 1;
+}
+
+.doc-toc__item--sub {
+  padding-left: 0.75rem;
+}
+
+.doc-toc__item--sub a {
+  font-size: 0.82rem;
+}
+
+.doc-main {
+  min-width: 0;
+}
+
+.doc-status {
+  color: var(--guld-ink);
+  opacity: 0.7;
+}
+
+.doc-prose {
+  max-width: 46rem;
+}
+
+.doc-prose > *:first-child {
+  margin-top: 0;
+}
+
+.doc-prose h1 {
+  font-size: clamp(1.85rem, 4vw, 2.6rem);
+  margin: 0 0 0.75rem;
+  letter-spacing: -0.02em;
+}
+
+.doc-prose h2 {
+  margin-top: 2.5rem;
+  padding-top: 0.5rem;
+  border-top: 1px solid color-mix(in srgb, var(--guld-ink) 12%, transparent);
+}
+
+.doc-prose h3 {
+  margin: 1.75rem 0 0.5rem;
+  font-size: 1.15rem;
+}
+
+.doc-prose p,
+.doc-prose li {
+  max-width: none;
+}
+
+.doc-prose ul,
+.doc-prose ol {
+  padding-left: 1.25rem;
+}
+
+.doc-prose li + li {
+  margin-top: 0.35rem;
+}
+
+.doc-prose hr {
+  border: 0;
+  border-top: 1px solid color-mix(in srgb, var(--guld-ink) 14%, transparent);
+  margin: 2rem 0;
+}
+
+.doc-prose blockquote {
+  margin: 1.25rem 0;
+  padding: 0.25rem 0 0.25rem 1rem;
+  border-left: 3px solid var(--guld-primary);
+  color: color-mix(in srgb, var(--guld-ink) 88%, transparent);
+}
+
+.doc-prose .doc-figure {
+  display: block;
+  width: 100%;
+  max-width: min(46rem, 100%);
+  height: auto;
+  margin: 1.5rem 0;
+  border-radius: 8px;
+  border: 1px solid color-mix(in srgb, var(--guld-ink) 12%, transparent);
+  background: var(--guld-paper);
+}
+
+.doc-prose .doc-mermaid {
+  margin: 1.5rem 0;
+  padding: 1rem;
+  overflow-x: auto;
+  border-radius: 8px;
+  border: 1px solid color-mix(in srgb, var(--guld-ink) 22%, transparent);
+  background: #ffffff;
+}
+
+.doc-prose .doc-mermaid svg {
+  display: block;
+  max-width: 100%;
+  height: auto;
+  margin: 0 auto;
+  background: #ffffff;
+}
+
+/* Nodes: white fill, dark stroke — never dark-on-dark */
+.doc-prose .doc-mermaid .node rect,
+.doc-prose .doc-mermaid .node polygon,
+.doc-prose .doc-mermaid .node circle,
+.doc-prose .doc-mermaid .node path {
+  fill: #ffffff !important;
+  stroke: #1a2332 !important;
+  stroke-width: 1.75px !important;
+}
+
+.doc-prose .doc-mermaid .cluster rect {
+  fill: #eef2f8 !important;
+  stroke: #1a2332 !important;
+  stroke-width: 1.5px !important;
+}
+
+.doc-prose .doc-mermaid .node .label,
+.doc-prose .doc-mermaid .nodeLabel,
+.doc-prose .doc-mermaid .edgeLabel,
+.doc-prose .doc-mermaid .cluster-label,
+.doc-prose .doc-mermaid .cluster-label text,
+.doc-prose .doc-mermaid .nodeLabel text,
+.doc-prose .doc-mermaid .edgeLabel text,
+.doc-prose .doc-mermaid .label foreignObject div,
+.doc-prose .doc-mermaid .label foreignObject span {
+  fill: #1a2332 !important;
+  color: #1a2332 !important;
+  background: transparent !important;
+  font-weight: 600;
+}
+
+/* Edge labels (e.g. "UpdateMaster + …") sit outside .node — force white plates */
+.doc-prose .doc-mermaid .edgeLabel rect,
+.doc-prose .doc-mermaid .edgeLabel polygon,
+.doc-prose .doc-mermaid .edgeLabel path,
+.doc-prose .doc-mermaid g.edgeLabel > g.label > rect,
+.doc-prose .doc-mermaid .label > rect {
+  fill: #ffffff !important;
+  stroke: #1a2332 !important;
+  stroke-width: 1px !important;
+}
+
+.doc-prose .doc-mermaid .edgeLabel foreignObject div,
+.doc-prose .doc-mermaid .edgeLabel foreignObject span,
+.doc-prose .doc-mermaid .edgeLabel foreignObject p {
+  background: #ffffff !important;
+  color: #1a2332 !important;
+}
+
+.doc-prose .doc-mermaid .edgePath .path,
+.doc-prose .doc-mermaid .flowchart-link {
+  stroke: #1a2332 !important;
+  stroke-width: 1.75px !important;
+}
+
+.doc-prose .doc-mermaid marker path {
+  fill: #1a2332 !important;
+  stroke: #1a2332 !important;
+}
+
+.doc-prose code {
+  font-family: ui-monospace, "Cascadia Code", "SF Mono", Menlo, monospace;
+  font-size: 0.88em;
+  background: var(--guld-mist);
+  padding: 0.1em 0.35em;
+  border-radius: 0.2rem;
+}
+
+.doc-prose .doc-pre {
+  overflow-x: auto;
+  padding: 1rem 1.1rem;
+  background: var(--guld-theme);
+  color: rgba(255, 255, 255, 0.92);
+  border-radius: 0.35rem;
+  font-size: 0.82rem;
+  line-height: 1.45;
+}
+
+.doc-chart {
+  margin: 1.5rem 0;
+  padding: 0.75rem 0.5rem 0.5rem;
+  background: var(--guld-mist);
+  border-radius: 0.35rem;
+}
+
+.doc-chart__svg {
+  display: block;
+  width: 100%;
+  height: auto;
+  max-height: 20rem;
+}
+
+.doc-chart__caption {
+  margin: 0.35rem 0.5rem 0.25rem;
+  font-size: 0.82rem;
+  color: var(--guld-ink);
+  opacity: 0.75;
+  text-align: center;
+}
+
+.doc-chart__grid {
+  stroke: color-mix(in srgb, var(--guld-ink) 12%, transparent);
+  stroke-width: 1;
+}
+
+.doc-chart__axis {
+  stroke: color-mix(in srgb, var(--guld-ink) 35%, transparent);
+  stroke-width: 1.25;
+}
+
+.doc-chart__line {
+  stroke: var(--guld-primary);
+  stroke-width: 2.25;
+  stroke-linejoin: round;
+  stroke-linecap: round;
+}
+
+.doc-chart__point {
+  fill: var(--guld-primary);
+}
+
+.doc-chart__tick {
+  fill: color-mix(in srgb, var(--guld-ink) 70%, transparent);
+  font-size: 11px;
+  font-family: var(--font-body);
+}
+
+.doc-chart__ylabel {
+  fill: color-mix(in srgb, var(--guld-ink) 65%, transparent);
+  font-size: 11px;
+  font-family: var(--font-body);
+}
+
+.doc-prose .doc-pre code {
+  background: transparent;
+  color: inherit;
+  padding: 0;
+  font-size: inherit;
+}
+
+.doc-table-wrap {
+  overflow-x: auto;
+  margin: 1.25rem 0;
+  border: 1px solid color-mix(in srgb, var(--guld-ink) 12%, transparent);
+  border-radius: 0.35rem;
+}
+
+.doc-prose table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 0.92rem;
+}
+
+.doc-prose th,
+.doc-prose td {
+  padding: 0.55rem 0.75rem;
+  text-align: left;
+  border-bottom: 1px solid color-mix(in srgb, var(--guld-ink) 10%, transparent);
+  vertical-align: top;
+}
+
+.doc-prose th {
+  background: var(--guld-mist);
+  font-weight: 600;
+  color: var(--guld-navy);
+}
+
+.doc-prose tr:last-child td {
+  border-bottom: 0;
+}
+
+.spec-list {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: grid;
+  gap: 0.65rem;
+  max-width: 40rem;
+}
+
+.spec-list a {
+  display: block;
+  text-decoration: none;
+  padding: 0.85rem 1rem;
+  background: var(--guld-white);
+  border: 1px solid color-mix(in srgb, var(--guld-ink) 12%, transparent);
+  border-radius: 0.3rem;
+  color: var(--guld-navy);
+  font-weight: 600;
+}
+
+.spec-list a:hover {
+  border-color: var(--guld-primary);
+  color: var(--guld-primary);
+}
+
+.spec-list span {
+  display: block;
+  margin-top: 0.25rem;
+  font-weight: 400;
+  font-size: 0.88rem;
+  color: var(--guld-ink);
+  opacity: 0.75;
+}
+
+.pillars {
+  display: grid;
+  gap: 1.25rem;
+  margin-top: 1.5rem;
+  max-width: 52rem;
+}
+
+@media (min-width: 720px) {
+  .pillars {
+    grid-template-columns: repeat(3, 1fr);
+  }
+}
+
+.pillar h3 {
+  margin: 0 0 0.4rem;
+  font-size: 1.05rem;
+}
+
+.pillar p {
+  margin: 0;
+  font-size: 0.95rem;
+}
+
+.section h2 + p {
+  margin-bottom: 0;
+}

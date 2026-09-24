@@ -1,0 +1,113 @@
+.wallet {
+  max-width: 40rem;
+  margin: 0 auto;
+  padding: clamp(1.5rem, 4vw, 2.5rem);
+}
+
+.wallet__head h1 {
+  margin: 0 0 0.35rem;
+}
+
+.wallet__head p {
+  margin: 0 0 1.25rem;
+  opacity: 0.85;
+}
+
+.wallet__bar {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.75rem;
+  align-items: flex-end;
+  margin-bottom: 1.5rem;
+}
+
+.wallet__bar label {
+  display: grid;
+  gap: 0.25rem;
+  font-size: 0.82rem;
+  flex: 1 1 12rem;
+}
+
+.wallet__bar input {
+  font: inherit;
+  padding: 0.45rem 0.55rem;
+  border: 1px solid color-mix(in srgb, var(--guld-ink) 18%, transparent);
+  border-radius: 0.25rem;
+  width: 100%;
+}
+
+.wallet__lookup {
+  display: flex;
+  gap: 0.5rem;
+  flex: 2 1 16rem;
+}
+
+.wallet__lookup input {
+  flex: 1;
+}
+
+.wallet__status {
+  font-size: 0.88rem;
+  opacity: 0.75;
+  margin: 0 0 1rem;
+}
+
+.wallet__card {
+  background: var(--guld-white);
+  border: 1px solid color-mix(in srgb, var(--guld-ink) 12%, transparent);
+  border-radius: 0.35rem;
+  padding: 1.1rem 1.25rem;
+  margin-bottom: 1.25rem;
+}
+
+.wallet__name {
+  font-size: 1.35rem;
+  font-weight: 600;
+  color: var(--guld-navy);
+  margin: 0 0 0.25rem;
+}
+
+.wallet__balance {
+  font-size: 1.75rem;
+  font-weight: 600;
+  margin: 0.5rem 0;
+}
+
+.wallet__meta {
+  font-size: 0.88rem;
+  opacity: 0.8;
+  margin: 0.25rem 0;
+}
+
+.wallet__activity h2 {
+  font-size: 1rem;
+  margin: 0 0 0.65rem;
+}
+
+.wallet__activity ul {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: grid;
+  gap: 0.5rem;
+}
+
+.wallet__activity li {
+  font-size: 0.88rem;
+  padding: 0.55rem 0.65rem;
+  background: var(--guld-mist);
+  border-radius: 0.25rem;
+}
+
+.wallet__empty {
+  opacity: 0.7;
+  font-size: 0.92rem;
+}
+
+.wallet__note {
+  margin-top: 1.5rem;
+  padding: 0.85rem 1rem;
+  background: var(--guld-mist);
+  border-radius: 0.25rem;
+  font-size: 0.88rem;
+}
