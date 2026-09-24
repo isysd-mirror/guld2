@@ -2,7 +2,27 @@
  * JSON-RPC client for guld-node (read-only explorer use).
  */
 
+/** Loopback default for local `guld-node --rpc` (CLI / same-machine browser). */
 export const DEFAULT_RPC_URL = "http://127.0.0.1:8545";
+
+/** Same-origin JSON-RPC when the site is served from the node (or nginx → node). */
+export const SAME_ORIGIN_RPC_PATH = "/rpc";
+
+/**
+ * Prefer `/rpc` on remote hosts (avoids mixed-content + wrong-machine 127.0.0.1).
+ * Keep loopback when the page itself is local.
+ */
+export function defaultRpcUrl() {
+  try {
+    const host = location.hostname;
+    if (host === "localhost" || host === "127.0.0.1" || host === "[::1]") {
+      return DEFAULT_RPC_URL;
+    }
+    return SAME_ORIGIN_RPC_PATH;
+  } catch {
+    return DEFAULT_RPC_URL;
+  }
+}
 
 /**
  * @param {string} rpcUrl
@@ -48,7 +68,18 @@ export function resolveRpcUrl() {
       localStorage.setItem("guld.rpcUrl", q);
       return q;
     }
-    return localStorage.getItem("guld.rpcUrl") || DEFAULT_RPC_URL;
+    const stored = localStorage.getItem("guld.rpcUrl");
+    if (stored) {
+      // Sticky "127.0.0.1:8545" from local testing breaks on https://guld.io — ignore it.
+      const loopback = /^https?:\/\/(127\.0\.0\.1|localhost|\[::1\])(:\d+)?\/?$/i.test(
+        stored,
+      );
+      const pageLocal = /^(localhost|127\.0\.0\.1|\[::1\])$/i.test(location.hostname);
+      if (!(loopback && !pageLocal)) {
+        return stored;
+      }
+    }
+    return defaultRpcUrl();
   } catch {
     return DEFAULT_RPC_URL;
   }

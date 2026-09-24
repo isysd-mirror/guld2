@@ -1,0 +1,33 @@
+# User unit for isysd local / soft-launch node.
+# Install:
+#   install -m 0644 deploy/guld-node.service ~/.config/systemd/user/guld-node.service
+#   systemctl --user daemon-reload
+#   systemctl --user enable --now guld-node.service
+#
+# Optional (survive logout): sudo loginctl enable-linger isysd
+# Public JSON-RPC: sudo ufw allow 8545/tcp comment 'guld-node rpc'
+#
+# Prod multi-user template (User=guld) is separate — prefer this while developing as isysd.
+
+[Unit]
+Description=Guld node (isysd Projects/guld2) HTTP :8088, public RPC :8545
+Documentation=file:///home/isysd/Projects/guld2/docs/HOSTING.md
+After=network.target
+
+[Service]
+Type=simple
+WorkingDirectory=/home/isysd/Projects/guld2
+ExecStart=/home/isysd/Projects/guld2/target/debug/guld-node \
+  --datadir ./.guld-data \
+  --rpc 0.0.0.0:8545 \
+  --http 127.0.0.1:8088 \
+  --http-static . \
+  --dev \
+  --keys-pgp archives/keys-pgp \
+  --miner isysd \
+  --registrar-payment-link default
+Restart=on-failure
+RestartSec=3
+
+[Install]
+WantedBy=default.target
