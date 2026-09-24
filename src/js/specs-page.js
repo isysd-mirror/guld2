@@ -1,7 +1,5 @@
-import { registerServiceWorker } from "./register-sw.js";
+import "./chrome.js";
 import { renderMarkdownDoc } from "./lib/doc-render.js";
-
-registerServiceWorker();
 
 /** @type {Array<{ id: string, title: string, blurb: string }>} */
 const SPECS = [

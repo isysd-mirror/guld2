@@ -24,20 +24,10 @@
     <link rel="stylesheet" href="/src/css/explorer.css" />
     <title>Explorer — Guld</title>
   </head>
-  <body>
-    <header class="site-header site-header--solid">
-      <a class="site-header__brand" href="/" aria-label="Guld home">
-        <img src="/assets/logo.svg" width="120" height="40" alt="Guld" />
-      </a>
-      <nav class="site-header__nav" aria-label="Primary">
-        <a href="/whitepaper/">Whitepaper</a>
-        <a href="/specs/">Specs</a>
-        <a href="/explorer/" aria-current="page">Explorer</a>
-        <a href="/wallet/">Wallet</a>
-      </nav>
-    </header>
+  <body class="site-body">
+    <guld-header></guld-header>
 
-    <main class="explorer" id="main">
+    <main class="site-main explorer" id="main">
       <header class="explorer__head">
         <h1>Explorer</h1>
         <p>
@@ -65,15 +55,7 @@
       </div>
     </main>
 
-    <footer class="site-footer">
-      <img src="/assets/guld.svg" width="32" height="32" alt="" />
-      <p>
-        Read-only ·
-        <a href="/explorer/legacy/">Legacy block 0</a> ·
-        <a href="/specs/?doc=12-rpc">RPC</a> ·
-        <a href="/specs/?doc=14-reference-ui">Reference UI</a>
-      </p>
-    </footer>
+    <guld-footer></guld-footer>
 
     <script type="module" src="/src/js/explorer-page.js"></script>
   </body>

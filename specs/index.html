@@ -23,19 +23,10 @@
     <link rel="stylesheet" href="/src/css/docs.css" />
     <title>Guld 2.0 Specs</title>
   </head>
-  <body>
-    <header class="site-header site-header--solid">
-      <a class="site-header__brand" href="/" aria-label="Guld home">
-        <img src="/assets/logo.svg" width="120" height="40" alt="Guld" />
-      </a>
-      <nav class="site-header__nav" aria-label="Primary">
-        <a href="/whitepaper/">Whitepaper</a>
-        <a href="/specs/" aria-current="page">Specs</a>
-        <a href="/explorer/">Explorer</a>
-      </nav>
-    </header>
+  <body class="site-body">
+    <guld-header></guld-header>
 
-    <div class="doc-layout" data-specs-shell>
+    <div class="site-main doc-layout" data-specs-shell>
       <aside class="doc-aside" data-doc-toc hidden></aside>
       <main class="doc-main" id="main">
         <section class="section" data-specs-index style="padding-left: 0; padding-right: 0">
@@ -51,13 +42,7 @@
       </main>
     </div>
 
-    <footer class="site-footer">
-      <img src="/assets/guld.svg" width="32" height="32" alt="" />
-      <p>
-        <a href="/whitepaper/">Whitepaper</a> ·
-        <a href="/docs/specs/README.md">Specs index (Markdown)</a>
-      </p>
-    </footer>
+    <guld-footer></guld-footer>
 
     <script type="module" src="/src/js/specs-page.js"></script>
   </body>

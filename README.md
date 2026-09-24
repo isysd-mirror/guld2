@@ -63,6 +63,23 @@ cargo run -p guld-legacy --bin guld-legacy-export -- \
 
 **Extension:** [`src/guld-extension/`](src/guld-extension/) (optional ecosystem).
 
+### Paid registrar (optional, guld.io bootstrap)
+
+[Paymento](https://docs.paymento.io/payment-links/webhooks-for-payment-links) payment link + webhook on the node (out of consensus). Set the secret from the Paymento dashboard; never commit it.
+
+```bash
+export PAYMENTO_WEBHOOK_SECRET='…'
+cargo run -p guld-node -- \
+  --http 127.0.0.1:8080 \
+  --http-static . \
+  --registrar-payment-link default \
+  …
+# GET  /api/v1/registrar
+# POST /api/v1/payment-gateway-webhook   ← https://guld.io/api/v1/payment-gateway-webhook
+```
+
+Details: [`docs/intents/bootstrap-gateway-registrar.md`](docs/intents/bootstrap-gateway-registrar.md).
+
 ## Host model
 
 - **Canonical server:** `guld-node --http` + `--http-static .` (site, API, `/repos/`) — [`docs/HOSTING.md`](docs/HOSTING.md)

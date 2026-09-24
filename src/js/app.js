@@ -1,3 +1,1 @@
-import { registerServiceWorker } from "./register-sw.js";
-
-registerServiceWorker();
+import "./chrome.js";

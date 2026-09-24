@@ -36,11 +36,24 @@ Prefix: `/api/v1`. Shipped today on `guld-node --http`:
 | `GET` | `/chain/accounts/{name}` | `guld_getAccount`, `guld_getBalance` | shipped |
 | `GET` | `/chain/accounts/{name}/activity` | `guld_getAccountActivity` | shipped |
 | `GET` | `/chain/accounts/{name}/exists` | `guld_accountExists` | shipped |
+| `GET` | `/registrar` | — (optional paid desk config) | shipped |
+| `POST` | `/payment-gateway-webhook` | — (Paymento HMAC webhook) | shipped |
 | `POST` | `/chain/transactions` | `guld_sendTransaction` / `guld_sendRawTransaction` | **target** (PWA write path) |
 
 Further routes (blocks, CAS, estimates, net) SHOULD be added as resources with the same coverage as §4 — not a looser subset.
 
 Optional: `guld-node --http-static <dir>` serves the reference wallet tree from the same process (same-origin `/api/v1`).
+
+### Optional paid registrar (out of consensus)
+
+When `--registrar-payment-link` (or `GULD_REGISTRAR_PAYMENT_LINK`) is set:
+
+| Method | Path | Notes |
+|--------|------|-------|
+| `GET` | `/registrar` | `{ enabled, provider, paymentLink }` for wallet UI |
+| `POST` | `/payment-gateway-webhook` | Paymento Payment Link webhooks; requires `PAYMENTO_WEBHOOK_SECRET` |
+
+See [`../intents/bootstrap-gateway-registrar.md`](../intents/bootstrap-gateway-registrar.md).
 
 ## 4. Logical operations (JSON-RPC method names)
 

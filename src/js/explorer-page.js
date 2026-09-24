@@ -1,4 +1,4 @@
-import { registerServiceWorker } from "./register-sw.js";
+import "./chrome.js";
 import {
   DEFAULT_RPC_URL,
   escapeHtml,
@@ -10,8 +10,6 @@ import {
   shortHash,
   summarizeTx,
 } from "./lib/rpc.js";
-
-registerServiceWorker();
 
 const PAGE_SIZE = 20;
 

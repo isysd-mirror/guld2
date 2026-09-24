@@ -3,21 +3,64 @@ import assert from "node:assert/strict";
 import { readFileSync, existsSync } from "node:fs";
 import { join, dirname } from "node:path";
 import { fileURLToPath } from "node:url";
+import { HEADER_NAV, FOOTER_NAV, isNavActive, normalizePath } from "../src/js/lib/site-nav.js";
+import { initialsForName } from "../src/js/lib/wallet-session.js";
 
 const root = join(dirname(fileURLToPath(import.meta.url)), "..");
 
-test("index has brand-level logo and 2.0 thesis", () => {
+test("index has brand-level logo and wallet/install CTAs", () => {
   const html = readFileSync(join(root, "index.html"), "utf8");
   assert.match(html, /assets\/logo\.svg/);
   assert.match(html, /Address by name/i);
   assert.match(html, /hard fork/i);
   assert.match(html, /Guld 2\.0|2\.0/);
-  assert.match(html, /\/whitepaper\//);
-  assert.match(html, /\/specs\//);
-  assert.match(html, /\/explorer\//);
+  assert.match(html, /guld-header/);
+  assert.match(html, /guld-footer/);
+  assert.match(html, /Open wallet/);
+  assert.match(html, /id="install"/);
+  assert.match(html, /cargo run -p guld-node/);
+  assert.doesNotMatch(html, /site-header__nav/);
   assert.doesNotMatch(html, /Coming soon/);
-  assert.doesNotMatch(html, /bootstrap/i);
   assert.doesNotMatch(html, /cdn\.jsdelivr|googleapis\.com\/css/i);
+});
+
+test("pages share guld-header and guld-footer chrome", () => {
+  for (const page of [
+    "wallet/index.html",
+    "explorer/index.html",
+    "explorer/legacy/index.html",
+    "whitepaper/index.html",
+    "specs/index.html",
+  ]) {
+    const html = readFileSync(join(root, page), "utf8");
+    assert.match(html, /<guld-header/, page);
+    assert.match(html, /<guld-footer/, page);
+    assert.doesNotMatch(html, /site-header__nav/, page);
+  }
+  assert.ok(existsSync(join(root, "src/js/components/guld-header.js")));
+  assert.ok(existsSync(join(root, "src/js/components/guld-footer.js")));
+  assert.ok(existsSync(join(root, "src/js/chrome.js")));
+});
+
+test("header nav is product; docs live in footer", () => {
+  assert.deepEqual(
+    HEADER_NAV.map((i) => i.label),
+    ["Wallet", "Explorer", "Install"],
+  );
+  assert.deepEqual(
+    FOOTER_NAV.map((i) => i.label),
+    ["Whitepaper", "Specs", "Software", "Hosting"],
+  );
+  assert.ok(!HEADER_NAV.some((i) => /whitepaper|specs/i.test(i.label)));
+});
+
+test("isNavActive and normalizePath", () => {
+  assert.equal(normalizePath("/wallet/index.html"), "/wallet");
+  assert.equal(isNavActive("/wallet/", "/wallet/"), true);
+  assert.equal(isNavActive("/explorer/", "/explorer/legacy/"), true);
+  assert.equal(isNavActive("/#install", "/", "#install"), true);
+  assert.equal(isNavActive("/#install", "/wallet/"), false);
+  assert.equal(initialsForName("isysd"), "IS");
 });
 
 test("whitepaper page and synced markdown exist", () => {

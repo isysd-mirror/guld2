@@ -1,7 +1,5 @@
-import { registerServiceWorker } from "./register-sw.js";
+import "./chrome.js";
 import { escapeHtml } from "./lib/rpc.js";
-
-registerServiceWorker();
 
 /**
  * @typedef {{ name: string, balance: string, balance_quanta: string, pgp_fingerprints: string[], claim_state: string, claimed_at_height?: number }} Row

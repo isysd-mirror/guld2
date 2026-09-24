@@ -28,21 +28,10 @@
     <link rel="stylesheet" href="/src/css/docs.css" />
     <title>Guld 2.0</title>
   </head>
-  <body>
-    <header class="site-header">
-      <a class="site-header__brand" href="/" aria-label="Guld home">
-        <img src="/assets/logo.svg" width="120" height="40" alt="Guld" />
-      </a>
-      <nav class="site-header__nav" aria-label="Primary">
-        <a href="/whitepaper/">Whitepaper</a>
-        <a href="/specs/">Specs</a>
-        <a href="/explorer/">Explorer</a>
-        <a href="/wallet/">Wallet</a>
-        <a href="#thesis">Thesis</a>
-      </nav>
-    </header>
+  <body class="site-body">
+    <guld-header variant="overlay"></guld-header>
 
-    <main>
+    <main id="main" class="site-main">
       <section class="hero" aria-label="Guld">
         <div class="hero__plane" role="presentation"></div>
         <div class="hero__content">
@@ -56,14 +45,68 @@
           <p class="hero__version">2.0</p>
           <h1 class="hero__title">Address by name. Commit by hash.</h1>
           <p class="hero__lede">
-            A global, identity-focused DeFi layer-1. People and groups are first-class
-            citizens. The chain witnesses tips — it does not run leaf politics.
+            A global, identity-focused DeFi layer-1. Run a node, open the wallet,
+            and use names — not opaque key hashes alone.
           </p>
           <div class="hero__actions">
-            <a class="btn btn--primary" href="/whitepaper/">Read the whitepaper</a>
-            <a class="btn btn--ghost" href="/specs/">Browse specs</a>
+            <a class="btn btn--primary" href="/wallet/">Open wallet</a>
+            <a class="btn btn--ghost" href="#install">Install &amp; run a node</a>
           </div>
         </div>
+      </section>
+
+      <section id="start" class="section">
+        <h2>Get started</h2>
+        <p>
+          The site and wallet are this open-source tree. Your peer runs
+          <code>guld-node</code>; the browser talks to its HTTP API.
+        </p>
+        <ol class="flow-steps">
+          <li>
+            <h3>Run a node</h3>
+            <p>
+              Install from source (below) or use a peer you trust. The reference
+              path is your own node on localhost.
+            </p>
+          </li>
+          <li>
+            <h3>Open the wallet</h3>
+            <p>
+              Look up names and activity today. Register and send land next —
+              keys stay in the browser or signed externally.
+            </p>
+          </li>
+          <li>
+            <h3>Explore the chain</h3>
+            <p>
+              Browse live blocks, or genesis import under
+              <a href="/explorer/legacy/">legacy block 0</a>.
+            </p>
+          </li>
+        </ol>
+        <p style="margin-top: 1.75rem">
+          <a class="btn btn--primary" href="/wallet/">Open wallet</a>
+          <a class="btn btn--outline" href="/explorer/" style="margin-left: 0.5rem">Explorer</a>
+        </p>
+      </section>
+
+      <section id="install" class="section section--alt">
+        <h2>Install</h2>
+        <p>
+          From a checkout of this repository (Rust toolchain required). Serves
+          the HTTP API and this static tree — including
+          <code>/repos/</code> for package clones.
+        </p>
+        <pre class="install-cmd" tabindex="0"><code>cargo run -p guld-node -- \
+  --datadir ./.guld-data \
+  --rpc 127.0.0.1:8545 \
+  --http 127.0.0.1:8080 \
+  --http-static . \
+  --dev</code></pre>
+        <p style="margin-top: 1rem">
+          Then open <a href="http://127.0.0.1:8080/wallet/">http://127.0.0.1:8080/wallet/</a>.
+          Full flags and legacy import: see the repo <a href="/README.md">README</a>.
+        </p>
       </section>
 
       <section id="thesis" class="section">
@@ -89,34 +132,9 @@
           </div>
         </div>
       </section>
-
-      <section id="architecture" class="section section--alt">
-        <h2>Three planes</h2>
-        <p>
-          <strong>Consensus</strong> commits headers and fees.
-          <strong>State</strong> maps names to accounts, keys, thresholds, and balances.
-          <strong>Objects</strong> hold content-addressed homes — optional git and PGP stay leaf tools, not the consensus bus.
-        </p>
-        <p>
-          Fees follow a Bitcoin-style weight market in GULD. The reserved account
-          <code>guld</code> carries protocol software; full nodes must clone it.
-        </p>
-        <p style="margin-top: 1.5rem">
-          <a class="btn btn--primary" href="/whitepaper/">Whitepaper (draft)</a>
-          <a class="btn btn--outline" href="/specs/?doc=00-overview" style="margin-left: 0.5rem">Spec overview</a>
-        </p>
-      </section>
     </main>
 
-    <footer class="site-footer">
-      <img src="/assets/guld.svg" width="32" height="32" alt="" />
-      <p>
-        Guld 2.0 · <a href="https://guld.io/">guld.io</a> ·
-        <a href="/whitepaper/">Whitepaper</a> ·
-        <a href="/specs/">Specs</a> ·
-        <a href="/explorer/">Explorer</a>
-      </p>
-    </footer>
+    <guld-footer></guld-footer>
 
     <script type="module" src="/src/js/app.js"></script>
   </body>

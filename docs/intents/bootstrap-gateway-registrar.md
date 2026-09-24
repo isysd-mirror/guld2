@@ -1,7 +1,7 @@
 # Intent: Optional paid registrar (any peer + third-party gateway)
 
-Status: accepted  
-**Related:** [`../specs/16-sponsored-registration.md`](../specs/16-sponsored-registration.md), [`pwa-reference-wallet.md`](pwa-reference-wallet.md), [`../specs/14-reference-ui.md`](../specs/14-reference-ui.md)
+Status: accepted (Paymento desk wiring in progress on guld.io)  
+**Related:** [`../specs/16-sponsored-registration.md`](../specs/16-sponsored-registration.md), [`pwa-reference-wallet.md`](pwa-reference-wallet.md), [`../specs/14-reference-ui.md`](../specs/14-reference-ui.md), [`../specs/12-rpc.md`](../specs/12-rpc.md)
 
 ## Decision
 
@@ -25,18 +25,58 @@ This is **convenience for onboarding**, not protocol authority.
 ```text
 Registrant (any wallet copy)
   → pick name, keys, sign intent (spec 16 JSON)
-  → pay via registrar’s published gateway (Stripe, BTCPay, …)
-  → registrar’s automation sees payment
+  → pay via registrar’s published gateway (Paymento link, …)
+  → registrar’s automation sees payment (webhook)
   → RegisterUsername as payer (registrar’s name)
   → registrant polls until name exists
 ```
 
 Friend-sponsor (no payment) remains first-class and MUST work without any gateway.
 
+## First supported provider: Paymento
+
+Non-custodial crypto payments ([API overview](https://docs.paymento.io/api-documentation/api-overview), [Payment Links](https://docs.paymento.io/payment-links), [Payment Callback / IPN](https://docs.paymento.io/api-documentation/payment-callback)). Funds settle to the merchant wallet; the gateway only notifies.
+
+Paymento has **two** notification channels. Use the **same** URL for both:
+
+| Channel | When | Config |
+|---------|------|--------|
+| **Payment Link webhook** | Fixed pay links | Per-link Advanced → Webhook |
+| **Store IPN** | Gateway API (`/v1/payment/…` token flow) | Store settings / [Set Payment Settings](https://docs.paymento.io/api-documentation/additional-apis/manage-payment-settings) |
+
+| Item | guld.io bootstrap |
+|------|-------------------|
+| Payment link | `https://app.paymento.io/payment-link/f1b2b2d170344105b0464c0944db2e21` |
+| Webhook **and** IPN URL | `https://guld.io/api/v1/payment-gateway-webhook` |
+| IPN method | HTTP POST (`IPN_Method = 1`) |
+| Verify | HMAC-SHA256 of **raw** body vs `X-Paymento-Signature` (links) or `X-HMAC-SHA256-SIGNATURE` (IPN, often uppercase hex) |
+| Secret env | `PAYMENTO_WEBHOOK_SECRET` (never commit) |
+
+IPN body (gateway) looks like `{ "Token", "PaymentId", "OrderId", "OrderStatus", "AdditionalData" }` — status **7 = Paid**, **8 = Approve**. Payment Link bodies use `{ "event": { "id", "type" }, … }`. The node accepts both on one route.
+
+Dashboard warning “IPN URL Not Configured” means set the **store** IPN to that URL (in addition to the payment-link webhook you already set). Without IPN, gateway API / plugin payments will not notify `guld-node`.
+
+### Node flags
+
+```bash
+export PAYMENTO_WEBHOOK_SECRET='…'   # from Paymento settings
+cargo run -p guld-node -- \
+  --http 0.0.0.0:8080 \
+  --http-static . \
+  --registrar-payment-link default \
+  …
+```
+
+- `--registrar-payment-link default` → published guld.io Paymento link  
+- Or `--registrar-payment-link https://…` / env `GULD_REGISTRAR_PAYMENT_LINK`  
+- `GET /api/v1/registrar` → `{ enabled, provider, paymentLink, … }` for the PWA  
+
+Webhook events are persisted under `.guld-data/registrar/webhooks/<event.id>.json` (idempotent). **Auto sponsor fulfill** (sign + mempool) waits on wiring registrar payer keys — until then ops can fulfill manually from the queued event + registration request.
+
 ## Product shape (reference software)
 
 - **Optional feature** in the reference wallet / node tooling: “Accept paid registrations.”  
-- User connects **credentials / webhook** for a **supported** third-party provider (allowlist, not every processor on earth day one).  
+- User connects **credentials / webhook** for a **supported** third-party provider (allowlist).  
 - Fulfillment reuses the same registration-request JSON as friend-sponsor.  
 - Off by default; no GULD → feature useless until funded.
 
@@ -55,8 +95,12 @@ guld.io may ship with the feature **on** for isysd during bootstrap; clones defa
 - Requiring payment to claim legacy 1.0 balances  
 - Custodial holding of the registrant’s spend keys  
 
-## Implementation notes (later)
+## Implementation checklist
 
-- Provider adapters behind a small interface (webhook verify → enqueue sponsor tx).  
-- Clear UI: “This peer sells sponsorships; any other sponsor also works.”  
-- Price in foreign units is off-chain policy; on-chain fee remains `F_*` + inclusion.
+- [x] Document Paymento as provider #1 + guld.io link/webhook **and IPN**  
+- [x] `POST /api/v1/payment-gateway-webhook` (HMAC verify; payment-link + IPN; idempotent store)  
+- [x] `GET /api/v1/registrar` public desk config  
+- [ ] Wallet UI: show pay link when registrar enabled; attach registration request metadata  
+- [ ] Auto `RegisterUsername` as payer after paid / OrderStatus 7–8  
+- [ ] Optional: call Paymento Verify Payment API before fulfill  
+- [ ] Clear UI: “This peer sells sponsorships; any other sponsor also works.”

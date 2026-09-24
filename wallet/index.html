@@ -24,24 +24,14 @@
     <link rel="stylesheet" href="/src/css/wallet.css" />
     <title>Wallet — Guld</title>
   </head>
-  <body>
-    <header class="site-header site-header--solid">
-      <a class="site-header__brand" href="/" aria-label="Guld home">
-        <img src="/assets/logo.svg" width="120" height="40" alt="Guld" />
-      </a>
-      <nav class="site-header__nav" aria-label="Primary">
-        <a href="/whitepaper/">Whitepaper</a>
-        <a href="/specs/">Specs</a>
-        <a href="/explorer/">Explorer</a>
-        <a href="/wallet/" aria-current="page">Wallet</a>
-      </nav>
-    </header>
+  <body class="site-body">
+    <guld-header></guld-header>
 
-    <main class="wallet" id="main">
+    <main class="site-main wallet" id="main">
       <header class="wallet__head">
         <h1>Wallet</h1>
         <p>
-          Reference wallet on guld.io — lookup today; register and send coming soon.
+          Reference wallet — lookup today; register and send coming soon.
           Keys stay in your browser (encrypted) or sign externally if you prefer.
         </p>
       </header>
@@ -67,14 +57,7 @@
       </div>
     </main>
 
-    <footer class="site-footer">
-      <img src="/assets/guld.svg" width="32" height="32" alt="" />
-      <p>
-        <a href="/explorer/">Explorer</a> ·
-        <a href="/specs/?doc=12-rpc">RPC</a> ·
-        <a href="/api/docs">API docs</a> (dev)
-      </p>
-    </footer>
+    <guld-footer></guld-footer>
 
     <script type="module" src="/src/js/wallet-page.js"></script>
   </body>

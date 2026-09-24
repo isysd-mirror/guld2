@@ -1,7 +1,5 @@
-import { registerServiceWorker } from "./register-sw.js";
+import "./chrome.js";
 import { renderMarkdownDoc } from "./lib/doc-render.js";
-
-registerServiceWorker();
 
 const host = document.querySelector("[data-doc-host]");
 if (host instanceof HTMLElement) {

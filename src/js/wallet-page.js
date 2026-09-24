@@ -1,8 +1,7 @@
-import { registerServiceWorker } from "./register-sw.js";
+import "./chrome.js";
 import { apiGet, persistApiBase, resolveApiBase } from "./lib/api.js";
 import { escapeHtml, formatTime, quantaToGuld, summarizeTx } from "./lib/rpc.js";
-
-registerServiceWorker();
+import { getActiveName, setActiveName } from "./lib/wallet-session.js";
 
 const statusEl = document.querySelector("[data-wallet-status]");
 const hostEl = document.querySelector("[data-wallet-host]");
@@ -21,6 +20,11 @@ if (apiInput instanceof HTMLInputElement) {
     persistApiBase(apiBase);
     route();
   });
+}
+
+if (nameInput instanceof HTMLInputElement) {
+  const active = getActiveName();
+  if (active && !nameInput.value) nameInput.value = active;
 }
 
 nameInput?.addEventListener("keydown", (ev) => {
@@ -74,6 +78,7 @@ async function route() {
   }
 
   if (nameInput instanceof HTMLInputElement) nameInput.value = r.name;
+  setActiveName(r.name);
   hostEl.innerHTML = `<p class="doc-status">Loading ${escapeHtml(r.name)}…</p>`;
   setStatus("Loading…", "pending");
 
