@@ -101,7 +101,7 @@ export function shortHash(h, keep = 10) {
 }
 
 /**
- * Summarize a tx for list rows.
+ * Summarize a raw chain tx (explorer / mempool JSON with `type`).
  * @param {Record<string, unknown>} tx
  */
 export function summarizeTx(tx) {
@@ -134,5 +134,48 @@ export function summarizeTx(tx) {
       return { type, primary: String(tx.name || ""), amount: "—" };
     default:
       return { type, primary: "—", amount: "—" };
+  }
+}
+
+/**
+ * Summarize `guld_getAccountActivity` / HTTP activity items
+ * (`kind`, `direction`, `amount`, `counterparty`, `height` — not nested `tx`).
+ * @param {Record<string, unknown>} item
+ */
+export function summarizeActivity(item) {
+  if (item && item.tx && typeof item.tx === "object") {
+    return summarizeTx(/** @type {Record<string, unknown>} */ (item.tx));
+  }
+  const kind = String(item.kind || item.type || "unknown");
+  const amount =
+    item.amount != null && item.amount !== ""
+      ? quantaToGuld(/** @type {string} */ (item.amount))
+      : "—";
+  const cp = item.counterparty != null ? String(item.counterparty) : "";
+  const dir = item.direction != null ? String(item.direction) : "";
+
+  switch (kind) {
+    case "coinbase":
+      return { type: kind, primary: "block reward", amount };
+    case "transfer":
+      if (dir === "out" && cp) return { type: kind, primary: `→ ${cp}`, amount };
+      if (dir === "in" && cp) return { type: kind, primary: `← ${cp}`, amount };
+      return { type: kind, primary: cp || "—", amount };
+    case "claim_legacy":
+      return { type: kind, primary: "claim", amount: "—" };
+    case "register":
+    case "register_group":
+    case "register_subaccount":
+      return {
+        type: kind,
+        primary: cp ? (dir === "out" ? `sponsored ${cp}` : `via ${cp}`) : "registration",
+        amount,
+      };
+    case "update_master":
+    case "rotate_keys":
+    case "settle_registration":
+      return { type: kind, primary: cp || "—", amount: "—" };
+    default:
+      return { type: kind, primary: cp || "—", amount };
   }
 }

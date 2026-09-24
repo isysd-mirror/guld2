@@ -37,7 +37,7 @@ Legacy deploy snippets that serve files from `/var/www/guld.io` directly are tra
 
 | Concern | Path | Served how | Audience |
 |---------|------|------------|----------|
-| **Software remotes** | `repos/<name>.git` under the site root | **`guld-node`** (`--http-static`); same origin as the wallet | Devs cloning `guld-types`, … |
+| **Software remotes** | `repos/<name>.git` under the site root | **`guld-node`** (`--http-static`); same origin as the wallet | Devs cloning **`guld.git`** (umbrella) or individual packages |
 | **Content / meta-FS homes** | `/srv/guld/<owner>/<repo>.git` | Leaf-host / guld hooks (not the marketing site) | End-user account data |
 
 Layout / clone URLs: [`REPO_LAYOUT.md`](REPO_LAYOUT.md).
@@ -58,10 +58,11 @@ Layout / clone URLs: [`REPO_LAYOUT.md`](REPO_LAYOUT.md).
 
 **v1 — dumb HTTP** (node serves bare files via `ServeDir` / equivalent):
 
-1. Push into the bare (`origin` → `repos/<name>.git`).
-2. `git update-server-info` (hook `post-update`).
-3. **`guld-node`** serves `repos/<name>.git/**` as ordinary files (missing paths **404** — never fall back to `index.html`).
-4. `git clone <origin>/repos/<name>.git`.
+1. **Manifest** — `data/software-repos.json` lists expected bare HEADs (committed in umbrella).
+2. **Materialize** — `guld-node --repos sync --http-static .` builds `repos/*.git` from local submodule checkouts at pinned SHAs (no trusting network download).
+3. **Publish (maintainer)** — `--repos publish` pushes worktree HEAD → bare; refresh manifest with `./scripts/update-software-repos-manifest.sh`.
+4. **`guld-node`** serves `repos/<name>.git/**` as ordinary files (missing paths **404** — never fall back to `index.html`).
+5. `git clone https://guld.io/repos/<name>.git` (official distribution URL in `.gitmodules`).
 
 **Later — smart HTTP:** implement in **`guld-node`** (or a helper it owns) in front of the same `repos/*.git` paths. Keep URL `/repos/<name>.git`. Not `git-http-backend` in nginx; not iramillercom `igithost`.
 

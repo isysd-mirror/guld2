@@ -40,30 +40,32 @@ Details: [`../HOSTING.md`](../HOSTING.md), [`../REPO_LAYOUT.md`](../REPO_LAYOUT.
 
 ### B — Catalog UI
 
-- [ ] `software/index.html` — list packages from a manifest or `.gitmodules` parse
-- [ ] Per-package page: role (from [`../PACKAGES.md`](../PACKAGES.md)), README render, clone box
-- [ ] Shared CSS tokens; match existing site language
+- [x] `software/index.html` — list packages from `data/software.json`
+- [x] Per-package page: role, README render, clone box (`guld-repo-view` web component)
+- [x] Shared CSS tokens; match existing site language
 
 ### C — Read-only git display
 
-- [ ] Show default branch HEAD, shortlog, and/or file tree via dumb HTTP and/or **guld-node** helper routes
-- [ ] Deep link “View source” ↔ paths under `src/<name>/`
+- [x] Show default branch HEAD and file tree via **guld-node** `/api/v1/repos/*` (git subprocess on bare repos)
+- [x] GitHub-style URLs: `/software/<name>/tree/<ref>/…` and `/blob/…`
 
 ### D — Polish
 
-- [ ] Switch `.gitmodules` URLs to same-origin `/repos/…` (or `https://guld.io/repos/…` for the bootstrap mirror)
+- [x] `.gitmodules` URLs → `https://guld.io/repos/…`
+- [x] `data/software-repos.json` manifest + `guld-node --repos verify|sync|publish`
 - [ ] Optional smart HTTP in node
 
 ## Non-goals
 
 - Issues / PRs / CI UI
 - Hosting arbitrary third-party repos on guld.io
+- Treating guld.io DNS as protocol authority (see [`guld-leaf-site-and-miner-governance.md`](guld-leaf-site-and-miner-governance.md))
 - Replacing `/srv/guld` content homes
 - Implementing git semantics in nginx
 
 ## Acceptance
 
-- [ ] `/software/` lists all current `repos/*.git` packages with correct clone URLs
-- [ ] At least one package page renders README + clone instructions
+- [x] `/software/` lists all current `repos/*.git` packages with correct clone URLs
+- [x] At least one package page renders README + clone instructions
 - [ ] `git clone` against a peer’s `guld-node` `/repos/<name>.git` works from a clean machine
 - [ ] Docs stay consistent with node-first hosting

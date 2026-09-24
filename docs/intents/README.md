@@ -30,6 +30,7 @@ Document planned work here before large implementation slices.
 | Intent | Summary |
 |--------|---------|
 | [`wallet-contacts-and-account-lookup.md`](wallet-contacts-and-account-lookup.md) | Contacts, explorer lookup, QR contact card |
+| [`guld-leaf-site-and-miner-governance.md`](guld-leaf-site-and-miner-governance.md) | guld.io in `guld` leaf; miners govern gateway roster only (scoped) |
 
 Template:
 

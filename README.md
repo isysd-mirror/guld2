@@ -14,7 +14,8 @@ Design SoT: [`docs/whitepaper/guld-2.0-draft.md`](docs/whitepaper/guld-2.0-draft
 | `software/` | (next) package catalog / clone UI |
 | `src/css`, `src/js` | Site assets (umbrella) |
 | `src/guld-*` | Package **submodules** (node, client, wallet, …) |
-| `repos/*.git` | Bare remotes — clone via `https://guld.io/repos/<name>.git` |
+| `repos/guld.git` | **Umbrella bare** — site + docs + submodule pins ([clone first](https://guld.io/repos/guld.git)) |
+| `repos/*.git` | Package bares — `https://guld.io/repos/<name>.git` |
 | `docs/` | Specs, whitepaper, intents (markdown SoT; site fetches these paths) |
 | `deploy/` | Operator nginx / bind-mount / publish |
 | `test/` | JS site tests (`node --test`) |
@@ -30,12 +31,15 @@ cargo test
 # Node HTTP API + this tree as static site
 # → http://127.0.0.1:8080/wallet/
 # Do not expose archives/, target/, .guld-data/ in production publishes.
-# Do publish repos/*.git (dumb HTTP clone at /repos/<name>.git).
+# Materialize gitignored bare remotes from local submodules (hash-checked manifest):
+#   --repos sync   verify + create repos/*.git from worktrees at pinned SHAs
+#   --repos publish   maintainer: push worktrees → bares
 cargo run -p guld-node -- \
   --datadir ./.guld-data \
   --rpc 127.0.0.1:8545 \
   --http 127.0.0.1:8080 \
   --http-static . \
+  --repos sync \
   --dev \
   --keys-pgp archives/keys-pgp \
   --import-ledger archives/ledger-guld/ledger-guld/guld-ledger-all.dat \
@@ -47,7 +51,11 @@ cargo run -p guld-wallet
 # Site JS tests (optional)
 node --test test/*.test.js
 
-# Clone a package (once the site is serving repos/)
+# Clone the whole project (recommended)
+# git clone https://guld.io/repos/guld.git
+# cd guld && git submodule update --init --recursive
+
+# Or clone a single package
 # git clone https://guld.io/repos/guld-types.git
 # git clone http://127.0.0.1:8080/repos/guld-types.git
 ```

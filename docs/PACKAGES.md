@@ -2,12 +2,26 @@
 
 See [`REPO_LAYOUT.md`](REPO_LAYOUT.md). This repo root is also the static website, served by **`guld-node --http-static`**. Each `src/guld-*` package is a **submodule** whose bare remote is `repos/<name>.git` at `<http-origin>/repos/<name>.git` ([`HOSTING.md`](HOSTING.md)).
 
-## Site (umbrella)
+## Umbrella (`repos/guld.git`)
+
+The **whole project** — static site, docs, Cargo workspace, submodule pins. Clone this first:
+
+```bash
+git clone https://guld.io/repos/guld.git
+cd guld && git submodule update --init --recursive
+```
+
+Bare on disk: `repos/guld.git` (gitignored; materialize with `--repos sync`) · working tree: repo root · branch: `guld`.
+
+Submodule URLs in `.gitmodules` point at **`https://guld.io/repos/<name>.git`**. Pinned bare HEADs: `data/software-repos.json`.
+
+## Site (umbrella working tree)
 
 | Path | Role |
 |------|------|
 | `index.html`, `wallet/`, `explorer/`, … | Static PWA routes |
-| `software/` | (next) package catalog / clone UI — [`intents/software-browser.md`](intents/software-browser.md) |
+| `software/` | Package catalog + source browser — [`intents/software-browser.md`](intents/software-browser.md) |
+| `data/software.json` | Catalog metadata merged with live `/api/v1/repos` |
 | `src/css`, `src/js` | Framework-less site assets |
 | `docs/` | Specs / whitepaper markdown (fetched as `/docs/…`) |
 | `repos/*.git` | Bare remotes (on disk; gitignored; HTTP clone) |

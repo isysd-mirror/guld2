@@ -8,7 +8,7 @@ import { initialsForName } from "../src/js/lib/wallet-session.js";
 
 const root = join(dirname(fileURLToPath(import.meta.url)), "..");
 
-test("index has brand-level logo and wallet/install CTAs", () => {
+test("index has brand-level logo and signup/login CTAs", () => {
   const html = readFileSync(join(root, "index.html"), "utf8");
   assert.match(html, /assets\/logo\.svg/);
   assert.match(html, /Address by name/i);
@@ -16,7 +16,8 @@ test("index has brand-level logo and wallet/install CTAs", () => {
   assert.match(html, /Guld 2\.0|2\.0/);
   assert.match(html, /guld-header/);
   assert.match(html, /guld-footer/);
-  assert.match(html, /Open wallet/);
+  assert.match(html, /Sign up/);
+  assert.match(html, /Log in/);
   assert.match(html, /id="install"/);
   assert.match(html, /cargo run -p guld-node/);
   assert.doesNotMatch(html, /site-header__nav/);
@@ -27,6 +28,12 @@ test("index has brand-level logo and wallet/install CTAs", () => {
 test("pages share guld-header and guld-footer chrome", () => {
   for (const page of [
     "wallet/index.html",
+    "register/index.html",
+    "login/index.html",
+    "settings/index.html",
+    "gateway/index.html",
+    "help/index.html",
+    "help/paymento/index.html",
     "explorer/index.html",
     "explorer/legacy/index.html",
     "whitepaper/index.html",
@@ -49,7 +56,7 @@ test("header nav is product; docs live in footer", () => {
   );
   assert.deepEqual(
     FOOTER_NAV.map((i) => i.label),
-    ["Whitepaper", "Specs", "Software", "Hosting"],
+    ["Whitepaper", "Specs", "Help", "Software", "Hosting"],
   );
   assert.ok(!HEADER_NAV.some((i) => /whitepaper|specs/i.test(i.label)));
 });

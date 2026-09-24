@@ -4,6 +4,10 @@
   padding: clamp(1.5rem, 4vw, 2.5rem);
 }
 
+.wallet--wide {
+  max-width: 48rem;
+}
+
 .wallet__head h1 {
   margin: 0 0 0.35rem;
 }
@@ -21,19 +25,53 @@
   margin-bottom: 1.5rem;
 }
 
-.wallet__bar label {
+.wallet__bar label,
+.wallet__form label {
   display: grid;
   gap: 0.25rem;
   font-size: 0.82rem;
   flex: 1 1 12rem;
 }
 
-.wallet__bar input {
+.wallet__bar input,
+.wallet__form input,
+.wallet__form select {
   font: inherit;
   padding: 0.45rem 0.55rem;
   border: 1px solid color-mix(in srgb, var(--guld-ink) 18%, transparent);
   border-radius: 0.25rem;
   width: 100%;
+  background: var(--guld-white);
+}
+
+.wallet__form {
+  display: grid;
+  gap: 1rem;
+  margin-bottom: 1.5rem;
+}
+
+.wallet__form fieldset {
+  border: 1px solid color-mix(in srgb, var(--guld-ink) 12%, transparent);
+  border-radius: 0.35rem;
+  padding: 1rem 1.1rem 1.15rem;
+  margin: 0;
+}
+
+.wallet__form legend {
+  font-weight: 600;
+  padding: 0 0.35rem;
+  color: var(--guld-navy);
+}
+
+.wallet__check {
+  display: flex !important;
+  align-items: center;
+  gap: 0.5rem;
+  font-size: 0.92rem;
+}
+
+.wallet__check input {
+  width: auto;
 }
 
 .wallet__lookup {
@@ -50,6 +88,16 @@
   font-size: 0.88rem;
   opacity: 0.75;
   margin: 0 0 1rem;
+}
+
+.wallet__status[data-state="ok"] {
+  opacity: 1;
+  color: var(--guld-navy);
+}
+
+.wallet__status[data-state="error"] {
+  opacity: 1;
+  color: #8b1e1e;
 }
 
 .wallet__card {
@@ -84,7 +132,9 @@
   margin: 0 0 0.65rem;
 }
 
-.wallet__activity ul {
+.wallet__activity ul,
+.wallet__account-list,
+.gateway-list {
   list-style: none;
   margin: 0;
   padding: 0;
@@ -99,6 +149,13 @@
   border-radius: 0.25rem;
 }
 
+.wallet__account-list li {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 0.65rem;
+}
+
 .wallet__empty {
   opacity: 0.7;
   font-size: 0.92rem;
@@ -110,4 +167,121 @@
   background: var(--guld-mist);
   border-radius: 0.25rem;
   font-size: 0.88rem;
+}
+
+.register-steps {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.5rem;
+  list-style: none;
+  margin: 0 0 1.25rem;
+  padding: 0;
+  counter-reset: reg;
+}
+
+.register-steps li {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.3rem;
+  counter-increment: reg;
+  font-size: 0.82rem;
+  opacity: 0.55;
+  padding: 0.35rem 0.65rem;
+  border-radius: 0.25rem;
+  background: var(--guld-mist);
+  position: static;
+}
+
+.register-steps li::before {
+  content: counter(reg);
+  display: inline-grid;
+  place-items: center;
+  min-width: 1.15rem;
+  height: 1.15rem;
+  border-radius: 999px;
+  background: color-mix(in srgb, var(--guld-ink) 14%, transparent);
+  font-weight: 600;
+  font-size: 0.72rem;
+  position: static;
+}
+
+.register-steps li.is-active {
+  opacity: 1;
+  background: color-mix(in srgb, var(--guld-primary) 18%, var(--guld-mist));
+  color: var(--guld-navy);
+}
+
+.register-steps li.is-done {
+  opacity: 0.85;
+}
+
+.gateway-order {
+  display: grid;
+  gap: 0.35rem;
+  padding: 0.85rem 1rem;
+  background: var(--guld-white);
+  border: 1px solid color-mix(in srgb, var(--guld-ink) 12%, transparent);
+  border-radius: 0.35rem;
+}
+
+.gateway-order.is-focus {
+  border-color: var(--guld-primary);
+}
+
+.gateway-order__actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.5rem;
+  margin-top: 0.35rem;
+}
+
+.guld-toast-host {
+  position: fixed;
+  right: 1rem;
+  bottom: 1rem;
+  z-index: 80;
+  display: grid;
+  gap: 0.65rem;
+  max-width: min(22rem, calc(100vw - 2rem));
+}
+
+.guld-toast {
+  position: relative;
+  padding: 0.9rem 2rem 0.9rem 1rem;
+  background: var(--guld-navy);
+  color: #fff;
+  border-radius: 0.35rem;
+  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.22);
+}
+
+.guld-toast__title {
+  margin: 0 0 0.25rem;
+  font-weight: 600;
+  color: #fff;
+  font-family: var(--font-display);
+}
+
+.guld-toast__body {
+  margin: 0 0 0.65rem;
+  font-size: 0.88rem;
+  opacity: 0.9;
+  color: #fff;
+  max-width: none;
+}
+
+.guld-toast__action {
+  font-size: 0.85rem;
+  padding: 0.4rem 0.75rem;
+}
+
+.guld-toast__close {
+  position: absolute;
+  top: 0.35rem;
+  right: 0.45rem;
+  border: 0;
+  background: transparent;
+  color: rgba(255, 255, 255, 0.75);
+  font-size: 1.25rem;
+  line-height: 1;
+  cursor: pointer;
 }

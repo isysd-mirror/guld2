@@ -20,9 +20,11 @@ SoT map: [`../REPO_LAYOUT.md`](../REPO_LAYOUT.md) · serving: [`../HOSTING.md`](
 - [x] Create `repos/` and seed each `src/guld-*` into `repos/<name>.git`
 - [x] Set each working tree’s `origin` → matching bare (**do not** replace `src/` trees)
 - [x] Register submodules in `.gitmodules` + gitlinks
+- [x] Bare umbrella at `repos/guld.git`; umbrella `origin` → that bare; relative submodule URLs
 - [ ] First umbrella commit on branch `isysd` (site + docs + `.gitmodules`; no `archives/`, venvs, `repos/` objects)
 - [ ] Harden `guld-node` static (`/repos/` + denylist); smoke `git ls-remote` against `--http`
-- [ ] Switch `.gitmodules` / origins to same-origin `/repos/<name>.git` (or guld.io HTTPS when that host proxies to node)
+- [x] `.gitmodules` → `https://guld.io/repos/<name>.git` (official distribution)
+- [x] `guld-node --repos verify|sync|publish` + `data/software-repos.json`
 
 ## Next
 

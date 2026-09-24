@@ -1,36 +1,36 @@
 [submodule "guld-api"]
 	path = src/guld-api
-	url = /home/isysd/Projects/guld/repos/guld-api.git
+	url = https://guld.io/repos/guld-api.git
 [submodule "guld-cas"]
 	path = src/guld-cas
-	url = /home/isysd/Projects/guld/repos/guld-cas.git
+	url = https://guld.io/repos/guld-cas.git
 [submodule "guld-client"]
 	path = src/guld-client
-	url = /home/isysd/Projects/guld/repos/guld-client.git
+	url = https://guld.io/repos/guld-client.git
 [submodule "guld-consensus"]
 	path = src/guld-consensus
-	url = /home/isysd/Projects/guld/repos/guld-consensus.git
+	url = https://guld.io/repos/guld-consensus.git
 [submodule "guld-crypto"]
 	path = src/guld-crypto
-	url = /home/isysd/Projects/guld/repos/guld-crypto.git
+	url = https://guld.io/repos/guld-crypto.git
 [submodule "guld-extension"]
 	path = src/guld-extension
-	url = /home/isysd/Projects/guld/repos/guld-extension.git
+	url = https://guld.io/repos/guld-extension.git
 [submodule "guld-js"]
 	path = src/guld-js
-	url = /home/isysd/Projects/guld/repos/guld-js.git
+	url = https://guld.io/repos/guld-js.git
 [submodule "guld-legacy"]
 	path = src/guld-legacy
-	url = /home/isysd/Projects/guld/repos/guld-legacy.git
+	url = https://guld.io/repos/guld-legacy.git
 [submodule "guld-node"]
 	path = src/guld-node
-	url = /home/isysd/Projects/guld/repos/guld-node.git
+	url = https://guld.io/repos/guld-node.git
 [submodule "guld-state"]
 	path = src/guld-state
-	url = /home/isysd/Projects/guld/repos/guld-state.git
+	url = https://guld.io/repos/guld-state.git
 [submodule "guld-types"]
 	path = src/guld-types
-	url = /home/isysd/Projects/guld/repos/guld-types.git
+	url = https://guld.io/repos/guld-types.git
 [submodule "guld-wallet"]
 	path = src/guld-wallet
-	url = /home/isysd/Projects/guld/repos/guld-wallet.git
+	url = https://guld.io/repos/guld-wallet.git

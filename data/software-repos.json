@@ -1,0 +1,84 @@
+{
+  "version": 1,
+  "distribution": "https://guld.io/repos",
+  "repos": [
+    {
+      "name": "guld",
+      "path": ".",
+      "branch": "guld",
+      "commit": "16dcf4a7eb1a4216a6099bbbec6dd1e67cefbe82"
+    },
+    {
+      "name": "guld-api",
+      "path": "src/guld-api",
+      "branch": "main",
+      "commit": "16af62f1f546e2bb6d5071f1c0969ac29a103760"
+    },
+    {
+      "name": "guld-cas",
+      "path": "src/guld-cas",
+      "branch": "main",
+      "commit": "815309a1344879d48499885640d3848604393511"
+    },
+    {
+      "name": "guld-client",
+      "path": "src/guld-client",
+      "branch": "main",
+      "commit": "0e325468bcc20627b895e21076aec1eea5b2f4fe"
+    },
+    {
+      "name": "guld-consensus",
+      "path": "src/guld-consensus",
+      "branch": "main",
+      "commit": "abaeb0be4f2938b95ab560dd853f525c117b2846"
+    },
+    {
+      "name": "guld-crypto",
+      "path": "src/guld-crypto",
+      "branch": "main",
+      "commit": "450600a37447c9684c2ebb05ba6c63255c2f0a41"
+    },
+    {
+      "name": "guld-extension",
+      "path": "src/guld-extension",
+      "branch": "isysd",
+      "commit": "7f6b20088cef3ca7bf964c3400220b82807d6864"
+    },
+    {
+      "name": "guld-js",
+      "path": "src/guld-js",
+      "branch": "main",
+      "commit": "f2391e2ef1b56730856b9c0494fcaa62050baaec"
+    },
+    {
+      "name": "guld-legacy",
+      "path": "src/guld-legacy",
+      "branch": "main",
+      "commit": "a2252c5278d2a81c56eed8db5fac65f528828189"
+    },
+    {
+      "name": "guld-node",
+      "path": "src/guld-node",
+      "branch": "main",
+      "commit": "566a7238513952e5e8ad8b9525493b75ef80ec0f"
+    },
+    {
+      "name": "guld-state",
+      "path": "src/guld-state",
+      "branch": "main",
+      "commit": "11e8d561edaf0f7cc30a503d8dbf30306f66ca63"
+    },
+    {
+      "name": "guld-types",
+      "path": "src/guld-types",
+      "branch": "main",
+      "commit": "1e6fdc380b202e36c27127725c965d22fcd11c1e"
+    },
+    {
+      "name": "guld-wallet",
+      "path": "src/guld-wallet",
+      "branch": "main",
+      "commit": "89711a0cd8626a761b594e253c571faf96616140"
+    }
+  ]
+}

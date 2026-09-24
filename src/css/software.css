@@ -1,0 +1,351 @@
+/* Software explorer — catalog + GitHub-style repo browser */
+
+.software-main {
+  max-width: 56rem;
+  margin: 0 auto;
+  padding: clamp(1.5rem, 4vw, 2.5rem) var(--space);
+}
+
+.software-profile {
+  display: grid;
+  gap: 0.75rem;
+  margin-bottom: 2rem;
+}
+
+.software-profile h1 {
+  margin: 0;
+  font-size: clamp(1.8rem, 4vw, 2.4rem);
+  color: var(--guld-navy);
+}
+
+.software-profile__lede,
+.software-profile__meta {
+  margin: 0;
+  max-width: 42rem;
+  color: var(--guld-ink);
+  line-height: 1.55;
+}
+
+.software-profile__meta {
+  font-size: 0.92rem;
+  opacity: 0.85;
+}
+
+.kicker {
+  margin: 0;
+  font-size: 0.75rem;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  color: var(--guld-primary);
+}
+
+.software-section {
+  display: grid;
+  gap: 1rem;
+  margin-bottom: 2.5rem;
+}
+
+.software-section h2 {
+  margin: 0;
+  font-size: 1.25rem;
+  color: var(--guld-navy);
+}
+
+.software-section__lead {
+  margin: 0;
+  font-size: 0.92rem;
+  color: var(--guld-ink);
+  opacity: 0.85;
+}
+
+.catalog__status {
+  margin: 0;
+  padding: 0.75rem 0;
+  color: var(--guld-ink);
+  opacity: 0.8;
+}
+
+.software-pins {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: grid;
+  gap: 0.75rem;
+  grid-template-columns: repeat(auto-fill, minmax(14rem, 1fr));
+}
+
+.software-pin {
+  display: grid;
+  gap: 0.35rem;
+  padding: 0.85rem 1rem;
+  border: 1px solid var(--guld-mist);
+  background: var(--guld-white);
+  text-decoration: none;
+  color: inherit;
+  transition: border-color 0.15s;
+}
+
+.software-pin:hover {
+  border-color: var(--guld-primary);
+}
+
+.software-pin__name {
+  font-weight: 600;
+  color: var(--guld-navy);
+}
+
+.software-pin__summary {
+  font-size: 0.88rem;
+  color: var(--guld-ink);
+  opacity: 0.85;
+}
+
+.software-table {
+  overflow-x: auto;
+  border: 1px solid var(--guld-mist);
+  background: var(--guld-white);
+}
+
+.software-table table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 0.92rem;
+}
+
+.software-table th,
+.software-table td {
+  padding: 0.65rem 0.85rem;
+  text-align: left;
+  border-bottom: 1px solid var(--guld-mist);
+  vertical-align: top;
+}
+
+.software-table tr:last-child td {
+  border-bottom: 0;
+}
+
+.software-table__sort {
+  font: inherit;
+  font-weight: 600;
+  color: var(--guld-navy);
+  background: none;
+  border: 0;
+  padding: 0;
+  cursor: pointer;
+}
+
+.software-table__sort[data-active="true"] {
+  color: var(--guld-primary);
+}
+
+.software-table__name {
+  font-weight: 600;
+  color: var(--guld-primary);
+  text-decoration: none;
+}
+
+.software-table__name:hover {
+  text-decoration: underline;
+}
+
+.software-table__desc {
+  max-width: 22rem;
+  color: var(--guld-ink);
+}
+
+.software-table__topics {
+  font-family: ui-monospace, monospace;
+  font-size: 0.8rem;
+  color: var(--guld-ink);
+  opacity: 0.85;
+}
+
+.software-table__commit {
+  white-space: nowrap;
+  font-size: 0.85rem;
+}
+
+.software-table tr.is-inactive {
+  opacity: 0.65;
+}
+
+/* Repo browser */
+.repo-view {
+  display: grid;
+  gap: 1.25rem;
+}
+
+.repo-head h1 {
+  margin: 0.25rem 0 0;
+  font-size: clamp(1.5rem, 3vw, 2rem);
+  color: var(--guld-navy);
+}
+
+.repo-head__summary {
+  margin: 0.35rem 0 0;
+  color: var(--guld-ink);
+  max-width: 42rem;
+}
+
+.repo-head__meta {
+  margin: 0.5rem 0 0;
+  font-family: ui-monospace, monospace;
+  font-size: 0.8rem;
+  color: var(--guld-ink);
+  opacity: 0.75;
+}
+
+.repo-clone {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 0.5rem 0.75rem;
+  margin-top: 0.75rem;
+  padding: 0.65rem 0.85rem;
+  background: var(--guld-navy);
+  color: var(--guld-white);
+}
+
+.repo-clone__label {
+  font-family: ui-monospace, monospace;
+  font-size: 0.68rem;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  opacity: 0.85;
+}
+
+.repo-clone code {
+  flex: 1 1 12rem;
+  font-size: 0.82rem;
+  word-break: break-all;
+}
+
+.repo-clone__copy {
+  font: inherit;
+  font-size: 0.8rem;
+  color: var(--guld-white);
+  background: transparent;
+  border: 1px solid rgba(255, 255, 255, 0.35);
+  padding: 0.3rem 0.65rem;
+  cursor: pointer;
+}
+
+.repo-clone__copy:hover {
+  border-color: var(--guld-white);
+}
+
+.repo-actions {
+  margin: 0;
+}
+
+.repo-actions a {
+  color: var(--guld-primary);
+  font-weight: 600;
+}
+
+.repo-crumbs {
+  font-family: ui-monospace, monospace;
+  font-size: 0.85rem;
+  color: var(--guld-ink);
+}
+
+.repo-crumbs a {
+  color: var(--guld-primary);
+}
+
+.repo-tree {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  border: 1px solid var(--guld-mist);
+  background: var(--guld-white);
+}
+
+.repo-tree li {
+  display: flex;
+  justify-content: space-between;
+  gap: 1rem;
+  padding: 0.55rem 0.85rem;
+  border-bottom: 1px solid var(--guld-mist);
+}
+
+.repo-tree li:last-child {
+  border-bottom: 0;
+}
+
+.repo-tree a {
+  color: var(--guld-navy);
+  text-decoration: none;
+}
+
+.repo-tree a:hover {
+  color: var(--guld-primary);
+  text-decoration: underline;
+}
+
+.repo-tree__dir a {
+  font-weight: 600;
+}
+
+.repo-tree__size {
+  font-family: ui-monospace, monospace;
+  font-size: 0.75rem;
+  color: var(--guld-ink);
+  opacity: 0.7;
+}
+
+.repo-blob {
+  margin: 0;
+  padding: 1rem;
+  overflow: auto;
+  font-family: ui-monospace, monospace;
+  font-size: 0.8rem;
+  line-height: 1.45;
+  background: #1a222c;
+  color: #e8edf4;
+  border: 1px solid var(--guld-mist);
+  white-space: pre;
+}
+
+.repo-readme {
+  display: grid;
+  gap: 0.75rem;
+  padding-top: 1rem;
+  border-top: 1px solid var(--guld-mist);
+}
+
+.repo-readme h2 {
+  margin: 0;
+  font-size: 1.1rem;
+}
+
+.repo-readme__path {
+  margin: 0;
+  font-family: ui-monospace, monospace;
+  font-size: 0.75rem;
+  opacity: 0.75;
+}
+
+.repo-readme__body {
+  max-width: 48rem;
+}
+
+.repo-readme__body pre {
+  overflow: auto;
+  padding: 0.75rem;
+  background: #1a222c;
+  color: #e8edf4;
+  font-size: 0.8rem;
+}
+
+.repo-readme__body code {
+  font-family: ui-monospace, monospace;
+  font-size: 0.85em;
+}
+
+@media (max-width: 640px) {
+  .software-table th:nth-child(3),
+  .software-table td:nth-child(3) {
+    display: none;
+  }
+}

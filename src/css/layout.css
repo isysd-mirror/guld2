@@ -65,6 +65,44 @@ guld-header {
   gap: 1.25rem;
 }
 
+.site-header__auth {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+.site-header__cta {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  padding: 0.4rem 0.75rem;
+  border-radius: 0.25rem;
+  text-decoration: none;
+  font-size: 0.88rem;
+  font-weight: 600;
+  border: 1px solid transparent;
+}
+
+.site-header__cta--ghost {
+  color: rgba(255, 255, 255, 0.92);
+  border-color: rgba(255, 255, 255, 0.35);
+}
+
+.site-header__cta--ghost:hover {
+  color: #fff;
+  border-color: rgba(255, 255, 255, 0.7);
+}
+
+.site-header__cta--primary {
+  background: var(--guld-primary);
+  color: #fff;
+}
+
+.site-header__cta--primary:hover {
+  background: color-mix(in srgb, var(--guld-primary) 80%, #fff);
+  color: #fff;
+}
+
 .site-nav__list {
   display: flex;
   flex-wrap: wrap;

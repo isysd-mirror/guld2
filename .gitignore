@@ -8,8 +8,7 @@ github-mirror
 .env
 .env.*
 !.env.example
-.guld-data/
-.guld-data-dev/
+.guld-data*
 **/.venv/
 **/__pycache__/
 **/*.pyc

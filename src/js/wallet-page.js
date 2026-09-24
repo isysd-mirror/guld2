@@ -1,6 +1,7 @@
 import "./chrome.js";
 import { apiGet, persistApiBase, resolveApiBase } from "./lib/api.js";
-import { escapeHtml, formatTime, quantaToGuld, summarizeTx } from "./lib/rpc.js";
+import { getLocalIdentity, LOGIN_HREF, REGISTER_HREF } from "./lib/auth.js";
+import { escapeHtml, formatTime, quantaToGuld, summarizeActivity } from "./lib/rpc.js";
 import { getActiveName, setActiveName } from "./lib/wallet-session.js";
 
 const statusEl = document.querySelector("[data-wallet-status]");
@@ -66,7 +67,33 @@ async function route() {
   if (!(hostEl instanceof HTMLElement)) return;
 
   if (r.view === "home") {
-    hostEl.innerHTML = `<p class="wallet__empty">Look up a name to see balance and recent activity.</p>`;
+    const id = getLocalIdentity();
+    if (!id.hasKey) {
+      hostEl.innerHTML = `
+        <article class="wallet__card">
+          <p class="wallet__name">Welcome</p>
+          <p class="wallet__meta">Look up any name below, or create yours to get a local key.</p>
+          <p style="margin-top:1rem">
+            <a class="btn btn--primary" href="${REGISTER_HREF}">Sign up</a>
+            <a class="btn btn--outline" href="${LOGIN_HREF}" style="margin-left:0.5rem">Log in</a>
+          </p>
+        </article>
+        <p class="wallet__empty">Or look up a public name to browse activity.</p>`;
+    } else {
+      hostEl.innerHTML = `
+        <article class="wallet__card">
+          <p class="wallet__name">${escapeHtml(id.name || "")}</p>
+          <p class="wallet__meta">${id.pending ? "Registration pending…" : "Signed in on this device"}</p>
+          <p style="margin-top:0.75rem">
+            <a class="btn btn--primary" href="#/account/${encodeURIComponent(id.name || "")}">Open my account</a>
+            ${
+              !id.pending
+                ? `<a class="btn btn--outline" href="/settings/" style="margin-left:0.5rem">Sell GULD (OTC desk)</a>`
+                : ""
+            }
+          </p>
+        </article>`;
+    }
     try {
       const st = await apiGet(apiBase, "/chain/status");
       const h = st.height ?? "—";
@@ -99,9 +126,11 @@ async function route() {
     const legacy = account.legacy_locked ? " · legacy locked" : "";
 
     const rows = (activity.items || []).map((row) => {
-      const tx = row.tx || row;
-      const sum = summarizeTx(tx);
-      const when = formatTime(row.timestamp ?? row.time ?? row.block_time);
+      const sum = summarizeActivity(row);
+      const when =
+        row.height != null
+          ? `h${row.height}`
+          : formatTime(row.timestamp ?? row.time ?? row.block_time);
       return `<li><strong>${escapeHtml(sum.type)}</strong> ${escapeHtml(sum.primary)} · ${escapeHtml(sum.amount)} GULD <span class="wallet__meta">${escapeHtml(when)}</span></li>`;
     });
 
@@ -115,7 +144,7 @@ async function route() {
         <h2>Recent activity</h2>
         ${rows.length ? `<ul>${rows.join("")}</ul>` : `<p class="wallet__empty">No activity yet.</p>`}
       </section>
-      <p class="wallet__note">Read-only for now. Full send/register flows will ship in this PWA.</p>
+      <p class="wallet__note">Send and contacts ship next. Look up any name above anytime.</p>
     `;
   } catch (err) {
     setStatus(/** @type {Error} */ (err).message, "error");

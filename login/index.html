@@ -1,0 +1,37 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <meta name="theme-color" content="#000000" />
+    <meta name="description" content="Log in to your Guld wallet with a local key." />
+    <meta
+      http-equiv="Content-Security-Policy"
+      content="default-src 'self'; base-uri 'self'; form-action 'self'; object-src 'none'; img-src 'self' data:; font-src 'self'; style-src 'self'; script-src 'self'; connect-src 'self' http://127.0.0.1:* http://localhost:*; worker-src 'self'; manifest-src 'self'"
+    />
+    <link rel="manifest" href="/manifest.webmanifest" />
+    <link rel="icon" href="/assets/favicon.png" type="image/png" />
+    <link rel="stylesheet" href="/src/css/tokens.css" />
+    <link rel="stylesheet" href="/src/css/base.css" />
+    <link rel="stylesheet" href="/src/css/layout.css" />
+    <link rel="stylesheet" href="/src/css/docs.css" />
+    <link rel="stylesheet" href="/src/css/wallet.css" />
+    <title>Log in — Guld</title>
+  </head>
+  <body class="site-body">
+    <guld-header></guld-header>
+    <main class="site-main wallet" id="main">
+      <header class="wallet__head">
+        <h1>Log in</h1>
+        <p>
+          Select a name that already has a private key in this browser.
+          New here? <a href="/register/">Sign up</a> to register.
+        </p>
+      </header>
+      <p class="wallet__status" data-login-status></p>
+      <div data-login-host></div>
+    </main>
+    <guld-footer></guld-footer>
+    <script type="module" src="/src/js/login-page.js"></script>
+  </body>
+</html>

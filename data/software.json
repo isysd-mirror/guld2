@@ -1,0 +1,127 @@
+{
+  "version": 1,
+  "kind": "software",
+  "items": [
+    {
+      "id": "guld",
+      "title": "guld",
+      "summary": "Umbrella repo — static site, docs, workspace, submodule pins (clone this first)",
+      "kind": "software",
+      "home": "here",
+      "href": "/software/guld/",
+      "topics": ["umbrella", "site"],
+      "pinned": 1
+    },
+    {
+      "id": "guld-node",
+      "title": "guld-node",
+      "summary": "Full node — JSON-RPC, HTTP API, static site, dumb git HTTP",
+      "kind": "software",
+      "home": "here",
+      "href": "/software/guld-node/",
+      "topics": ["rust", "l1", "node"],
+      "pinned": 2
+    },
+    {
+      "id": "guld-wallet",
+      "title": "guld-wallet",
+      "summary": "Dioxus desktop wallet — primary human UX",
+      "kind": "software",
+      "home": "here",
+      "href": "/software/guld-wallet/",
+      "topics": ["rust", "wallet"],
+      "pinned": 3
+    },
+    {
+      "id": "guld-client",
+      "title": "guld-client",
+      "summary": "Wallet library — RPC, keyring, signing",
+      "kind": "software",
+      "home": "here",
+      "href": "/software/guld-client/",
+      "topics": ["rust", "wallet"]
+    },
+    {
+      "id": "guld-state",
+      "title": "guld-state",
+      "summary": "Apply layer — accounts, economy, transaction validation",
+      "kind": "software",
+      "home": "here",
+      "href": "/software/guld-state/",
+      "topics": ["rust", "l1"]
+    },
+    {
+      "id": "guld-consensus",
+      "title": "guld-consensus",
+      "summary": "Blocks, PoW sealing, mempool",
+      "kind": "software",
+      "home": "here",
+      "href": "/software/guld-consensus/",
+      "topics": ["rust", "l1"]
+    },
+    {
+      "id": "guld-types",
+      "title": "guld-types",
+      "summary": "Names, hashes, amounts",
+      "kind": "software",
+      "home": "here",
+      "href": "/software/guld-types/",
+      "topics": ["rust", "l1"]
+    },
+    {
+      "id": "guld-crypto",
+      "title": "guld-crypto",
+      "summary": "Tagged SHA-256, Ed25519, threshold cosign",
+      "kind": "software",
+      "home": "here",
+      "href": "/software/guld-crypto/",
+      "topics": ["rust", "crypto"]
+    },
+    {
+      "id": "guld-legacy",
+      "title": "guld-legacy",
+      "summary": "1.0 ledger import, PGP claim verification",
+      "kind": "software",
+      "home": "here",
+      "href": "/software/guld-legacy/",
+      "topics": ["rust", "migration"]
+    },
+    {
+      "id": "guld-cas",
+      "title": "guld-cas",
+      "summary": "Content-addressed object store",
+      "kind": "software",
+      "home": "here",
+      "href": "/software/guld-cas/",
+      "topics": ["rust", "storage"]
+    },
+    {
+      "id": "guld-extension",
+      "title": "guld-extension",
+      "summary": "Browser extension — window.guld provider (not protocol)",
+      "kind": "software",
+      "home": "here",
+      "href": "/software/guld-extension/",
+      "topics": ["javascript", "wallet"]
+    },
+    {
+      "id": "guld-js",
+      "title": "guld-js",
+      "summary": "Browser/JS peer (later)",
+      "kind": "software",
+      "home": "here",
+      "href": "/software/guld-js/",
+      "topics": ["javascript"]
+    },
+    {
+      "id": "guld-api",
+      "title": "guld-api",
+      "summary": "Deprecated Python HTTP façade — use guld-node --http",
+      "kind": "software",
+      "home": "here",
+      "href": "/software/guld-api/",
+      "topics": ["python", "deprecated"],
+      "activity": "inactive"
+    }
+  ]
+}

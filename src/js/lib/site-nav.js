@@ -1,6 +1,6 @@
 /** @typedef {{ href: string, label: string }} NavItem */
 
-/** Primary product — header only. */
+/** Primary product — header only (static items; auth/gateway injected at runtime). */
 export const HEADER_NAV = [
   { href: "/wallet/", label: "Wallet" },
   { href: "/explorer/", label: "Explorer" },
@@ -11,6 +11,7 @@ export const HEADER_NAV = [
 export const FOOTER_NAV = [
   { href: "/whitepaper/", label: "Whitepaper" },
   { href: "/specs/", label: "Specs" },
+  { href: "/help/", label: "Help" },
   { href: "/software/", label: "Software" },
   { href: "/docs/HOSTING.md", label: "Hosting" },
 ];

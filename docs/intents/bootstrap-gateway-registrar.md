@@ -1,13 +1,13 @@
 # Intent: Optional paid registrar (any peer + third-party gateway)
 
 Status: accepted (Paymento desk wiring in progress on guld.io)  
-**Related:** [`../specs/16-sponsored-registration.md`](../specs/16-sponsored-registration.md), [`pwa-reference-wallet.md`](pwa-reference-wallet.md), [`../specs/14-reference-ui.md`](../specs/14-reference-ui.md), [`../specs/12-rpc.md`](../specs/12-rpc.md)
+**Related:** [`../specs/16-sponsored-registration.md`](../specs/16-sponsored-registration.md), [`pwa-reference-wallet.md`](pwa-reference-wallet.md), [`../specs/14-reference-ui.md`](../specs/14-reference-ui.md), [`../specs/12-rpc.md`](../specs/12-rpc.md), [`guld-leaf-site-and-miner-governance.md`](guld-leaf-site-and-miner-governance.md) (draft: miner-curated gateway roster / leaf hosting)
 
 ## Decision
 
 **Any funded account** MAY run a **paid name registrar**: accept off-chain payment (BTC, ETH, SOL, USDT, fiat, …) via a **supported third-party payment service**, then submit a normal **spec 16** `RegisterUsername` as payer.
 
-guld.io / **isysd** is only the **first** convenient instance during bootstrap — not a privileged role. An everyday user running the reference wallet against their own `guld-node` can turn the same feature on if they wire a supported gateway and have GULD to sell/sponsor.
+guld.io / **isysd** is only the **first** convenient instance during bootstrap — not a privileged role. An everyday user on **guld.io** (or any peer) opens **Settings**, links **their own** Paymento store, and sells sponsorships to friends — a permissionless OTC rail for GULD ↔ BTC/ETH/USDT/…. Friend-sponsor without Paymento remains first-class.
 
 This is **convenience for onboarding**, not protocol authority.
 
@@ -100,7 +100,8 @@ guld.io may ship with the feature **on** for isysd during bootstrap; clones defa
 - [x] Document Paymento as provider #1 + guld.io link/webhook **and IPN**  
 - [x] `POST /api/v1/payment-gateway-webhook` (HMAC verify; payment-link + IPN; idempotent store)  
 - [x] `GET /api/v1/registrar` public desk config  
-- [ ] Wallet UI: show pay link when registrar enabled; attach registration request metadata  
+- [x] Wallet UI: show pay link when registrar enabled; attach registration request metadata  
+- [x] Help: `/help/paymento/` pairing guide + Order ID regex  
 - [ ] Auto `RegisterUsername` as payer after paid / OrderStatus 7–8  
 - [ ] Optional: call Paymento Verify Payment API before fulfill  
 - [ ] Clear UI: “This peer sells sponsorships; any other sponsor also works.”
