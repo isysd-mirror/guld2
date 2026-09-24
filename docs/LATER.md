@@ -6,8 +6,8 @@ Strategic drivers from 1.0: [`UPGRADE_FROM_1.md`](UPGRADE_FROM_1.md).
 
 ## Ledger (replace ledger-cli) — research
 
-- **Custom** ledger preferred over external L1s as *required* substrate (native rules + **native gas**)
-- **Active sketch:** lean L1 — usernames, master hash, cosign, gas VM, CAS trees; git/PGP/Postgres off consensus path — [`research/modern-l1-direction.md`](research/modern-l1-direction.md)
+- **Custom** ledger preferred over external chains as *required* substrate (native rules + **native fees**)
+- **Active sketch:** lean L0 — usernames, master hash, cosign, weight-priced txs, CAS trees; git/PGP/Postgres off consensus path — [`research/modern-l1-direction.md`](research/modern-l1-direction.md)
 - **Draft whitepaper:** [`whitepaper/guld-2.0-draft.md`](whitepaper/guld-2.0-draft.md) (identity DeFi, tokenomics/gas, scale, game theory)
 - **Specs (normative drafts):** [`specs/README.md`](specs/README.md) — components, txs, proofs, node/leaf-host/RPC APIs
 - Snapshot rules/balances from `archives/ledger-guld`
@@ -38,6 +38,6 @@ The real 1.0 gap: running full nodes was possible but not automated enough.
 - `update` / `pre-receive` in enforce mode: require signed commits; group weight thresholds
 - Optional metadata-completeness gate on touched paths
 
-## Consumers (e.g. iramillercom)
+## Third-party consumers
 
-Integrate guld by depending on `guld-python` / `guld-js`, pointing remotes at a guld host (`/srv/guld` + hooks), and/or calling `guld_api`. Do **not** fold guld into ira CD as the product architecture.
+Integrate guld by depending on `guld-python` / `guld-js`, pointing remotes at a guld host (`/srv/guld` + hooks), and/or calling node HTTP APIs. Keep guld as an independent platform — not folded into unrelated product CD.

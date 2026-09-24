@@ -36,6 +36,8 @@ msg = tagged_hash(
 - `nonce` is the account’s **current** nonce (before apply).  
 - `chain_id` prevents cross-network replay (**TBD** value; testnet ≠ mainnet).
 
+**Race semantics:** the triple `(prev_master_hash, new_master_hash, nonce)` makes each tip advance an explicit **successor step**. Concurrent leaf edits from the same tip produce competing txs; mempool/block order picks one winner; the other fails verification. Losers re-sync nonce + head from the node ([`02-identity-and-accounts.md`](02-identity-and-accounts.md) §3.0.1).
+
 ### 3.2 Body
 
 ```text

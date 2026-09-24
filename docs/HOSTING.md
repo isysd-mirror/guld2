@@ -25,7 +25,10 @@ Only the bootstrap **guld.io** deployment uses nginx, and only for **extra** ope
 
 ```text
 Internet → nginx (TLS + extras) → proxy_pass → guld-node --http/--http-static
+Internet → TCP :4001 (direct)     → guld-node --p2p 0.0.0.0:4001
 ```
+
+**P2P is not HTTP.** Mesh peers dial **raw TCP** (libp2p) on a dedicated port (default publish: **4001**). Do not put libp2p behind the nginx HTTP `proxy_pass`. Open/firewall that port to the node process; publish the listen multiaddr in [`data/p2p-bootnodes.json`](../data/p2p-bootnodes.json) (served at `https://guld.io/data/p2p-bootnodes.json`). Other nodes with `--p2p` dial that list as a **fallback** unless `--dev` or `--no-default-bootnodes`.
 
 nginx MUST NOT be the place where `/repos/` semantics, SPA rules, or API routes are invented. If a rule is needed for correct clones or wallets, implement it in node first; nginx may mirror a deny/header only if useful as defense in depth.
 
@@ -64,7 +67,7 @@ Layout / clone URLs: [`REPO_LAYOUT.md`](REPO_LAYOUT.md).
 4. **`guld-node`** serves `repos/<name>.git/**` as ordinary files (missing paths **404** — never fall back to `index.html`).
 5. `git clone https://guld.io/repos/<name>.git` (official distribution URL in `.gitmodules`).
 
-**Later — smart HTTP:** implement in **`guld-node`** (or a helper it owns) in front of the same `repos/*.git` paths. Keep URL `/repos/<name>.git`. Not `git-http-backend` in nginx; not iramillercom `igithost`.
+**Later — smart HTTP:** implement in **`guld-node`** (or a helper it owns) in front of the same `repos/*.git` paths. Keep URL `/repos/<name>.git`. Not `git-http-backend` in nginx; not an external git host farm.
 
 ### Node responsibilities (implement here)
 

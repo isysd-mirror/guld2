@@ -1,12 +1,13 @@
 import { renderXyCharts } from "./xychart.js";
 import { renderMermaidDiagrams } from "./mermaid-render.js";
+import { curatedDocHref, resolveMarkdownLink } from "./doc-paths.js";
 
 /**
  * Render a Markdown document into a host element (GFM via marked).
  * Mermaid fences: `xychart-beta` → custom SVG; other diagrams → Mermaid.
  * @param {HTMLElement} host
- * @param {string} src
- * @param {{ titleFallback?: string }} [opts]
+ * @param {string} src absolute same-origin path (e.g. /docs/HOSTING.md)
+ * @param {{ titleFallback?: string | false, signal?: AbortSignal }} [opts]
  */
 export async function renderMarkdownDoc(host, src, opts = {}) {
   host.replaceChildren();
@@ -16,18 +17,23 @@ export async function renderMarkdownDoc(host, src, opts = {}) {
   host.append(status);
 
   try {
-    const res = await fetch(src, { headers: { Accept: "text/markdown, text/plain" } });
+    const res = await fetch(src, {
+      headers: { Accept: "text/markdown, text/plain" },
+      signal: opts.signal,
+    });
     if (!res.ok) throw new Error(`HTTP ${res.status}`);
     const md = await res.text();
+    if (opts.signal?.aborted) return;
     const { marked } = await import("/vendor/marked/marked.esm.js");
     marked.setOptions({ gfm: true, breaks: false });
     const html = marked.parse(md);
     const article = document.createElement("article");
     article.className = "doc-prose";
     article.innerHTML = html;
-    polishDoc(article);
+    polishDoc(article, { src });
     renderXyCharts(article);
     await renderMermaidDiagrams(article);
+    if (opts.signal?.aborted) return;
     host.replaceChildren(article);
     const h1 = article.querySelector("h1");
     if (h1 && document.title && opts.titleFallback !== false) {
@@ -35,35 +41,38 @@ export async function renderMarkdownDoc(host, src, opts = {}) {
     }
     buildToc(article);
   } catch (err) {
+    if (opts.signal?.aborted || (err && /** @type {{ name?: string }} */ (err).name === "AbortError")) {
+      return;
+    }
     status.textContent = "Could not load this document.";
     console.warn("doc-render:", err);
   }
 }
 
-/** @param {HTMLElement} article */
-function polishDoc(article) {
+/**
+ * @param {HTMLElement} article
+ * @param {{ src?: string }} [ctx]
+ */
+function polishDoc(article, ctx = {}) {
+  const fromFetch = ctx.src || "/docs/";
   article.querySelectorAll("a[href]").forEach((a) => {
     const href = a.getAttribute("href") || "";
     if (href.startsWith("http")) {
       a.setAttribute("rel", "noopener noreferrer");
       a.setAttribute("target", "_blank");
-    } else if (href.endsWith(".md")) {
-      const base = href.replace(/^\.\//, "").replace(/^\.\.\//, "");
-      if (base.includes("whitepaper/") || /guld-2\.0/.test(base)) {
-        a.setAttribute("href", "/whitepaper/");
-      } else if (base.startsWith("specs/") || base.includes("/specs/")) {
-        const name = base.replace(/^.*specs\//, "").replace(/\.md$/, "");
-        a.setAttribute("href", `/specs/?doc=${encodeURIComponent(name)}`);
-      } else if (!base.includes("/")) {
-        // same-folder spec link
-        a.setAttribute("href", `/specs/?doc=${encodeURIComponent(base.replace(/\.md$/, ""))}`);
-      }
+      return;
     }
+    if (!/\.md(?:#.*)?$/i.test(href)) return;
+
+    const resolved = resolveMarkdownLink(href, fromFetch);
+    if (!resolved) return;
+    const curated = curatedDocHref(resolved.fetch);
+    a.setAttribute("href", curated || resolved.viewer);
   });
   article.querySelectorAll("img[src]").forEach((img) => {
-    const src = img.getAttribute("src") || "";
-    if (/^(?:\.\/)?figures\//.test(src)) {
-      img.setAttribute("src", `/docs/whitepaper/${src.replace(/^\.\//, "")}`);
+    const imgSrc = img.getAttribute("src") || "";
+    if (/^(?:\.\/)?figures\//.test(imgSrc)) {
+      img.setAttribute("src", `/docs/whitepaper/${imgSrc.replace(/^\.\//, "")}`);
       img.setAttribute("loading", "lazy");
       img.classList.add("doc-figure");
     }

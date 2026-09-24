@@ -7,6 +7,7 @@
 
 - Fixed vocabulary: **no** user-defined ops.  
 - Each tx has a `type`, body fields, `inclusion_fee` (Amount), and authorization (sig or leaf proof).  
+- Optional **`memo`**: opaque bytes for invoices / order ids — see §2.1.  
 - `TxId = tagged_hash("guld/tx_id/v1", canonical_bytes(tx_without_id))`.
 
 ## 2. Common envelope
@@ -17,11 +18,28 @@ Tx {
   type: TxType,
   body: TypeSpecific,
   inclusion_fee: Amount,    // → miner
+  memo: Option<Bytes>,      // §2.1; omit or empty = absent
   // authorization embedded per type
 }
 ```
 
 Mempool and blocks store canonical bytes. JSON-RPC MAY accept a JSON form that maps 1:1 to fields.
+
+### 2.1 `memo` (optional)
+
+| Rule | Norm |
+|------|------|
+| Purpose | Off-consensus correlation (Paymento order id, invoice number, accounting tag) |
+| Max length | **64 bytes** (UTF-8 octet length if encoded as text) |
+| Consensus | **Opaque** — MUST NOT change validity except size, weight, and signature coverage |
+| Weight | Fully counted in `weight(tx) = size_bytes(canonical_tx)` ([`07-fees-and-tokenomics.md`](07-fees-and-tokenomics.md)) |
+| Auth | MUST be covered by the tx’s signed message (spoof-resistant for the payer) |
+| Allowed on | All fee-paying types |
+| Forbidden on | `SettleRegistration` (keep miner-injected txs lean) |
+
+JSON APIs SHOULD accept `memo` as a UTF-8 string; empty string ≡ absent. Binary / non-UTF-8 MAY be hex-prefixed (`0x…`) in RPC — exact encoding **TBD** with the wire format freeze.
+
+Rationale: a few dozen bytes for an order id are already priced by the weight market; unbounded metadata belongs in a leaf tip (`UpdateMaster`), not L0.
 
 ## 3. Tx types
 
@@ -41,7 +59,7 @@ RegisterUsername {
 **Effects (atomic):**
 
 1. Name MUST NOT exist; MUST NOT be `guld`.  
-2. Deduct `F_user` from sponsor `payer`; credit protocol fee to block miner; create new account for `name`.
+2. Deduct `F_user(L)` from sponsor `payer`; credit protocol fee to block miner; create new account for `name` (`L` = letter count — [`07-fees-and-tokenomics.md`](07-fees-and-tokenomics.md)).
 
 **Funding model:** explicit `payer` (existing account) plus **`registrant_signature`** from `keys[0]` — see [`16-sponsored-registration.md`](16-sponsored-registration.md).
 
@@ -61,7 +79,8 @@ RegisterUsername {
 
 - Verify `registrant_signature` under `keys[0]` over `guld/register/intent/v1`.  
 - Verify `payer_signature` under payer spend key over `guld/register/v1` (intent fields MUST match).  
-- `payer.balance >= F_user + endowment + inclusion_fee` (`F_user = 1` GULD fixed).  
+- `payer.balance >= F_user(L) + endowment + inclusion_fee` where `L = label_letter_count(name)` ([`07-fees-and-tokenomics.md`](07-fees-and-tokenomics.md) §3.1).  
+- Intent `registration_fee` in sponsored flow MUST equal `F_user(L)` at apply height.  
 - Deduct protocol fee (miner); transfer `endowment`; pay `inclusion_fee` to coinbase; create account; increment payer nonce.
 - `name` MUST NOT contain `.` (subaccounts use `RegisterSubaccount`).
 
@@ -70,9 +89,10 @@ RegisterUsername {
 Same as username, plus:
 
 - `keys.len() = n >= 1`  
-- Protocol fee `F_group(n) = 2 + n` GULD (fixed; → miner)  
+- `L = label_letter_count(name)`; protocol fee `F_group(L, n) = F_user(L) × (2 + n)` GULD (→ miner)  
 - `kind = group`  
-- `name` MUST NOT contain `.`
+- `name` MUST NOT contain `.`  
+- Balance check: `payer.balance >= F_group(L, n) + endowment + inclusion_fee`
 
 ### 3.2a `RegisterSubaccount`
 
@@ -135,7 +155,7 @@ SettleRegistration { name: Name }
 
 **Effects:**
 
-- If `balance >= F_*(kind)`: debit `F_*` → miner;  
+- If `balance >= F_*(kind, name)`: debit renewal fee → miner (`F_user(L)` for individuals/groups at settle; `F_sub` for subaccounts);  
   `expires_at_height = max(height, expires_at_height) + BLOCKS_PER_YEAR`; `nonce++`.  
 - Else: leftover balance → miner; **delete** account; if root, cascade-delete live subs (their balances → miner). Name becomes registrable again.
 
@@ -160,7 +180,7 @@ tagged_hash("guld/cosign/v1",
 ```
 
 - `inclusion_fee` sufficient for weight.  
-- **Effects:** `master_hash = new`; `nonce++`.
+- **Effects:** `master_hash = new`; `nonce++`. Stale `(prev_master_hash, nonce)` ⇒ reject (leaf race loser).
 
 ### 3.5 `Transfer`
 
@@ -170,10 +190,12 @@ Transfer {
   to: Name,
   amount: Amount,
   proof_or_sig: Signature | LeafConsensusProof,  // draft: single spend sig if threshold==1; else proof
+  inclusion_fee: Amount,
+  memo: Option<Bytes>,      // §2.1 — e.g. payment order id
 }
 ```
 
-**Effects:** move `amount` if balances allow; increment `from` nonce.
+**Effects:** move `amount` if balances allow; increment `from` nonce. `memo` is recorded in the canonical tx (and thus tx id / receipts explorers may index) but has **no** balance effect.
 
 ### 3.6 `ClaimLegacy` (1.0 key upgrade)
 
@@ -215,7 +237,7 @@ trait TxApply {
 }
 ```
 
-`Receipt { tx_id, fee_paid, burned, logs }`
+`Receipt { tx_id, fee_paid, registration_fee, logs }`
 
 ## 6. Open parameters
 

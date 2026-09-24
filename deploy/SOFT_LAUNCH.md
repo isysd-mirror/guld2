@@ -1,6 +1,6 @@
 # Soft-launch — Guld (guld.io)
 
-**Stack:** static **guld.io** repo + FastAPI on **127.0.0.1:8004** · user **`guld`** · No Docker · **Not** iramillercom CD
+**Stack:** static **guld.io** repo + FastAPI on **127.0.0.1:8004** · user **`guld`** · No Docker · standalone guld deploy
 
 Two checkouts: `/home/isysd/Projects/guld` (protocol) and `/home/isysd/Projects/guld.io` (website). You run all `sudo` lines.
 

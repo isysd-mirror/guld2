@@ -17,7 +17,7 @@
 | Kind | Registration | Notes |
 |------|--------------|-------|
 | `individual` | `RegisterUsername` | One or more keys; typical threshold 1 |
-| `group` | `RegisterGroup` | `n` keys; fee = `2 + n` GULD |
+| `group` | `RegisterGroup` | `n` keys; fee = `F_user(L) × (2 + n)` GULD |
 | `subaccount` | `RegisterSubaccount` | Under an **individual** parent only; max **8** live |
 | `network` | Genesis only | Reserved name **`guld`** |
 | `foreign_chain` | Genesis reserved (e.g. `bitcoin`, `ethereum`) | Tip via foreign consensus proof kinds — [`13-foreign-chains.md`](13-foreign-chains.md) |
@@ -35,7 +35,7 @@ Account {
   keys: Vec<Ed25519Pubkey>,      // 1..=MAX_KEYS
   threshold: u16,                // 1..=keys.len()
   roles: optional map key_index -> { tip, spend, recover }  // TBD
-  nonce: u64,                    // tip/spend sequencing
+  nonce: u64,                    // monotonic; see §3.0.1
   master_hash: Hash32,
   balance: Amount,               // GULD base units
   expires_at_height: u64,        // soft registration; u64::MAX = never
@@ -54,6 +54,29 @@ Fees buy **one year** of control (`REGISTRATION_PERIOD = BLOCKS_PER_YEAR`). See 
 - Parent release **cascades** delete of live subaccounts.
 - Legacy-locked imports: settle forbidden; `ClaimLegacy` open indefinitely. After claim: normal 1y period.
 - Network / foreign: `u64::MAX`. No resale market; lost keys ⇒ eventually unfunded settle ⇒ name free.
+
+### 3.0.1 Account nonce (tip and spend sequencing)
+
+Each account carries a monotonic **`nonce`** (`u64`, starts at **0** at registration or `ClaimLegacy`).
+
+**Purpose:** serialize state-changing operations for that account and **resolve leaf race conditions** when two parties try to advance the same tip concurrently.
+
+**Incremented** on successful apply of any tx that acts *as* the account (or as payer/parent where applicable), including:
+
+- `UpdateMaster` — tip advance  
+- `Transfer` — when account is `from`  
+- `RotateKeys`, `SettleRegistration`, `ClaimLegacy`  
+- Registration txs — payer (and parent for subaccounts)
+
+**`UpdateMaster` binding:** cosignatures MUST cover the account’s **current** `nonce` (before apply), `prev_master_hash`, and `new_master_hash` ([`04-proofs.md`](04-proofs.md) §3.1). On success: `master_hash ← new`, `nonce++`.
+
+**Leaf race resolution:** if two leaf processes both build an update from tip `(H, n)`:
+
+1. The tx included first wins; chain state becomes `(H′, n+1)`.  
+2. The loser’s tx is **invalid** — signatures were over stale `(H, n)` and/or `prev_master_hash` no longer matches.  
+3. The leaf MUST re-fetch `(master_hash, nonce)` from a node, rebuild the home tree, and re-gather cosignatures.
+
+Leaf hosts and wallets MUST NOT sign blind: fetch current tip + nonce via HTTP API before cosign. There is no merge/conflict resolution at L0 — only one successor tip per nonce step.
 
 ### 3.1 `master_hash`
 
@@ -84,13 +107,22 @@ Hints MUST NOT affect validation. Clients/leaf-hosts MAY use them to fetch bytes
 
 ## 4. Reserved account `guld`
 
+Whitepaper §3.5. The on-chain **`guld`** account is the network identity — not a mirror of developer source repositories.
+
 | Rule | Requirement |
 |------|-------------|
 | Registration | MUST NOT be available via `RegisterUsername` / `RegisterGroup` |
 | Genesis | MUST exist at genesis with network key policy |
-| Contents | Protocol software + consensus rule parameters (node, core, libs, clients, schemas, …) |
-| Full nodes | MUST fully clone CAS objects for the current `guld` `master_hash` |
-| Sub-leaves | Implementation repos (e.g. this `guld` codebase) are sub-leaves under the `guld` home |
+| On-chain home | Compact **rule bundle** only: schemas, genesis params, weight/fee tables, proof-kind definitions |
+| Off-chain software | Node, wallet, leaf SDKs, and website ship from **ordinary git** (e.g. `https://guld.io/repos/guld.git`) |
+| Full nodes | MUST materialize CAS for the current `guld` **rule bundle**; MUST match header `guld_rules_hash` to the node’s built-in rule set |
+| NOT required | Cloning or serving protocol **source code** from the `guld` CAS tree to validate blocks |
+
+```
+on-chain account "guld"
+  └── master_hash  →  rule params, schemas, fee tables (small normative bundle)
+        └── NOT required: full node / wallet / website source trees
+```
 
 Protocol activation / upgrades: see [`06-blocks-and-consensus.md`](06-blocks-and-consensus.md) and [`08-cas-and-homes.md`](08-cas-and-homes.md).
 

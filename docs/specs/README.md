@@ -1,8 +1,8 @@
 # Guld 2.0 Specifications
 
 **Status:** draft  
-**SoT hierarchy:** whitepaper (intent) → **these specs** (normative draft) → implementation  
-**Whitepaper:** [`../whitepaper/guld-2.0-draft.md`](../whitepaper/guld-2.0-draft.md)  
+**SoT hierarchy:** [**whitepaper**](../whitepaper/guld-2.0-draft.md) (wins all disputes) → **these specs** (normative detail) → implementation  
+**Whitepaper:** v0.19 — [`../whitepaper/guld-2.0-draft.md`](../whitepaper/guld-2.0-draft.md) (includes [§14 glossary](../whitepaper/guld-2.0-draft.md#14-glossary))  
 **Research backdrop:** [`../research/modern-l1-direction.md`](../research/modern-l1-direction.md)
 
 ## Reading order
@@ -15,8 +15,8 @@
 6. [`05-state.md`](05-state.md) — account state, roots, nonces  
 7. [`06-blocks-and-consensus.md`](06-blocks-and-consensus.md) — headers, PoW, fork choice  
 8. [`07-fees-and-tokenomics.md`](07-fees-and-tokenomics.md) — weight fees, registration fees, issuance  
-9. [`08-cas-and-homes.md`](08-cas-and-homes.md) — object store, mandatory `guld` clone; **no** L1 pin market  
-10. [`09-p2p.md`](09-p2p.md) — peer protocol (skeleton)  
+9. [`08-cas-and-homes.md`](08-cas-and-homes.md) — object store, mandatory `guld` **rule bundle**; **no** L0 pin market  
+10. [`09-p2p.md`](09-p2p.md) — peer protocol (libp2p; phase A Hello + tx gossip)  
 11. [`10-node.md`](10-node.md) — full node process & internal APIs  
 12. [`11-leaf-host.md`](11-leaf-host.md) — leaf materialization & client-facing host API  
 13. [`12-rpc.md`](12-rpc.md) — node API: HTTP `/api/v1` (canonical) + transitional JSON-RPC  
@@ -24,9 +24,11 @@
 15. [`14-reference-ui.md`](14-reference-ui.md) — static PWA wallet + optional desktop wallet  
 16. [`15-ledger-import.md`](15-ledger-import.md) — 1.0 `ledger-guld` snapshot, pre-mine **x**, `ClaimLegacy` key upgrade  
 17. [`16-sponsored-registration.md`](16-sponsored-registration.md) — pay-for-name bootstrap; dual-signature register  
+18. [`17-protocol-upgrades.md`](17-protocol-upgrades.md) — rule-bundle activation height; soft/hard class  
 
 **Intent (accepted):** [`../intents/pwa-reference-wallet.md`](../intents/pwa-reference-wallet.md) — static guld.io PWA + `guld-node --http`.  
 **Intent (accepted):** [`../intents/bootstrap-gateway-registrar.md`](../intents/bootstrap-gateway-registrar.md) — optional paid registrar (any peer + third-party gateway).  
+**Intent (accepted):** [`../intents/tx-memo-and-upgrades.md`](../intents/tx-memo-and-upgrades.md) — optional tx `memo`; height-activated upgrades.  
 **Intent (accepted):** [`../intents/subaccounts.md`](../intents/subaccounts.md) — `parent.label` device wallets; fixed fees in spec 07.  
 **Intent (accepted):** [`../intents/rotate-keys.md`](../intents/rotate-keys.md) — key change = username transfer via `RotateKeys`.  
 **Intent (draft):** [`../intents/wallet-contacts-and-account-lookup.md`](../intents/wallet-contacts-and-account-lookup.md) — wallet contacts, explorer account pages, prefix search (later).

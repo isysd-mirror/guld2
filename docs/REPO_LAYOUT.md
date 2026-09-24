@@ -1,7 +1,7 @@
 # Repository layout
 
 **Status:** submodules + in-tree bares seeded (2026-09-24)  
-**Vision:** `~/Projects/guld` **is** the open-source project **and** the static website root. The **guld.io** domain is a bootstrap mirror of this tree — not a forge hub, not consensus. Bare remotes under `repos/` make the tree self-replicating over HTTP.
+**Vision:** This repository **is** the open-source project **and** the static website root. The **guld.io** domain is a bootstrap mirror of this tree — not a forge hub, not consensus. Bare remotes under `repos/` make the tree self-replicating over HTTP.
 
 ## Roles (three layers)
 
@@ -54,6 +54,7 @@ Each `src/guld-*` directory is a submodule. Its **`origin`** is the bare on disk
 | `src/guld-consensus` | `repos/guld-consensus.git` | `https://guld.io/repos/guld-consensus.git` |
 | `src/guld-cas` | `repos/guld-cas.git` | `https://guld.io/repos/guld-cas.git` |
 | `src/guld-legacy` | `repos/guld-legacy.git` | `https://guld.io/repos/guld-legacy.git` |
+| `src/guld-p2p` | `repos/guld-p2p.git` | `https://guld.io/repos/guld-p2p.git` |
 | `src/guld-node` | `repos/guld-node.git` | `https://guld.io/repos/guld-node.git` |
 | `src/guld-client` | `repos/guld-client.git` | `https://guld.io/repos/guld-client.git` |
 | `src/guld-wallet` | `repos/guld-wallet.git` | `https://guld.io/repos/guld-wallet.git` |
@@ -86,7 +87,7 @@ guld-node --http --http-static .           nginx (TLS, extras)
 3. **nginx** — only on guld.io (or similar), as a **reverse proxy** for TLS and operator extras. **No product logic in nginx** (not SPA rules for git, not smart HTTP, not API shaping). See [`HOSTING.md`](HOSTING.md).
 4. **Protocol (v1)** — dumb HTTP file serve of the bare (`HEAD`, `objects/`, `info/refs`, packs) + `update-server-info` / `hooks/post-update`.
 5. **Protocol (later)** — smart HTTP **inside guld-node**; URLs stay `/repos/<name>.git`.
-6. **Not** iramillercom `igithost` / `/srv/git`.
+6. **Not** a third-party git host farm or `/srv/git` product path.
 7. **Not** user content homes (`/srv/guld/…`).
 
 ### Node static rules (required — implement in `guld-node`)
@@ -169,7 +170,7 @@ git -C repos/guld.git update-server-info
 
 ## Software UI (`/software/`)
 
-Framework-less JS (web components), same pattern as iramiller.com/software:
+Framework-less JS (web components):
 
 - **Catalog** — `/software/` + `<guld-software>` merges `data/software.json` with `GET /api/v1/repos`
 - **Repo browser** — `/software/<name>/`, `/tree/<ref>/…`, `/blob/<ref>/…` via `<guld-repo-view>` (SPA shell: `software/_view/index.html`)
@@ -182,7 +183,7 @@ Intent: [`intents/software-browser.md`](intents/software-browser.md).
 
 - **Canonical:** `guld-node --http … --http-static .` (API + static + `/repos/`)
 - **guld.io only:** nginx reverse-proxies to that node (TLS / extras) — [`HOSTING.md`](HOSTING.md)
-- Docs: no mirror — `/whitepaper/` and `/specs/` fetch `/docs/…`
+- Docs: `/docs/` HTML browser (`<guld-doc-view>`) fetches markdown SoT under `/docs/*.md`; curated `/whitepaper/` and `/specs/` remain featured entry points
 
 ## Related
 

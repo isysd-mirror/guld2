@@ -1,14 +1,14 @@
-# Intent: consumer integration (iramillercom et al.)
+# Intent: consumer integration
 
 Status: draft
 
 ## Goal
 
-Allow other hosts to use guld as the constrained git / meta-FS / identity standard.
+Allow other hosts and products to use guld as the constrained git / meta-FS / identity standard.
 
 ## Out of scope (for now)
 
-Implementing the consumer-side migration inside iramillercom.
+Implementing consumer-side migration inside any specific third-party product.
 
 ## Acceptance
 

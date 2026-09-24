@@ -31,10 +31,12 @@ export function getLocalIdentity() {
   const kr = keyring.load();
   const name = kr.activeName || getActiveName();
   if (!name) return { name: null, hasKey: false, pending: false };
-  const acct = keyring.getAccount(name);
+  const acct = name ? keyring.getAccount(name) : null;
   return {
     name,
-    hasKey: Boolean(acct?.privHex),
+    hasKey: Boolean(
+      name && (keyring.hasLocalKey(name) || keyring.hasStoredKey(name) || acct?.hasKey),
+    ),
     pending: Boolean(acct?.pending),
   };
 }

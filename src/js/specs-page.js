@@ -10,7 +10,7 @@ const SPECS = [
   { id: "04-proofs", title: "04 — Proofs", blurb: "Leaf-consensus proofs" },
   { id: "05-state", title: "05 — State", blurb: "Accounts, roots, nonces" },
   { id: "06-blocks-and-consensus", title: "06 — Blocks & consensus", blurb: "Headers, PoW, fork choice" },
-  { id: "07-fees-and-tokenomics", title: "07 — Fees & tokenomics", blurb: "Weight fees, burns, issuance" },
+  { id: "07-fees-and-tokenomics", title: "07 — Fees & tokenomics", blurb: "Weight fees, registration fees, issuance" },
   { id: "08-cas-and-homes", title: "08 — CAS & homes", blurb: "Object store; mandatory guld clone" },
   { id: "09-p2p", title: "09 — P2P", blurb: "Peer protocol (skeleton)" },
   { id: "10-node", title: "10 — Node", blurb: "Full node process & APIs" },

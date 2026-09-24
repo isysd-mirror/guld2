@@ -219,10 +219,10 @@ export class GuldRepoView extends HTMLElement {
     const note = document.createElement("p");
     note.className = "repo-readme__fallback";
     const docs = document.createElement("a");
-    docs.href = "/docs/PACKAGES.md";
+    docs.href = "/docs/?doc=PACKAGES.md";
     docs.textContent = "Package catalog";
     const specs = document.createElement("a");
-    specs.href = "/docs/specs/README.md";
+    specs.href = "/specs/";
     specs.textContent = "protocol specs";
     note.append("More context in the ", docs, " and ", specs, ".");
     body.append(note);

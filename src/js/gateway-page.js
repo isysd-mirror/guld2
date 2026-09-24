@@ -43,7 +43,9 @@ async function signAndSubmit(order, payerName) {
   }
   const privHex = keyring.getPriv(payerName);
   if (!privHex) {
-    throw new Error(`No private key for registrar “${payerName}”. Log in first.`);
+    throw new Error(
+      `Unlock your keyring first — log in with your passphrase for “${payerName}”.`,
+    );
   }
   const acctBody = await apiGet(apiBase, `/chain/accounts/${encodeURIComponent(payerName)}`);
   const account = acctBody.account || {};

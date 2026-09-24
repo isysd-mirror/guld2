@@ -37,6 +37,7 @@ Submodule URLs in `.gitmodules` point at **`https://guld.io/repos/<name>.git`**.
 | guld-consensus | `src/guld-consensus/` | `repos/guld-consensus.git` | Rust | Blocks, PoW, mempool |
 | guld-cas | `src/guld-cas/` | `repos/guld-cas.git` | Rust | Content-addressed object store |
 | guld-legacy | `src/guld-legacy/` | `repos/guld-legacy.git` | Rust | 1.0 import, PGP claim |
+| guld-p2p | `src/guld-p2p/` | `repos/guld-p2p.git` | Rust | Libp2p mesh (Hello + tx gossip) |
 | guld-node | `src/guld-node/` | `repos/guld-node.git` | Rust | Full node + HTTP API + JSON-RPC |
 | guld-client | `src/guld-client/` | `repos/guld-client.git` | Rust | Wallet library |
 | guld-wallet | `src/guld-wallet/` | `repos/guld-wallet.git` | Rust | Dioxus desktop wallet |

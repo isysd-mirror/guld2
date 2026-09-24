@@ -33,7 +33,7 @@ Each subaccount is a first-class on-chain account (own keys, nonce, balance, `ma
 |------|-----|
 | Individual (`F_user`) | **1 GULD** |
 | Subaccount (`F_sub`) | **0.1 GULD** |
-| Group (`F_group(n)`) | **2 + n** GULD (`n` = initial key count) |
+| Group (`F_group(L, n)`) | **`F_user(L) × (2 + n)`** GULD (`L` = letters; `n` = initial key count) |
 
 ## Naming
 

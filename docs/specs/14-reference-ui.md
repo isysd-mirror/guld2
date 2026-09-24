@@ -17,11 +17,11 @@ Intent: [`../intents/pwa-reference-wallet.md`](../intents/pwa-reference-wallet.m
 
 ### 1.1 Implementation status
 
-| Surface | Target | Shipped today |
-|---------|--------|---------------|
-| **guld.io PWA** | **Primary** reference wallet | Read-only `/wallet/` (status, lookup, activity); send/register not yet |
-| **Browser extension** | Site login + key link for dapps | Separate repo / later phase |
-| `guld-wallet` (Dioxus desktop) | Power users, legacy PGP claim, external signing | First-run wizard, Send, Activity, Settings |
+| Surface | Normative (spec) | Shipped today |
+|---------|------------------|---------------|
+| **guld.io PWA** | AES-256-GCM keyring + register/send/account mgmt | **Done** — encrypted keyring, letter fees, send, UpdateMaster, RotateKeys |
+| **Browser extension** | Same keyring schema as PWA | Encrypted keyring + passphrase unlock; register/sponsor/send |
+| `guld-wallet` (Dioxus desktop) | Encrypted file keyring or OS keychain | Deprecated for default path; legacy claim still supported |
 | Mobile native | Later | PWA covers cross-platform first |
 
 ## 2. Reference surfaces
@@ -33,7 +33,7 @@ Intent: [`../intents/pwa-reference-wallet.md`](../intents/pwa-reference-wallet.m
 | **`guld-wallet` (desktop)** | Optional: file keyring, legacy claim, external signing |
 | **`guld-node --http`** | HTTP API `/api/v1/…` — canonical chain surface |
 
-**Reference stack (PWA):** **repo root** static tree + local or remote `guld-node --http` (optionally `--http-static .`). **Web stack:** framework-less JS matching `iramillercom/public` (no React/Vue/bundler). No `guld-api`. No Node.js build.
+**Reference stack (PWA):** **repo root** static tree + local or remote `guld-node --http` (optionally `--http-static .`). **Web stack:** framework-less JS — web components, ES modules, CSS tokens (no React/Vue/bundler). No `guld-api`. No Node.js build.
 
 **Reference stack (web identity):** PWA keyring **+** extension for cross-origin dapp login (challenge signing). Extension MUST NOT replace consensus; dapps verify signatures under the user’s registered keys / name lookup via HTTP API.
 ## 3. Components
@@ -70,12 +70,16 @@ The wallet MUST still support **friend sponsor** (paste/QR registration JSON) wi
 
 ## 5. Security requirements (reference wallet)
 
+Normative crypto: [`01-cryptography.md`](01-cryptography.md) §3.1.
+
 | Rule | Requirement |
 |------|-------------|
-| Key storage (browser) | Encrypted IndexedDB; passphrase local-only; MUST NOT upload secrets to API |
+| Key storage (browser) | **AES-256-GCM** encrypted keyring; **PBKDF2-SHA256** (≥310k iter) from user passphrase; MUST NOT persist `privHex` in plaintext |
+| Unlock / lock | Passphrase unlock loads keys into memory only; lock clears decrypted material |
 | External signing | Unsigned payloads exportable; signed payloads importable; no key required in browser |
 | Confirmations | User confirms sends and registration before broadcast |
 | Node trust | Label operator-hosted RPC as light-client / custodial risk; power users run own node |
+| Leaf content | Wallet MUST NOT implement leaf/CAS encryption — opaque bytes only |
 
 ## 6. Non-goals (reference UI)
 
@@ -87,7 +91,7 @@ The wallet MUST still support **friend sponsor** (paste/QR registration JSON) wi
 ## 7. Open parameters
 
 - JS/WASM signing crate parity with `guld-client`  
-- Passphrase KDF and keyring schema in browser  
+- Auto-lock timeout duration  
 - Hardware key / PQ key UX later  
 - Deep links `guld://` for handoff to desktop signer (**TBD**)  
 
@@ -99,8 +103,8 @@ Empty keyring opens setup:
 
 | Path | Who | Steps |
 |------|-----|--------|
-| **New name (default)** | Most users | Pick name → generate key in browser **or** export unsigned request for external sign → show sponsor QR/JSON → poll until registered |
-| **Import key** | Returning device | Paste secret; encrypt to local keyring |
+| **New name (default)** | Most users | Set passphrase → pick name → generate key in browser (encrypted at rest) **or** export unsigned request for external sign → sponsor QR/JSON → poll until registered |
+| **Import key** | Returning device | Passphrase + paste secret → encrypt to local keyring per spec 01 §3.1 |
 | **Legacy 1.0 claim** | ~2,217 import holders | Link to desktop wallet or dedicated claim flow (PGP) |
 | **External signing only** | Paranoid / hardware | Never store key; build requests in browser, sign elsewhere, paste signed JSON |
 
@@ -158,15 +162,15 @@ Prefix browse requires [`guld_searchAccounts`](12-rpc.md) or an indexer — not 
 
 **Done (dev reference):**
 
-1. Repo-root static PWA, explorer, read-only `/wallet/` via `guld-node --http`  
-2. `guld-node --http` — chain read endpoints (`/api/v1/…`); optional `--http-static .`  
-3. `guld-client` + `guld-wallet` — desktop reference  
+1. Repo-root static PWA, explorer, wallet via `guld-node --http`  
+2. Encrypted browser keyring (spec 01 §3.1), register/send, letter-based fee estimate  
+3. UpdateMaster + RotateKeys in wallet account view  
+4. Local contacts / recent recipients on send  
+5. Paid registrar + friend sponsor (spec 16)  
+6. Extension encrypted keyring parity  
 
-**Next (PWA wallet):**
+**Next:**
 
-1. Browser keyring + signing (register intent, transfer) + fee estimate in first-run  
-2. POST tx broadcast via `guld-node --http`  
-3. First-run wizard + friend/paid sponsor (§1.4 steps 3–5)  
-4. PWA install + **browser extension** site-login (§1.4 steps 6–7)  
-5. Send + contacts/recent  
-6. Desktop wallet as optional signer + legacy claim only  
+1. PWA install polish + **browser extension** site-login (§1.4 steps 6–7)  
+2. Prefix account search / indexer (`guld_searchAccounts`)  
+3. P2P sync + leaf host (specs 09 / 11)  

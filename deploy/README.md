@@ -22,7 +22,9 @@ Do **not** add new product routes or git/SPA rules in nginx. Implement them in [
 | `nginx.conf` / `nginx-http-bootstrap.conf` | Optional vhost (migrate toward full reverse proxy to node) |
 | `snippets/` | Headers / transitional static locations / API proxy |
 | `guld-api.service` | Deprecated Python API — prefer node `--http` |
-| `SOFT_LAUNCH.md` | Operator runbook |
+| `guld-node-simba.service` | **Simba testnet** (`chain_id` 2) — see [`SIMBA.md`](SIMBA.md) |
+| `SOFT_LAUNCH.md` | Operator runbook (legacy FastAPI; migrate to node) |
+| `SIMBA.md` | Live testnet: guld.io + laptop peers |
 | `site/` | Bind-mount this repo → `/var/www/guld.io` (only if nginx still serves files; less needed when proxying all to node) |
 
 **Git software remotes:** served by the node from `repos/*.git` → `/repos/<name>.git`.  

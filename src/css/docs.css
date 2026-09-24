@@ -6,6 +6,145 @@
   margin: 0 auto;
 }
 
+/* Docs browser (file tree + markdown) */
+.doc-browser {
+  display: grid;
+  gap: clamp(1.25rem, 3vw, 2rem);
+  padding: clamp(1.5rem, 4vw, 2.5rem);
+  max-width: 84rem;
+  margin: 0 auto;
+}
+
+@media (min-width: 960px) {
+  .doc-browser {
+    grid-template-columns: 15.5rem minmax(0, 1fr);
+    align-items: start;
+  }
+}
+
+.doc-browser__tree {
+  position: sticky;
+  top: 4.5rem;
+  max-height: calc(100dvh - 5rem);
+  overflow-y: auto;
+  overscroll-behavior: contain;
+  padding-right: 0.35rem;
+  scrollbar-gutter: stable;
+}
+
+@media (max-width: 959px) {
+  .doc-browser__tree {
+    position: static;
+    max-height: 14rem;
+    border-bottom: 1px solid color-mix(in srgb, var(--guld-ink) 12%, transparent);
+    padding-bottom: 1rem;
+  }
+}
+
+.doc-browser__main {
+  min-width: 0;
+  display: grid;
+  gap: 1.25rem;
+}
+
+@media (min-width: 1100px) {
+  .doc-browser__main {
+    grid-template-columns: minmax(0, 1fr) 12rem;
+    grid-template-areas: "host toc";
+  }
+
+  .doc-browser__host {
+    grid-area: host;
+  }
+
+  .doc-browser__toc {
+    grid-area: toc;
+    display: block;
+  }
+}
+
+.doc-tree__title {
+  margin: 0 0 0.75rem;
+  font-size: 0.75rem;
+  font-weight: 600;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+}
+
+.doc-tree__title a {
+  color: var(--guld-ink);
+  text-decoration: none;
+  opacity: 0.65;
+}
+
+.doc-tree__title a:hover {
+  color: var(--guld-primary);
+  opacity: 1;
+}
+
+.doc-tree__list {
+  margin: 0;
+  padding: 0;
+  list-style: none;
+  display: grid;
+  gap: 0.15rem;
+}
+
+.doc-tree__dir > details > .doc-tree__list {
+  padding-left: 0.65rem;
+  margin-top: 0.2rem;
+}
+
+.doc-tree__dir summary {
+  cursor: pointer;
+  font-size: 0.88rem;
+  font-weight: 600;
+  color: var(--guld-navy);
+  list-style: none;
+}
+
+.doc-tree__dir summary::-webkit-details-marker {
+  display: none;
+}
+
+.doc-tree__dir summary::before {
+  content: "▸";
+  display: inline-block;
+  width: 0.9em;
+  color: color-mix(in srgb, var(--guld-ink) 45%, transparent);
+}
+
+.doc-tree__dir details[open] > summary::before {
+  content: "▾";
+}
+
+.doc-tree__file a {
+  display: block;
+  text-decoration: none;
+  font-size: 0.86rem;
+  color: var(--guld-ink);
+  opacity: 0.82;
+  padding: 0.15rem 0.2rem;
+  border-radius: 0.2rem;
+}
+
+.doc-tree__file a:hover {
+  color: var(--guld-primary);
+  opacity: 1;
+}
+
+.doc-tree__file a[aria-current="page"] {
+  color: var(--guld-primary);
+  opacity: 1;
+  background: color-mix(in srgb, var(--guld-primary) 10%, transparent);
+  font-weight: 600;
+}
+
+guld-md-doc {
+  display: block;
+  min-width: 0;
+}
+
 @media (min-width: 960px) {
   .doc-layout {
     grid-template-columns: 14rem minmax(0, 1fr);

@@ -1,0 +1,7 @@
+{
+  "version": 1,
+  "comment": "Optional P2P mesh fallback peers — not consensus authority. guld.io is one operator among many.",
+  "bootnodes": [
+    "/dns4/guld.io/tcp/4001"
+  ]
+}

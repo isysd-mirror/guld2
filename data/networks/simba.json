@@ -1,0 +1,11 @@
+{
+  "name": "simba",
+  "chain_id": 2,
+  "difficulty": 16,
+  "p2p_listen": "0.0.0.0:4001",
+  "auto_mine": false,
+  "bootnodes": [
+    "/dns4/guld.io/tcp/4001"
+  ],
+  "comment": "First public Guld 2.0 testnet. guld.io is the bootstrap peer (not consensus authority). Same genesis required; tip catch-up via P2P headers/blocks (phase B). See deploy/SIMBA.md."
+}

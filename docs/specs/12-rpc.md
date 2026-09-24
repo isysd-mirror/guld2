@@ -90,7 +90,8 @@ Draft `AccountSummary`: `{ "name", "balance", "kind" }`.
 | Method | Params | Result |
 |--------|--------|--------|
 | `guld_estimateWeight` | `[txJson]` | `Quantity` weight |
-| `guld_estimateRegistrationBurn` | `[kind, nKeys]` | Amount / fee object |
+| `guld_estimateRegistrationFee` | `[name, kind?, nKeys?, height?]` | Fee object (see §5.1) |
+| `guld_estimateRegistrationBurn` | *(deprecated alias)* | Same as `guld_estimateRegistrationFee` |
 | `guld_sendRawTransaction` | `[rawHex]` | `TxId` |
 | `guld_sendTransaction` | `[txJson]` | `TxId` (node MAY refuse if unsigned) |
 | `guld_getTransaction` | `[txid]` | Tx + receipt meta |
@@ -110,7 +111,26 @@ Draft `AccountSummary`: `{ "name", "balance", "kind" }`.
 |--------|--------|--------|
 | `guld_peerCount` | [] | Number |
 
-## 5. Account JSON shape (draft)
+## 5. Registration fee estimate
+
+`guld_estimateRegistrationFee` MUST accept **`name`** (required for individuals and groups) and return letter-based fees per [`07-fees-and-tokenomics.md`](07-fees-and-tokenomics.md). `guld_estimateRegistrationBurn` is a **deprecated alias** (same params/result).
+
+```json
+{
+  "fee": "<quanta>",
+  "height": "<h>",
+  "kind": "individual|group|subaccount",
+  "nKeys": <n>,
+  "letterCount": <L>,
+  "feeGuld": "<decimal GULD string>"
+}
+```
+
+- `kind` default `"individual"`; `nKeys` default `1` (group initial signer count).  
+- `fee` is the protocol registration fee (paid to the block miner — **not** burned).  
+- Subaccounts: `letterCount` omitted; fee = `F_sub`.
+
+## 6. Account JSON shape (draft)
 
 ```json
 {
@@ -126,7 +146,7 @@ Draft `AccountSummary`: `{ "name", "balance", "kind" }`.
 }
 ```
 
-## 6. Error codes
+## 7. Error codes
 
 | Code | Meaning | Typical HTTP |
 |------|---------|--------------|
@@ -136,11 +156,11 @@ Draft `AccountSummary`: `{ "name", "balance", "kind" }`.
 | `-32003` | Bad proof | 400 |
 | `-32004` | Object too large / missing | 400 / 404 |
 | `-32005` | Name reserved (`guld`) | 400 |
-| `-32006` | Node not ready (e.g. `guld` home incomplete) | 503 |
+| `-32006` | Node not ready (e.g. `guld` rule bundle incomplete) | 503 |
 | `-32601` | Method / route not found | 404 |
 | `-32602` | Bad params | 400 |
 
-## 7. Auth (permissionless proofs)
+## 8. Auth (permissionless proofs)
 
 | Operation class | Authorization |
 |-----------------|---------------|
@@ -151,7 +171,7 @@ Draft `AccountSummary`: `{ "name", "balance", "kind" }`.
 
 Remote TLS authenticates the **server name** to the client. It does not replace tx proofs. Operator API keys are **deployment policy**, not protocol.
 
-## 8. Open parameters
+## 9. Open parameters
 
 - Complete HTTP route table for all §4 ops + OpenAPI  
 - SSE / WebSocket for `newHeads`  

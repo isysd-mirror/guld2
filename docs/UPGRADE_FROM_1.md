@@ -8,7 +8,7 @@ Historical ledger dump: [`archives/ledger-guld/`](../archives/ledger-guld/) (per
 
 **1.0 problem:** Accounting lived in **ledger-cli** journals. Validation and tooling were tied to that stack.
 
-**2.0 direction (research — not locked):** Prefer a **custom ledger**, not an external L1 token platform.
+**2.0 direction (research — not locked):** Prefer a **custom ledger**, not an external chain as required substrate.
 
 ### Why not (yet) Ethereum / Solana / similar
 
@@ -18,7 +18,7 @@ Historical ledger dump: [`archives/ledger-guld/`](../archives/ledger-guld/) (per
 
 External tokens may still be useful later as **bridges or optional settlement**, not as the required ledger substrate for every full node.
 
-### Active sketch: lean modern L1 + optional git leaves
+### Active sketch: lean modern L0 + optional git leaves
 
 | Surface | Role |
 |---------|------|
@@ -32,7 +32,7 @@ Goals:
 - Lean validators (no multi-identity / email archaeology per block)
 - First-class **cosign** + **gas-metered** rules VM
 - Preserve **historical balances** 1:1 via import from `ledger-guld`; unlock spend with **key upgrade** (`ClaimLegacy`)
-- BTC/ETH/SOL-class L1 bar; differentiate on signed personal trees
+- BTC/ETH/SOL-class security bar; differentiate on signed personal trees and foreign-chain witness
 
 SoT research: [`research/modern-l1-direction.md`](research/modern-l1-direction.md). Intent: [`intents/ledger-migration.md`](intents/ledger-migration.md).
 

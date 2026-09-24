@@ -7,7 +7,7 @@ Status: accepted
 
 The **reference wallet** is the installable **static PWA at the guld repo root**, bootstrap-mirrored at guld.io — not a desktop app as the default path.
 
-**Web stack (locked):** same as `~/Projects/iramillercom/public/` — framework-less JS, no bundler, multi-page HTML, ES modules, CSS tokens, PWA SW, npm for tests only. Site assets: `src/css`, `src/js`. New wallet features MUST stay in that stack.
+**Web stack (locked):** framework-less JS, no bundler, multi-page HTML, ES modules, CSS tokens, PWA SW, npm for tests only. Site assets: `src/css`, `src/js`. New wallet features MUST stay in that stack.
 
 ## Target user story (normative for UX)
 
@@ -25,8 +25,8 @@ Extension / web-login conventions are **ecosystem** (not consensus opcodes) but 
 
 | Step | In-browser (default) | External signing (opt-in) |
 |------|----------------------|---------------------------|
-| Pick name + fee estimate | HTTP API availability + `F_user` estimate | Same |
-| Keys | Generate in browser; encrypt to IndexedDB with passphrase | Export unsigned registration request only |
+| Pick name + fee estimate | HTTP API availability + `F_user(L)` estimate | Same |
+| Keys | Generate in browser; **AES-256-GCM** keyring + passphrase ([`../specs/01-cryptography.md`](../specs/01-cryptography.md) §3.1) | Export unsigned registration request only |
 | Register | Friend QR/JSON **or** paid registrar gateway | Sign offline; paste signed JSON |
 | Daily use | Send to names; activity; build leaf/dapp | Sign txs externally |
 
@@ -53,22 +53,23 @@ Extension / web-login conventions are **ecosystem** (not consensus opcodes) but 
 - [x] `/wallet/` status, lookup, activity via `guld-node --http`  
 - [x] Static site at **repo root** + `--http` / `--http-static .`
 
-### Phase 2 — Register + send (browser keys)
+### Phase 2 — Register + send (shipped)
 
-- [ ] JS/WASM signing aligned with `guld-client`  
-- [ ] First-run: name + fee estimate + keygen  
-- [ ] Encrypted keyring; `Transfer` + `POST /api/v1/chain/transactions`  
-- [ ] Sponsored registration (friend + optional paid registrar)
+- [x] JS signing (register intent, transfer, cosign, rotate)  
+- [x] First-run: name + letter-based fee estimate + keygen + confirm step  
+- [x] Encrypted keyring; `Transfer` + `POST /api/v1/chain/transactions`  
+- [x] Sponsored registration (friend + optional paid registrar)  
+- [x] UpdateMaster + RotateKeys on account page  
 
 ### Phase 3 — Install + identity on the web
 
-- [ ] PWA service worker / install prompt  
-- [ ] **Browser extension**: link key; sign-in challenges for Guld dapps  
-- [ ] Contacts / send combobox  
+- [ ] PWA service worker / install prompt polish  
+- [ ] **Browser extension**: site-login challenges for Guld dapps  
+- [x] Contacts / recent recipients on send combobox  
 
 ### Phase 4 — Optional surfaces
 
-- [ ] Desktop `guld-wallet` (legacy claim, external signer)  
+- [ ] Desktop `guld-wallet` (legacy claim, external signer) — **deprecated** as default  
 - [ ] External-signing-only flows without browser key storage  
 
 ## Non-goals

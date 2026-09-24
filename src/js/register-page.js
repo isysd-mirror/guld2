@@ -76,7 +76,10 @@ function parseDesiredName(raw) {
 }
 
 async function buildRequest(name, priv, pubHex) {
-  const feeBody = await apiGet(apiBase, "/chain/fees/registration?kind=individual");
+  const feeBody = await apiGet(
+    apiBase,
+    `/chain/fees/registration?kind=individual&name=${encodeURIComponent(name)}`,
+  );
   const regFee = String(feeBody.fee || "0");
   const height = feeBody.height != null ? String(feeBody.height) : undefined;
   const endowment = "0";
@@ -144,7 +147,10 @@ function renderStep1() {
         setStatus(`“${name}” is taken. Try another.`, "error");
         return;
       }
-      const fee = await apiGet(apiBase, "/chain/fees/registration?kind=individual");
+      const fee = await apiGet(
+        apiBase,
+        `/chain/fees/registration?kind=individual&name=${encodeURIComponent(name)}`,
+      );
       state.name = name;
       setStatus(
         `“${name}” is available · on-chain fee ≈ ${escapeHtml(String(fee.feeGuld ?? quantaToGuld(fee.fee)))} GULD (paid by sponsor) + $10 fiat desk fee.`,
@@ -162,20 +168,31 @@ function renderStep2() {
   hostEl.innerHTML = `
     <article class="wallet__card">
       <p class="wallet__name">${escapeHtml(state.name)}</p>
-      <p class="wallet__meta">Generate a spend key in this browser. It never leaves your device.</p>
-      <button type="button" class="btn btn--primary" data-gen-keys>Generate keys &amp; continue</button>
-      <button type="button" class="btn btn--outline" data-back style="margin-left:0.5rem">Back</button>
+      <p class="wallet__meta">Choose a passphrase to encrypt your key in this browser. It never leaves your device.</p>
+      <form class="wallet__form" data-key-form>
+        <label>
+          Passphrase
+          <input name="pass" type="password" autocomplete="new-password" minlength="8" required />
+        </label>
+        <button type="submit" class="btn btn--primary">Generate keys &amp; continue</button>
+        <button type="button" class="btn btn--outline" data-back style="margin-left:0.5rem">Back</button>
+      </form>
     </article>
   `;
   hostEl.querySelector("[data-back]")?.addEventListener("click", () => renderStep1());
-  hostEl.querySelector("[data-gen-keys]")?.addEventListener("click", async () => {
+  hostEl.querySelector("[data-key-form]")?.addEventListener("submit", async (ev) => {
+    ev.preventDefault();
     setStatus("Generating keys…");
     try {
+      const fd = new FormData(/** @type {HTMLFormElement} */ (ev.target));
+      const pass = String(fd.get("pass") || "");
+      if (!pass) throw new Error("Passphrase required");
       const priv = await randomPrivateKey();
       const pubHex = await pubkeyHex(priv);
       const privHex = toHex(priv);
+      await keyring.unlock(pass);
       const request = await buildRequest(state.name, privHex, pubHex);
-      keyring.upsertAccount({
+      await keyring.upsertAccount({
         name: state.name,
         privHex,
         pubHex,
@@ -185,7 +202,36 @@ function renderStep2() {
       state.privHex = privHex;
       state.pubHex = pubHex;
       state.request = request;
-      setStatus("Keys ready. Creating payment order…", "ok");
+      setStatus("Review registration terms", "ok");
+      renderStepConfirm();
+    } catch (err) {
+      setStatus(/** @type {Error} */ (err).message, "error");
+    }
+  });
+}
+
+function renderStepConfirm() {
+  setStep(2);
+  const req = /** @type {Record<string, string>} */ (state.request || {});
+  const regFeeGuld = quantaToGuld(req.registration_fee || "0");
+  hostEl.innerHTML = `
+    <article class="wallet__card">
+      <p class="wallet__name">${escapeHtml(state.name)}</p>
+      <p class="wallet__meta">Confirm before payment — sponsor pays the on-chain fee.</p>
+      <ul class="wallet__meta">
+        <li>Registration fee: <strong>${escapeHtml(regFeeGuld)} GULD</strong> / year (to block miner)</li>
+        <li>Endowment: ${escapeHtml(quantaToGuld(req.endowment || "0"))} GULD</li>
+        <li>Public key: <code>${escapeHtml(state.pubHex)}</code></li>
+      </ul>
+      <p class="wallet__note">Your encrypted key stays on this device. Fiat desk fee is separate.</p>
+      <button type="button" class="btn btn--primary" data-confirm-register>Confirm &amp; pay</button>
+      <button type="button" class="btn btn--outline" data-back style="margin-left:0.5rem">Back</button>
+    </article>
+  `;
+  hostEl.querySelector("[data-back]")?.addEventListener("click", () => renderStep2());
+  hostEl.querySelector("[data-confirm-register]")?.addEventListener("click", async () => {
+    setStatus("Creating payment order…", "pending");
+    try {
       await createOrderAndPay();
     } catch (err) {
       setStatus(/** @type {Error} */ (err).message, "error");
@@ -301,12 +347,15 @@ async function pollUntilRegistered() {
         detail.textContent = `Status: ${status.replace(/_/g, " ")}`;
       }
       if (status === "registered" || (await checkAvailability(state.name)) === false) {
-        keyring.upsertAccount({
-          name: state.name,
-          privHex: state.privHex,
-          pubHex: state.pubHex,
-          pending: false,
-        });
+        const privHex = keyring.getPriv(state.name) || state.privHex;
+        if (privHex && keyring.isUnlocked()) {
+          await keyring.upsertAccount({
+            name: state.name,
+            privHex,
+            pubHex: state.pubHex,
+            pending: false,
+          });
+        }
         activateAccount(state.name);
         setStatus(`“${state.name}” is registered. Welcome.`, "ok");
         if (detail) detail.textContent = "Registered on-chain.";
@@ -363,7 +412,7 @@ async function boot() {
       state.request = order.request || null;
       const acct = keyring.getAccount(order.name);
       if (acct) {
-        state.privHex = acct.privHex;
+        state.privHex = keyring.getPriv(order.name) || "";
         state.pubHex = acct.pubHex;
       }
       setStatus(`Resuming order for “${order.name}”…`, "pending");

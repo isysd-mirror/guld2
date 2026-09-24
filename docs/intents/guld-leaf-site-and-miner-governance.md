@@ -81,7 +81,7 @@ So **guld.io itself does not occupy a special place in the network**—only an e
 ## Out of scope (for now)
 
 - Miner votes on CSS, marketing, or day-to-day content  
-- Encoding Paymento, DNS, or TLS into L1 block validation  
+- Encoding Paymento, DNS, or TLS into L0 block validation  
 - Automatic on-chain fulfillment of every registration (still Gateway / ops)  
 - Binding name registration success to miner approval of UI PRs  
 - Final domain sale terms for guld.io  

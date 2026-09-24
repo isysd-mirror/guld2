@@ -4,7 +4,10 @@
 
 ### Added
 
-- Rust L0/L1 workspace under `src/guld-*`: types, crypto, state, consensus, CAS, legacy import, node, client, desktop wallet
+- Rust L0 workspace under `src/guld-*`: types, crypto, state, consensus, CAS, legacy import, node, client, desktop wallet
+- `guld-p2p` libp2p mesh (Hello, tx/block sync, CAS objects, ban scoring, `--dev` mDNS) + simba testnet deploy notes
+- Optional signed tx `memo` (≤64 bytes) for fee-paying txs; height-activated upgrade spec (docs)
+- `/docs/` markdown browser + docs tree; PWA wallet memo/contacts/QR helpers
 - `guld-node --http` (`/api/v1` chain reads) + optional `--http-static`
 - Static PWA at repo root: landing, wallet, explorer, whitepaper/specs HTML shells (framework-less JS)
 - `repos/*.git` bare remotes + `src/guld-*` submodules; dumb HTTP via **`guld-node --http-static`** at `/repos/<name>.git`
@@ -17,9 +20,9 @@
 - **Repo root is the static website** (former `src/guld.io/` lifted). Site CSS/JS live at `src/css`, `src/js` beside Rust crates.
 - Docs are served from `/docs/` directly — no mirror/`sync-docs` copy step.
 - `guld-api` deprecated for the reference wallet path (prefer node `--http`).
-- Software remotes are in-tree `repos/` served by **guld-node** (not iramillercom `igithost`); `/srv/guld` remains content homes only. nginx on guld.io is optional reverse proxy only.
+- Software remotes are in-tree `repos/` served by **guld-node**; `/srv/guld` remains content homes only. nginx on guld.io is optional reverse proxy only.
 
 ### Notes
 
-- Snapshot before reorg: `~/Projects/guld.snap` (local).
+- Snapshot before reorg preserved locally (maintainer).
 - Next: `/software/` catalog UI ([`docs/intents/software-browser.md`](docs/intents/software-browser.md)).

@@ -1,31 +1,22 @@
 import { HEADER_NAV, isNavActive } from "../lib/site-nav.js";
-import {
-  AUTH_EVENT,
-  GATEWAY_HREF,
-  getLocalIdentity,
-  LOGIN_HREF,
-  REGISTER_HREF,
-  SETTINGS_HREF,
-} from "../lib/auth.js";
+import { AUTH_EVENT, GATEWAY_HREF, SETTINGS_HREF } from "../lib/auth.js";
 import {
   GATEWAY_SETTINGS_EVENT,
   isGatewayConfigured,
   loadGatewaySettings,
 } from "../lib/gateway-settings.js";
 import {
+  bindProfileMenu,
+  renderProfileMenu,
+  renderProfileTrigger,
+} from "../lib/profile-menu.js";
+import {
   ACTIVE_NAME_KEY,
   getActiveName,
-  initialsForName,
   SESSION_EVENT,
-  WALLET_HREF,
 } from "../lib/wallet-session.js";
 import { startGatewayPaymentWatcher } from "../lib/gateway-watcher.js";
-
-const PERSON_ICON = `
-  <svg class="site-header__account-icon" viewBox="0 0 24 24" width="20" height="20" aria-hidden="true" focusable="false">
-    <path fill="currentColor" d="M12 12c2.761 0 5-2.239 5-5s-2.239-5-5-5-5 2.239-5 5 2.239 5 5 5zm0 2c-4.418 0-8 2.239-8 5v1h16v-1c0-2.761-3.582-5-8-5z"/>
-  </svg>
-`;
+import { KEYRING_EVENT } from "../lib/keyring.js";
 
 const template = document.createElement("template");
 template.innerHTML = `
@@ -38,8 +29,11 @@ template.innerHTML = `
       <nav class="site-nav" aria-label="Primary">
         <ul class="site-nav__list"></ul>
       </nav>
-      <div class="site-header__auth" data-header-auth></div>
-      <a class="site-header__account" href="${WALLET_HREF}" aria-label="Open wallet"></a>
+      <div class="site-header__profile" data-header-profile>
+        <button type="button" class="site-header__account" data-profile-trigger
+          aria-haspopup="menu" aria-expanded="false" aria-controls="profile-menu"></button>
+        <div id="profile-menu" class="site-header__profile-menu" role="menu" hidden></div>
+      </div>
     </div>
   </header>
 `;
@@ -59,10 +53,25 @@ export class GuldHeader extends HTMLElement {
     }
 
     const list = /** @type {HTMLUListElement} */ (this.querySelector(".site-nav__list"));
-    const authEl = /** @type {HTMLElement} */ (this.querySelector("[data-header-auth]"));
-    const account = /** @type {HTMLAnchorElement | null} */ (
-      this.querySelector(".site-header__account")
+    const profileWrap = /** @type {HTMLElement} */ (this.querySelector("[data-header-profile]"));
+    const trigger = /** @type {HTMLButtonElement} */ (
+      this.querySelector("[data-profile-trigger]")
     );
+    const menu = /** @type {HTMLElement} */ (this.querySelector(".site-header__profile-menu"));
+
+    /** @type {(() => void) | null} */
+    let onDocClick = null;
+
+    const closeMenu = () => {
+      menu.hidden = true;
+      trigger.setAttribute("aria-expanded", "false");
+      if (onDocClick) {
+        document.removeEventListener("click", onDocClick);
+        onDocClick = null;
+      }
+    };
+
+    bindProfileMenu(menu, { onClose: closeMenu });
 
     const renderNav = () => {
       const pathname = globalThis.location?.pathname ?? "/";
@@ -87,45 +96,35 @@ export class GuldHeader extends HTMLElement {
       }
     };
 
-    const refreshAuth = () => {
-      const id = getLocalIdentity();
-      const name = id.name || getActiveName();
-      authEl.replaceChildren();
-
-      if (!id.hasKey) {
-        const login = document.createElement("a");
-        login.className = "site-header__cta site-header__cta--ghost";
-        login.href = LOGIN_HREF;
-        login.textContent = "Log in";
-        const signup = document.createElement("a");
-        signup.className = "site-header__cta site-header__cta--primary";
-        signup.href = REGISTER_HREF;
-        signup.textContent = "Sign up";
-        authEl.append(login, signup);
-      }
-
-      if (!account) return;
-      account.replaceChildren();
-      if (name && id.hasKey) {
-        account.href = `${WALLET_HREF}#/account/${encodeURIComponent(name)}`;
-        account.dataset.state = "signed-in";
-        account.setAttribute("aria-label", `Wallet · ${name}`);
-        const initials = document.createElement("span");
-        initials.className = "site-header__avatar site-header__avatar--initials";
-        initials.textContent = initialsForName(name);
-        initials.setAttribute("aria-hidden", "true");
-        account.append(initials);
-        return;
-      }
-      account.href = LOGIN_HREF;
-      account.dataset.state = "signed-out";
-      account.setAttribute("aria-label", "Log in");
-      account.insertAdjacentHTML("beforeend", PERSON_ICON);
+    const refreshProfile = () => {
+      renderProfileTrigger(trigger);
+      renderProfileMenu(menu);
+      if (!menu.hidden) closeMenu();
     };
+
+    trigger.addEventListener("click", (ev) => {
+      ev.stopPropagation();
+      const open = menu.hidden;
+      if (open) {
+        renderProfileMenu(menu);
+        menu.hidden = false;
+        trigger.setAttribute("aria-expanded", "true");
+        onDocClick = (e) => {
+          if (!profileWrap.contains(/** @type {Node} */ (e.target))) closeMenu();
+        };
+        setTimeout(() => document.addEventListener("click", onDocClick), 0);
+      } else {
+        closeMenu();
+      }
+    });
+
+    document.addEventListener("keydown", (ev) => {
+      if (ev.key === "Escape" && !menu.hidden) closeMenu();
+    });
 
     const refresh = () => {
       renderNav();
-      refreshAuth();
+      refreshProfile();
       startGatewayPaymentWatcher();
     };
 
@@ -133,6 +132,7 @@ export class GuldHeader extends HTMLElement {
 
     document.addEventListener(SESSION_EVENT, refresh);
     document.addEventListener(AUTH_EVENT, refresh);
+    document.addEventListener(KEYRING_EVENT, refresh);
     document.addEventListener(GATEWAY_SETTINGS_EVENT, refresh);
     if (typeof globalThis.addEventListener === "function") {
       globalThis.addEventListener("storage", (event) => {

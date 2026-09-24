@@ -27,6 +27,8 @@ inclusion_fee >= ceil(weight(tx) * fee_rate)   // user-chosen fee_rate
 
 Relay floor: `fee_rate_min` (**TBD**). Paid to block miner via coinbase accounting.
 
+Optional `memo` bytes ([`03-transactions.md`](03-transactions.md) §2.1) increase `size_bytes(canonical_tx)` like any other field — there is no free metadata channel.
+
 ## 3. Registration protocol fees (→ miner)
 
 Registration fees MUST be paid to the **block miner** who includes the transaction (same coinbase path as inclusion fees). They MUST NOT be burned or spread across future blocks.
@@ -42,11 +44,13 @@ Fees buy **`REGISTRATION_PERIOD = BLOCKS_PER_YEAR` (52_560)** blocks of control 
 **Intent:** [`../intents/letter-based-registration-fees.md`](../intents/letter-based-registration-fees.md)
 
 ```text
-L = count of Unicode alphabetic characters in the root label (NFC)
-    hyphens, digits, and punctuation do not count
-L_eff = min(L, L_cap)     // L_cap = 6 (draft)
-F_user = FLOOR[L_eff]     // lookup table; same fee on register and settle
+label_letter_count(name) → L   // root label only (strip parent.label for subs)
+L = count of Unicode alphabetic characters (NFC); hyphens/digits/punctuation ignored
+L_eff = min(L, L_cap)            // L_cap = 6 (draft)
+F_user(L) = TABLE[L_eff]         // same fee on register, settle, and estimate
 ```
+
+Implementations MUST compute `L` identically in `RegisterUsername`, `RegisterGroup`, `SettleRegistration`, and `guld_estimateRegistrationFee`.
 
 | L (letters) | `F_user(L)` / year | Example |
 |-------------|-------------------|---------|
@@ -59,16 +63,29 @@ F_user = FLOOR[L_eff]     // lookup table; same fee on register and settle
 
 Long names hit the **floor at 6 letters** — `jorge-luise-gonzalez` (17 letters) pays **1 GULD**/year, same as any name with ≥ 6 letters.
 
-#### Other kinds (flat)
+#### Group names — `F_group(L, n)`
+
+Groups use the same letter ladder as individuals, scaled by signer count:
+
+```text
+F_group(L, n) = F_user(L) × (2 + n)     // n = initial key count
+```
+
+| Example | L | n | Fee / year |
+|---------|---|---|------------|
+| 1-letter 1-of-1 group `x` | 1 | 1 | **3_000 GULD** (= 1000 × 3) |
+| 2-letter 1-of-1 group `ai` | 2 | 1 | **300 GULD** (= 100 × 3) |
+| Long-name 5-key group | ≥6 | 5 | **7 GULD** (= 1 × 7) |
+
+#### Subaccounts (flat)
 
 | Kind | Symbol | Amount / year |
 |------|--------|----------------|
 | Subaccount | `F_sub` | **0.1 GULD** |
-| Group | `F_group(n)` | **2 + n** GULD (`n` = initial key count) |
 
 Legacy-locked 1.0 imports are **not** settled until claimed; `ClaimLegacy` stays open indefinitely. After claim, yearly settle uses **`F_user(L)`** for their name. Keep the wallet funded before expiry — there is no separate renew tx.
 
-Examples: 1-of-1 group = **3 GULD**/yr; 5-key group = **7 GULD**/yr.
+Examples: 1-letter 1-of-1 group = **3_000 GULD**/yr; long-name 5-key group = **7 GULD**/yr.
 
 ### 3.2 Design goals
 
@@ -79,12 +96,11 @@ Examples: 1-of-1 group = **3 GULD**/yr; 5-key group = **7 GULD**/yr.
 
 ### 3.3 RPC
 
-`guld_estimateRegistrationBurn(name, kind?, nKeys?, height?)` returns:
+`guld_estimateRegistrationFee(name, kind?, nKeys?, height?)` returns:
 
 ```json
 {
   "fee": "<quanta>",
-  "burn": "<quanta>",
   "height": "<h>",
   "kind": "individual|group|subaccount",
   "nKeys": <n>,
@@ -93,7 +109,7 @@ Examples: 1-of-1 group = **3 GULD**/yr; 5-key group = **7 GULD**/yr.
 }
 ```
 
-`fee` and `burn` are identical (no burn). For individuals, **`name`** is required so the node can compute `L` and `F_user(L)`. `kind`: `"individual"` (default), `"group"`, or `"subaccount"`.
+`fee` is paid to the block miner (not burned). Deprecated alias: `guld_estimateRegistrationBurn`. For individuals and groups, **`name`** is required so the node can compute `L` and `F_user(L)` (groups: `F_group(L, n)`). `kind`: `"individual"` (default), `"group"`, or `"subaccount"`.
 
 ## 4. Block weight limit
 
@@ -143,14 +159,13 @@ fn tx_weight(tx: &Tx) -> u64;
 fn label_letter_count(name: &Name) -> u32;
 fn f_user_at(height: u64, name: &Name, params: &EconomyParams) -> Amount;  // letter table
 fn f_sub_at(height: u64, params: &EconomyParams) -> Amount;   // fixed 0.1 GULD
-fn f_group_at(height: u64, n: u16, params: &EconomyParams) -> Amount; // 2 + n GULD
+fn f_group_at(height: u64, name: &Name, n: u16, params: &EconomyParams) -> Amount; // F_user(L) × (2 + n)
 fn subsidy(height: u64, params: &EconomyParams) -> Amount;
 ```
 
 ## 8. Open parameters
 
 - Final premium table values and `L_cap` (5 vs 6)  
-- Whether group root names use the same letter ladder  
 - Whether name **deposits** exist alongside registration fees  
 - Final audited `x` / per-name manifest hash (does not change `i(y)` shape)  
 - `MAX_SUBACCOUNTS` (default **8**) — [`intents/subaccounts.md`](../intents/subaccounts.md)

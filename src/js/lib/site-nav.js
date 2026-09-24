@@ -4,17 +4,17 @@
 export const HEADER_NAV = [
   { href: "/wallet/", label: "Wallet" },
   { href: "/explorer/", label: "Explorer" },
-  { href: "/#install", label: "Install" },
 ];
 
 /** Docs / meta — footer only. */
 export const FOOTER_NAV = [
+  { href: "/#install", label: "Install" },
   { href: "/claim/", label: "Legacy claim" },
   { href: "/whitepaper/", label: "Whitepaper" },
   { href: "/specs/", label: "Specs" },
   { href: "/help/", label: "Help" },
   { href: "/software/", label: "Software" },
-  { href: "/docs/HOSTING.md", label: "Hosting" },
+  { href: "/docs/", label: "Docs" },
 ];
 
 /**

@@ -1,0 +1,288 @@
+{
+  "generated": "2026-09-24",
+  "extras": [
+    {
+      "name": "README.md",
+      "fetch": "/README.md",
+      "label": "Repository README"
+    }
+  ],
+  "tree": [
+    {
+      "name": "help",
+      "children": [
+        {
+          "name": "paymento.md",
+          "path": "help/paymento.md"
+        }
+      ]
+    },
+    {
+      "name": "intents",
+      "children": [
+        {
+          "name": "bootstrap-gateway-registrar.md",
+          "path": "intents/bootstrap-gateway-registrar.md"
+        },
+        {
+          "name": "consumer-integration.md",
+          "path": "intents/consumer-integration.md"
+        },
+        {
+          "name": "docs-browser.md",
+          "path": "intents/docs-browser.md"
+        },
+        {
+          "name": "guld-leaf-site-and-miner-governance.md",
+          "path": "intents/guld-leaf-site-and-miner-governance.md"
+        },
+        {
+          "name": "ledger-migration.md",
+          "path": "intents/ledger-migration.md"
+        },
+        {
+          "name": "letter-based-registration-fees.md",
+          "path": "intents/letter-based-registration-fees.md"
+        },
+        {
+          "name": "mempool-visualizer.md",
+          "path": "intents/mempool-visualizer.md"
+        },
+        {
+          "name": "name-expiry.md",
+          "path": "intents/name-expiry.md"
+        },
+        {
+          "name": "p2p-mesh.md",
+          "path": "intents/p2p-mesh.md"
+        },
+        {
+          "name": "pwa-reference-wallet.md",
+          "path": "intents/pwa-reference-wallet.md"
+        },
+        {
+          "name": "README.md",
+          "path": "intents/README.md"
+        },
+        {
+          "name": "repo-layout.md",
+          "path": "intents/repo-layout.md"
+        },
+        {
+          "name": "rotate-keys.md",
+          "path": "intents/rotate-keys.md"
+        },
+        {
+          "name": "scaffold-2.0.md",
+          "path": "intents/scaffold-2.0.md"
+        },
+        {
+          "name": "software-browser.md",
+          "path": "intents/software-browser.md"
+        },
+        {
+          "name": "specs-2.0.md",
+          "path": "intents/specs-2.0.md"
+        },
+        {
+          "name": "subaccounts.md",
+          "path": "intents/subaccounts.md"
+        },
+        {
+          "name": "tx-memo-and-upgrades.md",
+          "path": "intents/tx-memo-and-upgrades.md"
+        },
+        {
+          "name": "wallet-contacts-and-account-lookup.md",
+          "path": "intents/wallet-contacts-and-account-lookup.md"
+        }
+      ]
+    },
+    {
+      "name": "research",
+      "children": [
+        {
+          "name": "block-window-consensus.md",
+          "path": "research/block-window-consensus.md"
+        },
+        {
+          "name": "jsonrpc-vs-http-api.md",
+          "path": "research/jsonrpc-vs-http-api.md"
+        },
+        {
+          "name": "modern-l1-direction.md",
+          "path": "research/modern-l1-direction.md"
+        },
+        {
+          "name": "postgres-blockchain.md",
+          "path": "research/postgres-blockchain.md"
+        },
+        {
+          "name": "storage-scale-git-postgres.md",
+          "path": "research/storage-scale-git-postgres.md"
+        }
+      ]
+    },
+    {
+      "name": "specs",
+      "children": [
+        {
+          "name": "00-overview.md",
+          "path": "specs/00-overview.md"
+        },
+        {
+          "name": "01-cryptography.md",
+          "path": "specs/01-cryptography.md"
+        },
+        {
+          "name": "02-identity-and-accounts.md",
+          "path": "specs/02-identity-and-accounts.md"
+        },
+        {
+          "name": "03-transactions.md",
+          "path": "specs/03-transactions.md"
+        },
+        {
+          "name": "04-proofs.md",
+          "path": "specs/04-proofs.md"
+        },
+        {
+          "name": "05-state.md",
+          "path": "specs/05-state.md"
+        },
+        {
+          "name": "06-blocks-and-consensus.md",
+          "path": "specs/06-blocks-and-consensus.md"
+        },
+        {
+          "name": "07-fees-and-tokenomics.md",
+          "path": "specs/07-fees-and-tokenomics.md"
+        },
+        {
+          "name": "08-cas-and-homes.md",
+          "path": "specs/08-cas-and-homes.md"
+        },
+        {
+          "name": "09-p2p.md",
+          "path": "specs/09-p2p.md"
+        },
+        {
+          "name": "10-node.md",
+          "path": "specs/10-node.md"
+        },
+        {
+          "name": "11-leaf-host.md",
+          "path": "specs/11-leaf-host.md"
+        },
+        {
+          "name": "12-rpc.md",
+          "path": "specs/12-rpc.md"
+        },
+        {
+          "name": "13-foreign-chains.md",
+          "path": "specs/13-foreign-chains.md"
+        },
+        {
+          "name": "14-reference-ui.md",
+          "path": "specs/14-reference-ui.md"
+        },
+        {
+          "name": "15-ledger-import.md",
+          "path": "specs/15-ledger-import.md"
+        },
+        {
+          "name": "16-sponsored-registration.md",
+          "path": "specs/16-sponsored-registration.md"
+        },
+        {
+          "name": "17-protocol-upgrades.md",
+          "path": "specs/17-protocol-upgrades.md"
+        },
+        {
+          "name": "README.md",
+          "path": "specs/README.md"
+        }
+      ]
+    },
+    {
+      "name": "tasks",
+      "children": [
+        {
+          "name": "open",
+          "children": [
+            {
+              "name": "001-explorer-account-lookup.md",
+              "path": "tasks/open/001-explorer-account-lookup.md"
+            },
+            {
+              "name": "002-wallet-send-contacts.md",
+              "path": "tasks/open/002-wallet-send-contacts.md"
+            },
+            {
+              "name": "003-contact-qr-handshake.md",
+              "path": "tasks/open/003-contact-qr-handshake.md"
+            },
+            {
+              "name": "004-rpc-search-accounts.md",
+              "path": "tasks/open/004-rpc-search-accounts.md"
+            }
+          ]
+        },
+        {
+          "name": "templates",
+          "children": [
+            {
+              "name": "task.md",
+              "path": "tasks/templates/task.md"
+            }
+          ]
+        },
+        {
+          "name": "README.md",
+          "path": "tasks/README.md"
+        }
+      ]
+    },
+    {
+      "name": "whitepaper",
+      "children": [
+        {
+          "name": "guld-2.0-draft.md",
+          "path": "whitepaper/guld-2.0-draft.md"
+        }
+      ]
+    },
+    {
+      "name": "ARCHIVES.md",
+      "path": "ARCHIVES.md"
+    },
+    {
+      "name": "brand-concepts.md",
+      "path": "brand-concepts.md"
+    },
+    {
+      "name": "HOSTING.md",
+      "path": "HOSTING.md"
+    },
+    {
+      "name": "LATER.md",
+      "path": "LATER.md"
+    },
+    {
+      "name": "PACKAGES.md",
+      "path": "PACKAGES.md"
+    },
+    {
+      "name": "REPO_LAYOUT.md",
+      "path": "REPO_LAYOUT.md"
+    },
+    {
+      "name": "SOFTWARE_FLOW.md",
+      "path": "SOFTWARE_FLOW.md"
+    },
+    {
+      "name": "UPGRADE_FROM_1.md",
+      "path": "UPGRADE_FROM_1.md"
+    }
+  ]
+}

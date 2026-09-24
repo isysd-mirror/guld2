@@ -4,7 +4,7 @@ Status: accepted (Phase A–B mostly done; public HTTPS URLs + `/software/` UI n
 
 ## Goal
 
-Umbrella **`~/Projects/guld`** is both the open-source project and the static website. Implementation packages live under **`src/<component>/`** as **git submodules**. Canonical bare remotes live under **`repos/<name>.git`** in this same tree and are **served over HTTP with the site** (self-replicating). Human UI for that farm: [`software-browser.md`](software-browser.md).
+The umbrella repository is both the open-source project and the static website. Implementation packages live under **`src/<component>/`** as **git submodules**. Canonical bare remotes live under **`repos/<name>.git`** in this same tree and are **served over HTTP with the site** (self-replicating). Human UI for that farm: [`software-browser.md`](software-browser.md).
 
 SoT map: [`../REPO_LAYOUT.md`](../REPO_LAYOUT.md) · serving: [`../HOSTING.md`](../HOSTING.md).
 
@@ -35,4 +35,4 @@ SoT map: [`../REPO_LAYOUT.md`](../REPO_LAYOUT.md) · serving: [`../HOSTING.md`](
 - GitHub as canonical host (mirror only)
 - On-chain attestation of guld.io HTML
 - Treating the browser extension as consensus-required
-- iramillercom `igithost` as the software remote farm
+- Third-party git host farms as the software remote source

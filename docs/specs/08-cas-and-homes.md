@@ -19,7 +19,7 @@ Git repositories MAY appear as **leaf blobs or subtrees** (e.g. a `repos/node.gi
 
 ## 3. CAS service API — `guld-cas`
 
-Local node object store (not an L1 pin market):
+Local node object store (not an L0 pin market):
 
 ```text
 trait Cas {
@@ -38,15 +38,23 @@ trait Cas {
 
 Storage backend: filesystem or KV under the node data dir.
 
-## 4. Mandatory `guld` clone
+## 4. Mandatory `guld` rule bundle
 
-On tip update affecting account `guld`, or on node startup:
+On tip update affecting account `guld`, or on node startup, a **full validating node** MUST:
+
+1. Materialize the CAS objects reachable from account `guld`’s current `master_hash` home tree.  
+2. Verify header `guld_rules_hash` matches the digest of that **rule bundle** (schemas, fee tables, proof kinds — whitepaper §3.5).
 
 ```text
-cas.materialize_tree(account("guld").home_tree_root)  // MUST succeed for full node
+cas.materialize_tree(account("guld").home_tree_root)  // small rule bundle only
+assert header.guld_rules_hash == hash(active_rule_bundle)
 ```
 
-Failure ⇒ node MUST NOT advertise as a full validating peer.
+**NOT required:** materializing node/wallet/website **source code** from CAS. Those ship from ordinary git; engineers’ checkouts are off-chain.
+
+Failure to materialize the rule bundle or rules-hash mismatch ⇒ node MUST NOT advertise as a full validating peer.
+
+**Upgrades:** publishing a new rule bundle under `guld` does not instantly change validation — see [`17-protocol-upgrades.md`](17-protocol-upgrades.md) (`activation_height`).
 
 ## 5. Other accounts — tip ≠ DA
 
@@ -55,7 +63,7 @@ Failure ⇒ node MUST NOT advertise as a full validating peer.
 - Validators MUST store account tips (`master_hash`, keys, balances).  
 - Validators MUST NOT be required to store ordinary account home bytes.  
 - Clients and leaf hosts fetch objects via P2P, `remotes[]` hints, or local import.  
-- Retention agreements (payment, escrow, punishment) live in **private leaves** or ordinary `Transfer`s—not fixed L1 storage txs.
+- Retention agreements (payment, escrow, punishment) live in **private leaves** or ordinary `Transfer`s—not fixed L0 storage txs.
 
 Optional future storage markets are **apps**, not required protocol surface.
 

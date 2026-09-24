@@ -26,7 +26,7 @@ Served by **`guld-node --http --http-static`** on every peer. guld.io may put ng
 | Transport later | Smart HTTP **in guld-node** (same paths) |
 | UI | Static `/software/` + `src/js/` |
 | nginx | Optional reverse proxy on guld.io only — no git/API logic |
-| Not used | iramillercom `igithost`, GitHub as canonical host |
+| Not used | Third-party git host farms; GitHub as canonical host |
 
 Details: [`../HOSTING.md`](../HOSTING.md), [`../REPO_LAYOUT.md`](../REPO_LAYOUT.md).
 

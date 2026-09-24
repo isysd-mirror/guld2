@@ -1,6 +1,6 @@
 # Guld software flow
 
-Guld is a **standalone** platform. This document is guld’s own loop. It does **not** depend on iramillercom CD, `igithost`, or `apps.conf`.
+Guld is a **standalone** platform. This document is guld’s own loop. It does **not** depend on external CD pipelines or third-party git host farms.
 
 **Canonical HTTP server:** `guld-node --http` + `--http-static .` (API, site, `/repos/`). nginx is optional and only for guld.io TLS/extras — see [`HOSTING.md`](HOSTING.md).
 

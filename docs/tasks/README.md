@@ -1,6 +1,6 @@
 # Task queue
 
-Lightweight, **git-native** issue tracking — no GitHub Issues required. Canonical host is [iramiller.com/git/guld](https://iramiller.com/git/guld); GitHub is a mirror only.
+Lightweight, **git-native** issue tracking — no GitHub Issues required. Canonical host is [guld.io](https://guld.io/) (this repo); GitHub is an optional mirror.
 
 ## How this relates to other docs
 

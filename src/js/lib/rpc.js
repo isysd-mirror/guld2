@@ -63,6 +63,18 @@ export function persistRpcUrl(url) {
   }
 }
 
+/** GULD decimal string → quanta bigint string. */
+export function guldToQuanta(guldStr) {
+  const s = String(guldStr || "0").trim();
+  if (!s) return "0";
+  const [whole, frac = ""] = s.split(".");
+  if (!/^\d+$/.test(whole) || (frac && !/^\d+$/.test(frac))) {
+    throw new Error(`Invalid GULD amount: ${guldStr}`);
+  }
+  const f = frac.padEnd(10, "0").slice(0, 10);
+  return (BigInt(whole) * 10_000_000_000n + BigInt(f || "0")).toString();
+}
+
 /** Quanta string → GULD decimal string. */
 export function quantaToGuld(quantaStr) {
   const q = BigInt(quantaStr || "0");

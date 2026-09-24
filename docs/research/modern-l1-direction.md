@@ -1,13 +1,14 @@
-# Research: Modern L1 direction — lean accounts, custom CAS, PoW-capable chain
+# Research: Modern L0 direction — lean accounts, custom CAS, PoW-capable chain
 
 Status: research (active sketch)  
-Supersedes as **L1 SoT preference**: treating Postgres + PGP-signed git votes as the network consensus path. Those remain valid for **indexers**, **leaf git hosting**, and **2.0 meta-FS packages** — not for what every block producer must run.
+**Note:** filename kept for link stability; Guld is **L0** (witness substrate below foreign L1s such as Ethereum and Solana).  
+Supersedes as **L0 SoT preference**: treating Postgres + PGP-signed git votes as the network consensus path. Those remain valid for **indexers**, **leaf git hosting**, and **2.0 meta-FS packages** — not for what every block producer must run.
 
 Related: [`postgres-blockchain.md`](postgres-blockchain.md), [`block-window-consensus.md`](block-window-consensus.md), [`storage-scale-git-postgres.md`](storage-scale-git-postgres.md), [`../intents/ledger-migration.md`](../intents/ledger-migration.md), [`../UPGRADE_FROM_1.md`](../UPGRADE_FROM_1.md), **draft whitepaper:** [`../whitepaper/guld-2.0-draft.md`](../whitepaper/guld-2.0-draft.md), **specs:** [`../specs/README.md`](../specs/README.md)
 
 ## Goal bar
 
-Compete with **Bitcoin / Ethereum / Solana-class** L1 fundamentals (security, usable throughput, fee metering). Differentiator is product shape — **registered usernames, signed personal / group hash trees, witnessed leaf consensus** — not PayPal TPS or “git as the blockchain.”
+Compete with **Bitcoin / Ethereum / Solana-class** security and fee-metering fundamentals while sitting **below** those networks as an L0 witness hub. Differentiator is product shape — **registered usernames, signed personal / group hash trees, witnessed leaf consensus, foreign-chain tips** — not PayPal TPS or “git as the blockchain.”
 
 ## Direction (captured)
 
@@ -34,15 +35,15 @@ Leaves (personal homes, private groups, guilds) may run **whatever languages and
 The network only cares about:
 
 1. The **head** (tip / master hash) of that account or group  
-2. An **externally verifiable** proof that the leaf’s own consensus policy was satisfied (threshold cosignatures over a committed message, or another proof scheme the L1 enumerates)  
-3. Gas paid to record that witness on-chain  
+2. An **externally verifiable** proof that the leaf’s own consensus policy was satisfied (threshold cosignatures over a committed message, or another proof scheme Guld enumerates at L0)  
+3. Weight-priced fee paid to record that witness on-chain  
 
 The node is a **witness**, not an interpreter of leaf politics. It does not execute group scripts, does not learn member emails, and does not adjudicate internal disputes — only that *this tip* was authorized under the *currently registered* on-chain key/threshold (or successor proof type).
 
 ### Account + master hash
 
 ```
-username  (registered; paid F_user or F_group(n))
+username  (registered; paid F_user(L) or F_group(L, n))
   └── keys[] + threshold     # cosign policy for tip / spend / recover
   └── master_hash = SHA256(
         home_tree_root,      # network-level home = SHA-256 hash tree (not git)
@@ -53,15 +54,15 @@ username  (registered; paid F_user or F_group(n))
 
 - The **identity record** (name, keys, tip, balance) lives on the network. That is the primary identity file.
 - Home **content** is CAS under SHA-256 roots—more efficient than git as the network home format.
-- **Leaf formats** under the home (git, games, HTTP apps, …) are optional and opaque—including for primary accounts. Git is a leaf/forge UX, not the L1 home encoding.
+- **Leaf formats** under the home (git, games, HTTP apps, …) are optional and opaque—including for primary accounts. Git is a leaf/forge UX, not the L0 home encoding.
 - Advancing the account = `UpdateMaster` with **threshold cosignatures** and a weight-priced miner fee.
-- AES-256 (IFS-style) remains for **encrypted blobs** when privacy is needed.
+- Leaf/CAS bytes are opaque; encryption (if any) is **leaf owner choice** — not a consensus primitive. **AES-256** is reserved for **wallet key encryption at rest** in reference clients.
 
-**Registration fees (1.0 continuity):** expensive `F_user`; `F_group(n) = F_group_base + F_group_per_signer × n` because signer count drives proof complexity. **`F_*` are burned** (network-wide burden), not paid to the block miner. Inclusion fees remain weight-priced to miners.
+**Registration fees:** letter-based **`F_user(L)`**; **`F_group(L, n) = F_user(L) × (2 + n)`** because signer count drives proof complexity. **`F_*` go to the block miner** (anti-spam lottery). Inclusion fees remain weight-priced to miners.
 
 **Supply:** genesis pre-mine **x ≈ 9.60×10⁵ GULD** from 1.0 member `*:Assets` (**ERC20 omitted**); **10** decimals; balances locked until **key upgrade**. Block time **10 minutes**. Issuance: geometric inflation **100% → 4%** over **20** years, then **4%** forever. See whitepaper §8.6 and [`../specs/07-fees-and-tokenomics.md`](../specs/07-fees-and-tokenomics.md).
 
-**Reserved `guld`:** network-owned account; leaves hold node/core/libs/clients/rules. Every full node **must fully clone** the current `guld` home. This working tree (`Projects/guld`) is a **sub-leaf** of that on-chain home. See whitepaper §3.5.
+**Reserved `guld`:** network-owned account; leaves hold node/core/libs/clients/rules. Every full node **must fully clone** the current `guld` home. The open-source git tree at `guld.io/repos/guld.git` is operator-maintained software — not a consensus clone obligation. See whitepaper §3.5.
 
 ### Git and PGP — leaf only (including free forges)
 
@@ -81,28 +82,28 @@ username  (registered; paid F_user or F_group(n))
 
 ```
 Consensus / state DB     →  tips, balances, gas, key sets, headers, fork choice
-Object CAS               →  personal tree nodes (and optional encrypted blobs)
+Object CAS               →  personal tree nodes (opaque bytes; encryption optional, leaf-local)
 Git (optional leaf)      →  user-chosen encoding inside CAS
 Indexer Postgres/SQLite  →  off-node; user or app-server only
 ```
 
-**No L1 pin market:** nodes retain subsets of CAS by operator/leaf choice; the rest is hash-only. Chain tracks account master hashes, not every blob. Retention contracts live in leaves.
+**No L0 pin market:** nodes retain subsets of CAS by operator/leaf choice; the rest is hash-only. Chain tracks account master hashes, not every blob. Retention contracts live in leaves.
 
 ### Fees and network validation (not a VM)
 
-The L1 has a **fixed tx vocabulary**. It validates schemas, checks hashes/signatures/enumerated proofs, and applies built-in state updates. It does **not** run custom functions—those live in leaves.
+Guld at **L0** has a **fixed tx vocabulary**. It validates schemas, checks hashes/signatures/enumerated proofs, and applies built-in state updates. It does **not** run custom functions—those live in leaves.
 
 Fees are **Bitcoin-style**: weight (vB) from size + signature surcharge (+ create/write adders); users bid **fee rate** (GULD/vB); miners take fees; blocks have a weight cap. No EVM gas ISA or base-fee burn required in the active draft (see whitepaper §8).
 
 ### Consensus election (preference shift)
 
-Open research, but the active lean-L1 sketch favors:
+Open research, but the active lean-L0 sketch favors:
 
 - **PoW or DAG-PoW** (or PoW as propose gate) for open membership / header security
 - **Weight-priced tx fees** (Bitcoin-style) for inclusion
 - **Cosign (or enumerated leaf-consensus proofs)** for tip authority
 
-Weighted PGP git votes / bonded PoS remain documented alternatives in [`block-window-consensus.md`](block-window-consensus.md); they are no longer the default story for a from-scratch modern L1.
+Weighted PGP git votes / bonded PoS remain documented alternatives in [`block-window-consensus.md`](block-window-consensus.md); they are no longer the default story for a from-scratch modern L0.
 
 ---
 
@@ -113,7 +114,7 @@ Weighted PGP git votes / bonded PoS remain documented alternatives in [`block-wi
 | Primitive | Role | Notes |
 |-----------|------|--------|
 | **SHA-256** | Trees, master hash, PoW/input hashing | Fine for commitments; PQ mainly hits **signatures**, not “replace SHA tomorrow.” Grover → effective ~128-bit; enlarge later if policy demands. |
-| **AES-256** | Encrypted leaves / IFS-style privacy | Consensus sees hashes of ciphertext; key distribution is off-consensus or wrapped in account meta. |
+| **AES-256** | Reference wallet keyring at rest | Private keys encrypted locally; **not** used for leaf/CAS content at protocol level |
 
 ### Account / tx signatures (choose deliberately)
 
@@ -125,7 +126,7 @@ Weighted PGP git votes / bonded PoS remain documented alternatives in [`block-wi
 | **SLH-DSA (SPHINCS+)** | Conservative hash-based PQ | Much larger sigs; slower | High-value / cold / governance keys |
 | **Hybrid (Ed25519 + ML-DSA)** | Migrate-friendly; defense in depth | Complexity, size | Sensible if genesis must be PQ-*ready* without abandoning today’s UX |
 
-**Recommendation (research):** freeze an **account key scheme** that supports **multisig/threshold cosign** natively. Ship with Ed25519 *or* hybrid; do **not** build the L1 on OpenPGP packets or email-bearing UIDs. Map 1.0 PGP identities in at import as “legacy binding,” not as the hot verify path.
+**Recommendation (research):** freeze an **account key scheme** that supports **multisig/threshold cosign** natively. Ship with Ed25519 *or* hybrid; do **not** build L0 consensus on OpenPGP packets or email-bearing UIDs. Map 1.0 PGP identities in at import as “legacy binding,” not as the hot verify path.
 
 **Cosign:** account stores `keys[]` + `threshold` (+ optional roles: tip / spend / recover). Tx carries `sigs[]` meeting threshold. Group policies compose thresholds over account ids — not git merges.
 
@@ -143,7 +144,7 @@ Nodes need a **hot authenticated store**, not a general application SQL engine.
 | **Postgres** | Superb query, ACID app logic, familiar ops | Heavy as sole public L1 archive; not BFT | **Indexer / API / user server only** |
 | **Git ODB as chain DB** | Familiar | Bloated at network scale; no cosign; wrong metadata | **Reject** for consensus |
 
-**Recommendation:** KV (+ SMT) for validators; optional Postgres projector for products like iramiller.com. Aligns with [`storage-scale-git-postgres.md`](storage-scale-git-postgres.md) on “don’t put all users in one git DB,” while **demoting** Postgres from consensus SoT.
+**Recommendation:** KV (+ SMT) for validators; optional Postgres projector for browse/search products. Aligns with [`storage-scale-git-postgres.md`](storage-scale-git-postgres.md) on “don’t put all users in one git DB,” while **demoting** Postgres from consensus SoT.
 
 ### Capacity sketch (keys + SHA-256 only)
 
@@ -159,7 +160,7 @@ Keeping **10 historical tips only for recently active** users barely moves the t
 
 CPU: tip updates are dominated by signature verify, not SHA-256. Thousands of single-sig tip updates per second are plausible on modest hardware if proofs stay threshold-small.
 
-**Not in this budget:** CAS object bytes or indexer Postgres — those scale with content and product UX, not with “key + hashes.” Retention is leaf/self-host/forge; **no L1 pin market.**
+**Not in this budget:** CAS object bytes or indexer Postgres — those scale with content and product UX, not with “key + hashes.” Retention is leaf/self-host/forge; **no L0 pin market.**
 
 ---
 
@@ -223,7 +224,7 @@ Cargo integrates cleanly with git: path deps, git URL deps, and crates.io alike 
 ### Others (short)
 
 - **Kaspa-class DAG-PoW** — if staying PoW but wanting higher block parallelism than Nakamoto single-lane.
-- **Celestia-style DA** — later research only; v1 does **not** put pin/slash on L1 (leaf retention + mandatory `guld` clone).
+- **Celestia-style DA** — later research only; v1 does **not** put pin/slash on L0 (leaf retention + mandatory `guld` clone).
 
 ---
 
@@ -231,10 +232,10 @@ Cargo integrates cleanly with git: path deps, git URL deps, and crates.io alike 
 
 ### Split
 
-| Layer | Runs where | Priced by L1 fee? |
+| Layer | Runs where | Priced by L0 fee? |
 |-------|------------|-------------------|
 | **Leaf rules** (scripts, guild law, languages, disputes) | Inside the group / home | **No** |
-| **Leaf consensus proof** (threshold sigs, etc.) | Produced by leaf members | Verified on L1 — cost in **tx weight** |
+| **Leaf consensus proof** (threshold sigs, etc.) | Produced by leaf members | Verified on L0 — cost in **tx weight** |
 | **Network witness + ledger** | Every validator | **Yes** (fee rate × weight) |
 
 Private groups invent their own meaning of “we agreed.” The chain only checks that the registered authorization policy for that head is satisfied and records the new tip.
@@ -242,7 +243,7 @@ Private groups invent their own meaning of “we agreed.” The chain only check
 ### Network surface (fixed; not a VM)
 
 1. **Deterministic verify** — same proof bytes → same accept/reject on every node.  
-2. **Schema-valid txs only** — no user-defined operations on L1.  
+2. **Schema-valid txs only** — no user-defined operations at L0.  
 3. **Weight + fee rate** — size + sig surcharges; block weight limit.  
 4. **Enumerated proof kinds** — e.g. `threshold_cosign_v1`; richer proofs only via upgrades.  
 5. **Opaque leaves** — node never executes leaf interpreters.
@@ -276,7 +277,7 @@ Private groups invent their own meaning of “we agreed.” The chain only check
 
 ### Cons
 
-- **Greenfield cost** — still a real L1 (headers, state, P2P), even without a fat VM  
+- **Greenfield cost** — still a real L0 chain (headers, state, P2P), even without a fat VM  
 - **Proof enumeration** — only listed proof kinds are network-valid; exotic leaf governance must compile down to them  
 - **Breaks continuity** — 2.0 meta-FS PGP/git becomes leaf path; migration map required  
 - **PoW politics / energy** — if PoW is primary election  
@@ -295,9 +296,9 @@ Private groups invent their own meaning of “we agreed.” The chain only check
 | Files | Git as network file plane | CAS personal tree; git optional leaf |
 | Election | Weighted votes → PoS; PoW anti-spam | PoW/DAG-PoW; Bitcoin-style weight fees |
 | Node duty | Validate commits + mirror metadata | Witness tip + leaf-consensus proof; no leaf interpreters |
-| Throughput bar | Explicitly not DeFi/PayPal | BTC/ETH/SOL-class L1, feature-led |
+| Throughput bar | Explicitly not DeFi/PayPal | BTC/ETH/SOL-class security, feature-led |
 
-Older docs remain useful for precedents and for **non-consensus** Postgres/git hosting. Where they conflict on L1 SoT, **this document wins** until superseded.
+Older docs remain useful for precedents and for **non-consensus** Postgres/git hosting. Where they conflict on L0 SoT, **this document wins** until superseded.
 
 ---
 
@@ -307,10 +308,10 @@ Older docs remain useful for precedents and for **non-consensus** Postgres/git h
 2. PoW algorithm + whether DAG-PoW from day one  
 3. Exact account schema fields inside `master_hash`  
 4. Enumerated leaf-consensus proof kinds (threshold cosign first; what else?)  
-5. ~~Pin/availability market~~ → **locked: no L1 pins**; leaf retention only  
+5. ~~Pin/availability market~~ → **locked: no L0 pins**; leaf retention only  
 6. How 1.0 `ledger-guld` + PGP usernames map into register + balances (`ClaimLegacy`; spec 15)  
 7. Relationship of Rust validator to today’s `guld-python` leaf hosts  
 
 ## Verdict
 
-Build a **modern, lean L1** that **witnesses** account/group heads: SHA-256 trees, AES-256 private leaves, externally verifiable **cosign/proofs**, **Bitcoin-style weight fees**, CAS with optional git inside. Leaves keep their own languages, rules, and disputes. No general network VM. Push PGP/git and Postgres **off the consensus path**. Implement the validator in **Rust**; keep leaf tooling polyglot. Key+hash state at global user counts is realistic; content retention stays in **leaves** (mandatory full clone only for `guld`).
+Build a **modern, lean L0** that **witnesses** account/group heads: SHA-256 trees, opaque CAS leaves (encryption optional, off-protocol), externally verifiable **cosign/proofs**, **Bitcoin-style weight fees**, CAS with optional git inside. Leaves keep their own languages, rules, and disputes. No general network VM. Push PGP/git and Postgres **off the consensus path**. Implement the validator in **Rust**; keep leaf tooling polyglot. Key+hash state at global user counts is realistic; content retention stays in **leaves** (mandatory full clone only for `guld`).

@@ -39,6 +39,7 @@ test("pages share guld-header and guld-footer chrome", () => {
     "explorer/legacy/index.html",
     "whitepaper/index.html",
     "specs/index.html",
+    "docs/index.html",
   ]) {
     const html = readFileSync(join(root, page), "utf8");
     assert.match(html, /<guld-header/, page);
@@ -53,13 +54,32 @@ test("pages share guld-header and guld-footer chrome", () => {
 test("header nav is product; docs live in footer", () => {
   assert.deepEqual(
     HEADER_NAV.map((i) => i.label),
-    ["Wallet", "Explorer", "Install"],
+    ["Wallet", "Explorer"],
   );
   assert.deepEqual(
     FOOTER_NAV.map((i) => i.label),
-    ["Legacy claim", "Whitepaper", "Specs", "Help", "Software", "Hosting"],
+    ["Install", "Legacy claim", "Whitepaper", "Specs", "Help", "Software", "Docs"],
   );
+  assert.equal(FOOTER_NAV.find((i) => i.label === "Install")?.href, "/#install");
+  assert.equal(FOOTER_NAV.find((i) => i.label === "Docs")?.href, "/docs/");
+  assert.ok(!FOOTER_NAV.some((i) => /\.md$/i.test(i.href)));
   assert.ok(!HEADER_NAV.some((i) => /whitepaper|specs/i.test(i.label)));
+});
+
+test("docs browser shell exists and does not expose raw md in site UI", () => {
+  assert.ok(existsSync(join(root, "docs/index.html")));
+  assert.ok(existsSync(join(root, "data/docs-tree.json")));
+  assert.ok(existsSync(join(root, "src/js/components/guld-doc-view.js")));
+  assert.ok(existsSync(join(root, "src/js/components/guld-md-doc.js")));
+  const html = readFileSync(join(root, "docs/index.html"), "utf8");
+  assert.match(html, /guld-doc-view/);
+  assert.match(html, /docs-page\.js/);
+  const index = readFileSync(join(root, "index.html"), "utf8");
+  assert.match(index, /\/docs\/\?src=\/README\.md/);
+  assert.doesNotMatch(index, /href="\/README\.md"/);
+  const software = readFileSync(join(root, "software/index.html"), "utf8");
+  assert.match(software, /\/docs\/\?doc=REPO_LAYOUT\.md/);
+  assert.doesNotMatch(software, /href="\/docs\/REPO_LAYOUT\.md"/);
 });
 
 test("isNavActive and normalizePath", () => {

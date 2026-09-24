@@ -38,7 +38,11 @@ A block is valid if:
 4. All txs valid and apply cleanly.  
 5. Roots match post-state.  
 6. Coinbase amount = `subsidy(height) + inclusion_fees`.  
-7. `guld_rules_hash` matches the node’s local required rules tip policy (**TBD** activation).
+7. `guld_rules_hash` matches the rule bundle active at this height ([`17-protocol-upgrades.md`](17-protocol-upgrades.md)).
+
+## 2a. Rules hash and upgrades
+
+At height `h`, the only valid header digest is the rule bundle whose `activation_height ≤ h` and which is the latest such published under account `guld` (see spec 17). Nodes MUST reject blocks whose `guld_rules_hash` does not match that digest.
 
 ## 3. Fork choice (v1)
 
@@ -65,4 +69,4 @@ trait Consensus {
 
 - PoW algorithm & retarget (target mean interval **600 s**)  
 - DAG-PoW yes/no for v1  
-- Rules activation (when `guld_rules_hash` may change)
+- Rules activation margins per network ([`17-protocol-upgrades.md`](17-protocol-upgrades.md))

@@ -33,13 +33,53 @@ where `tag` is a fixed UTF-8 string listed below (no length prefix in v1 **unles
 
 PQ / hybrid schemes are **future proof kinds**; genesis MUST ship Ed25519.
 
-## 3. Encryption (leaves only)
+## 3. Encryption (wallet only — not consensus)
 
-| Algorithm | Use |
-|-----------|------|
-| **AES-256** (IFS-style leaf privacy) | Encrypt leaf blobs; consensus stores ciphertext content hashes only |
+Guld **does not** define leaf or CAS content encryption. Validators hash and store **opaque bytes**; whether a blob is plaintext, encrypted, or compressed is **leaf owner policy** and invisible to L0.
 
-Key distribution is **out of band** / leaf policy. Consensus MUST NOT require plaintext.
+| Algorithm | Where | Use |
+|-----------|-------|-----|
+| **AES-256** (or AEAD equivalent) | **Reference wallet / extension keyring only** | Encrypt private keys at rest (passphrase-derived key); MUST NOT upload ciphertext or secrets to nodes |
+
+Leaf owners MAY encrypt home content with any scheme (including AES-256). That is **not** a protocol primitive: no consensus opcode, no required format, no key distribution in account state.
+
+### 3.1 Wallet keyring (normative for reference clients)
+
+Reference PWA, browser extension, and desktop wallet MUST **never** persist Ed25519 private keys in plaintext on disk or in `localStorage` / IndexedDB.
+
+| Parameter | Value |
+|-----------|--------|
+| Cipher | **AES-256-GCM** (AEAD) |
+| KDF | **PBKDF2-HMAC-SHA256**, ≥ **310_000** iterations (Web Crypto–compatible) |
+| Salt | 16 random bytes per keyring unlock / re-wrap |
+| IV / nonce | 12 random bytes per encrypted key record |
+| Passphrase | User-chosen; never sent to nodes |
+
+**Encrypted key record** (per account):
+
+```json
+{
+  "name": "alice",
+  "pubHex": "0x…",
+  "enc": {
+    "v": 1,
+    "alg": "aes-256-gcm",
+    "kdf": "pbkdf2-sha256",
+    "iter": 310000,
+    "salt": "<base64>",
+    "iv": "<base64>",
+    "ciphertext": "<base64>"
+  }
+}
+```
+
+Plaintext `privHex` MAY exist **only in memory** while the wallet is unlocked. On lock / timeout / tab close, decrypted material MUST be zeroed.
+
+**Storage key:** `guld.keyring.v1` (browser) or equivalent path (desktop). Extension uses the same schema in extension-local storage.
+
+Desktop `guld-wallet` MAY use OS keychain for the wrapping key instead of passphrase; if file-based, same AES-GCM + KDF rules apply.
+
+See [`14-reference-ui.md`](14-reference-ui.md) §5.
 
 ## 4. Canonical encoding
 
@@ -83,4 +123,5 @@ trait Crypto {
 
 - Final wire codec  
 - Exact `AccountId` preimage  
-- PQ migration path (ML-DSA / hybrid) as later proof/key types
+- PQ migration path (ML-DSA / hybrid) as later proof/key types  
+- Argon2id vs PBKDF2 for non–Web Crypto desktop paths (browser MUST use PBKDF2 via Web Crypto)

@@ -308,3 +308,46 @@
   font-weight: 600;
   color: var(--guld-primary);
 }
+
+.wallet__export-key {
+  margin-top: 0.75rem;
+}
+
+.wallet__export-key__warn {
+  color: color-mix(in srgb, var(--guld-ink) 72%, #b00020);
+}
+
+.wallet__export-key__form {
+  margin-bottom: 0.75rem;
+}
+
+.wallet__export-key__reveal {
+  display: grid;
+  gap: 0.75rem;
+}
+
+.wallet__export-key__actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.5rem;
+}
+
+.wallet__export-key__qr {
+  margin: 0;
+  text-align: center;
+}
+
+.wallet__export-key__qr img {
+  display: inline-block;
+  max-width: 100%;
+  height: auto;
+  border: 1px solid color-mix(in srgb, var(--guld-ink) 12%, transparent);
+  border-radius: 0.35rem;
+  background: #fff;
+}
+
+.wallet__export-key__error {
+  margin: 0.5rem 0 0;
+  color: #b00020;
+  font-size: 0.88rem;
+}

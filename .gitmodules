@@ -34,3 +34,7 @@
 [submodule "guld-wallet"]
 	path = src/guld-wallet
 	url = https://guld.io/repos/guld-wallet.git
+
+[submodule "guld-p2p"]
+	path = src/guld-p2p
+	url = https://guld.io/repos/guld-p2p.git

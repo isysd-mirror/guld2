@@ -1,0 +1,32 @@
+[Unit]
+Description=Guld 2.0 node — simba testnet (chain_id 2)
+Documentation=https://guld.io/docs/?doc=HOSTING.md
+After=network-online.target
+Wants=network-online.target
+
+[Service]
+Type=simple
+User=guld
+Group=guld
+WorkingDirectory=/home/guld/guld
+# Optional registrar / Paymento secrets (same shape as .env.example)
+EnvironmentFile=-/home/guld/guld/.env
+ExecStart=/home/guld/guld/target/release/guld-node \
+  --network simba \
+  --datadir /home/guld/guld-data/simba \
+  --rpc 127.0.0.1:8545 \
+  --http 127.0.0.1:8080 \
+  --http-static /home/guld/guld \
+  --p2p 0.0.0.0:4001 \
+  --no-default-bootnodes \
+  --miner alice
+Restart=on-failure
+RestartSec=3
+LimitNOFILE=65535
+NoNewPrivileges=true
+PrivateTmp=true
+
+# P2P must reach this process on TCP 4001 (not via nginx HTTP).
+
+[Install]
+WantedBy=multi-user.target

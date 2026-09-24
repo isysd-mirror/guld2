@@ -124,16 +124,23 @@ guld-header {
   color: #fff;
 }
 
+.site-header__profile {
+  position: relative;
+  flex-shrink: 0;
+}
+
 .site-header__account {
   display: inline-flex;
   align-items: center;
   justify-content: center;
   width: 2.25rem;
   height: 2.25rem;
+  padding: 0;
   border: 1px solid rgba(255, 255, 255, 0.35);
   border-radius: 999px;
+  background: transparent;
   color: rgba(255, 255, 255, 0.92);
-  text-decoration: none;
+  cursor: pointer;
   flex-shrink: 0;
 }
 
@@ -144,6 +151,201 @@ guld-header {
 
 .site-header__account[data-state="signed-in"] {
   border-color: rgba(255, 255, 255, 0.55);
+}
+
+.site-header__account[data-state="locked"] {
+  border-color: rgba(255, 255, 255, 0.45);
+  opacity: 0.92;
+}
+
+.site-header__profile-menu {
+  position: absolute;
+  top: calc(100% + 0.5rem);
+  right: 0;
+  z-index: 50;
+  min-width: 16rem;
+  max-width: min(20rem, 92vw);
+  padding: 0.65rem 0;
+  border-radius: 0.5rem;
+  border: 1px solid rgba(255, 255, 255, 0.12);
+  background: color-mix(in srgb, var(--guld-theme) 96%, #000);
+  box-shadow: 0 12px 40px rgba(0, 0, 0, 0.35);
+  color: rgba(255, 255, 255, 0.92);
+}
+
+.site-header__profile-heading {
+  margin: 0 1rem 0.5rem;
+  font-size: 0.8rem;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  opacity: 0.75;
+}
+
+.site-header__profile-error {
+  margin: 0 1rem 0.5rem;
+  padding: 0.35rem 0.5rem;
+  font-size: 0.82rem;
+  color: #ffb4b4;
+  background: rgba(255, 80, 80, 0.12);
+  border-radius: 0.25rem;
+}
+
+.site-header__profile-list {
+  margin: 0 0 0.35rem;
+  padding: 0;
+  list-style: none;
+  max-height: 12rem;
+  overflow-y: auto;
+}
+
+.site-header__profile-item {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  width: 100%;
+  padding: 0.55rem 1rem;
+  border: none;
+  background: transparent;
+  color: inherit;
+  text-align: left;
+  cursor: pointer;
+  font: inherit;
+}
+
+.site-header__profile-item:hover,
+.site-header__profile-item:focus-visible {
+  background: rgba(255, 255, 255, 0.08);
+}
+
+.site-header__profile-item.is-active {
+  background: rgba(255, 255, 255, 0.06);
+}
+
+.site-header__profile-item-name {
+  font-weight: 600;
+  font-size: 0.95rem;
+}
+
+.site-header__profile-item-meta {
+  font-size: 0.78rem;
+  opacity: 0.72;
+}
+
+.site-header__profile-actions {
+  display: flex;
+  flex-direction: column;
+  padding: 0.35rem 0 0;
+  border-top: 1px solid rgba(255, 255, 255, 0.1);
+}
+
+.site-header__profile-link {
+  display: block;
+  padding: 0.55rem 1rem;
+  color: rgba(255, 255, 255, 0.92);
+  text-decoration: none;
+  font-size: 0.92rem;
+}
+
+.site-header__profile-link:hover,
+.site-header__profile-link:focus-visible {
+  background: rgba(255, 255, 255, 0.08);
+  color: #fff;
+}
+
+.site-header__profile-link--btn {
+  width: 100%;
+  border: none;
+  background: transparent;
+  text-align: left;
+  cursor: pointer;
+  font: inherit;
+}
+
+.site-header__profile-field {
+  display: block;
+  margin: 0 1rem 0.5rem;
+}
+
+.site-header__profile-label {
+  display: block;
+  font-size: 0.75rem;
+  opacity: 0.75;
+  margin-bottom: 0.25rem;
+}
+
+.site-header__profile-field input {
+  width: 100%;
+  box-sizing: border-box;
+  padding: 0.4rem 0.5rem;
+  border-radius: 0.25rem;
+  border: 1px solid rgba(255, 255, 255, 0.2);
+  background: rgba(0, 0, 0, 0.25);
+  color: #fff;
+  font: inherit;
+  font-size: 0.88rem;
+}
+
+.site-header__profile-note {
+  margin: 0 1rem 0.5rem;
+  font-size: 0.78rem;
+  line-height: 1.35;
+  opacity: 0.78;
+}
+
+.site-header__profile-import,
+.site-header__profile-export {
+  padding: 0.65rem 0 0;
+  border-top: 1px solid rgba(255, 255, 255, 0.1);
+}
+
+.site-header__profile-export-form {
+  display: flex;
+  flex-direction: column;
+  gap: 0.35rem;
+}
+
+.site-header__profile-export-reveal {
+  padding: 0.35rem 0 0.5rem;
+}
+
+.site-header__profile-export-actions {
+  display: flex;
+  flex-direction: column;
+}
+
+.site-header__profile-export-qr {
+  margin: 0.5rem 1rem 0;
+  text-align: center;
+}
+
+.site-header__profile-export-qr img {
+  display: inline-block;
+  max-width: calc(100% - 2rem);
+  height: auto;
+  border-radius: 0.25rem;
+  background: #fff;
+}
+
+.site-header__profile-import-form {
+  display: flex;
+  flex-direction: column;
+  gap: 0.35rem;
+}
+
+.site-header__profile-submit {
+  margin: 0.25rem 1rem 0;
+  padding: 0.45rem 0.75rem;
+  border: none;
+  border-radius: 0.25rem;
+  background: var(--guld-primary);
+  color: #fff;
+  font-weight: 600;
+  cursor: pointer;
+}
+
+.site-header__profile-submit:hover {
+  filter: brightness(1.08);
 }
 
 .site-header__account-icon {

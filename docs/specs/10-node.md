@@ -62,7 +62,7 @@ datadir/
   cas/            # objects
   peerstore/
   keys/           # miner / node identity (not account keys)
-  guld-home/      # materialized checkout of account guld (optional working tree)
+  guld-rules/     # materialized on-chain guld rule bundle (small; not full source tree)
   config.toml
 ```
 
@@ -71,13 +71,13 @@ datadir/
 Full validating node readiness MUST include:
 
 - State tip readable  
-- `guld` home fully materialized  
+- `guld` **rule bundle** materialized; `guld_rules_hash` matches headers  
 - P2P listening (unless `--offline`)  
 - RPC up  
 
 ## 6. Relationship to this repository
 
-The software built from this monorepo is distributed as a **sub-leaf** of on-chain account `guld`. Nodes SHOULD verify running binary digests against the active `guld` tip policy when activation rules require it (**TBD** exact attestation).
+The open-source tree at `guld.io/repos/guld.git` is **operator-maintained node/wallet software** — not consensus data. On-chain account `guld` commits only the **rule bundle** digest (`guld_rules_hash`). Nodes MUST enforce rules from their built-in rule set matching that digest; they MUST NOT require cloning this git tree from CAS to validate blocks.
 
 ## 7. Open parameters
 

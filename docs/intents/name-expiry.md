@@ -5,7 +5,7 @@ Related: [`../specs/02-identity-and-accounts.md`](../specs/02-identity-and-accou
 
 ## Goal
 
-Registration fees (`F_user` / `F_sub` / `F_group`) buy **one year of name control**, measured in blocks. At period end the network either **auto-debits** the fee or **releases** the name — like DNS. No soft-frozen occupied names. Names are **not** a resale market.
+Registration fees (`F_user(L)` / `F_sub` / `F_group(L, n)`) buy **one year of name control**, measured in blocks. At period end the network either **auto-debits** the fee or **releases** the name — like DNS. No soft-frozen occupied names. Names are **not** a resale market.
 
 ## Decisions (locked)
 

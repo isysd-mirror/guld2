@@ -8,9 +8,9 @@ Replace Guld 1.0 ledger-cli journals with a **custom** ledger suited to full nod
 
 ## Preferred research direction
 
-**Active L1 sketch (2026-03):** lean modern chain — username + **master hash**, first-class **cosign**, weight-priced txs (not an EVM gas ISA), CAS personal trees (git optional leaf), validators on KV+SMT; Postgres/PGP/git **off** the consensus path. SoT: [`../research/modern-l1-direction.md`](../research/modern-l1-direction.md). Whitepaper: [`../whitepaper/guld-2.0-draft.md`](../whitepaper/guld-2.0-draft.md) §8.6.
+**Active L0 sketch (2026-03):** lean witness substrate — username + **master hash**, first-class **cosign**, weight-priced txs (not an EVM gas ISA), CAS personal trees (git optional leaf), validators on KV+SMT; Postgres/PGP/git **off** the consensus path. SoT: [`../research/modern-l1-direction.md`](../research/modern-l1-direction.md). Whitepaper: [`../whitepaper/guld-2.0-draft.md`](../whitepaper/guld-2.0-draft.md) §8.6.
 
-### Still useful (non-L1 / transitional)
+### Still useful (non-consensus / transitional)
 
 - **Postgres** as metadata mirror / **user or app-server indexer** (not required for block production)
 - **Git + PGP** for select leaves and today’s `guld-python` meta-FS hosts; **PGP also** as the 1.0 ownership proof for `ClaimLegacy`

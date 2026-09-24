@@ -4,7 +4,7 @@
 
 ## 1. Role
 
-The **leaf host** materializes account homes for clients and MAY run leaf-defined processes. It is **not** required for consensus validation (except that a full node’s CAS already holds `guld`).
+The **leaf host** materializes account homes for clients and MAY run leaf-defined processes. It is **not** required for consensus validation (except that a full node’s CAS MUST hold the on-chain **`guld` rule bundle** — not protocol source trees).
 
 Typical deployment: embedded in `guld-node --leaf-host`, or standalone talking to a node’s RPC + CAS.
 

@@ -23,12 +23,16 @@ Document planned work here before large implementation slices.
 | [`scaffold-2.0.md`](scaffold-2.0.md) | Repo / crate scaffold |
 | [`repo-layout.md`](repo-layout.md) | Umbrella + `src/` submodules + `repos/` bares |
 | [`software-browser.md`](software-browser.md) | `/software/` catalog — document, display, serve git |
+| [`docs-browser.md`](docs-browser.md) | `/docs/` markdown viewer + file tree (no raw `.md` UI links) |
+| [`p2p-mesh.md`](p2p-mesh.md) | libp2p mesh — Hello + tx gossip + block sync |
+| [`tx-memo-and-upgrades.md`](tx-memo-and-upgrades.md) | Optional tx `memo`; height-activated rule upgrades |
 | [`consumer-integration.md`](consumer-integration.md) | External consumer apps |
 
 ## Draft
 
 | Intent | Summary |
 |--------|---------|
+| [`mempool-visualizer.md`](mempool-visualizer.md) | Explorer live mempool via SSE (`/api/v1/chain/events`) |
 | [`wallet-contacts-and-account-lookup.md`](wallet-contacts-and-account-lookup.md) | Contacts, explorer lookup, QR contact card |
 | [`guld-leaf-site-and-miner-governance.md`](guld-leaf-site-and-miner-governance.md) | guld.io in `guld` leaf; miners govern gateway roster only (scoped) |
 

@@ -90,6 +90,99 @@ export async function registerMessage(
   return taggedHash("guld/register/v1", payload);
 }
 
+/** Append optional memo (`u16_be(len) ‖ bytes`) when non-empty. */
+function withMemo(parts, memoBytes) {
+  if (!memoBytes || memoBytes.length === 0) return concat(...parts);
+  if (memoBytes.length > 64) {
+    throw new Error(`memo exceeds 64 bytes (got ${memoBytes.length})`);
+  }
+  return concat(...parts, u16Be(memoBytes.length), memoBytes);
+}
+
+/** Transfer spend message (`guld/transfer/v1`). */
+export async function transferMessage(
+  accountIdHex,
+  nonce,
+  toName,
+  amountQuanta,
+  feeQuanta,
+  memoBytes,
+) {
+  const payload = withMemo(
+    [
+      fromHex(accountIdHex),
+      u64Be(nonce),
+      new TextEncoder().encode(toName),
+      new Uint8Array([0]),
+      u128Be(amountQuanta),
+      u128Be(feeQuanta),
+    ],
+    memoBytes,
+  );
+  return taggedHash("guld/transfer/v1", payload);
+}
+
+/** UpdateMaster cosign message (`guld/cosign/v1`). */
+export async function cosignMessage(
+  accountIdHex,
+  prevMasterHex,
+  newMasterHex,
+  nonce,
+  chainId,
+  memoBytes,
+) {
+  const payload = withMemo(
+    [
+      fromHex(accountIdHex),
+      fromHex(prevMasterHex),
+      fromHex(newMasterHex),
+      u64Be(nonce),
+      u32Be(chainId),
+    ],
+    memoBytes,
+  );
+  return taggedHash("guld/cosign/v1", payload);
+}
+
+async function rotateKeysCommit(keysHex, threshold) {
+  const payload = concat(u16Be(threshold), ...keysHex.map((h) => fromHex(h)));
+  return taggedHash("guld/rotate_keys/commit/v1", payload);
+}
+
+/** New controller consent (`guld/rotate_keys/intent/v1`). */
+export async function rotateKeysIntentMessage(name, keysHex, threshold, feeQuanta) {
+  const commit = await rotateKeysCommit(keysHex, threshold);
+  const payload = concat(
+    new TextEncoder().encode(name),
+    new Uint8Array([0]),
+    u16Be(threshold),
+    commit,
+    u128Be(feeQuanta),
+  );
+  return taggedHash("guld/rotate_keys/intent/v1", payload);
+}
+
+/** Current-owner cosign for key rotation (`guld/rotate_keys/v1`). */
+export async function rotateKeysMessage(
+  accountIdHex,
+  nonce,
+  chainId,
+  keysHex,
+  threshold,
+  feeQuanta,
+) {
+  const commit = await rotateKeysCommit(keysHex, threshold);
+  const payload = concat(
+    fromHex(accountIdHex),
+    u64Be(nonce),
+    u32Be(chainId),
+    u16Be(threshold),
+    commit,
+    u128Be(feeQuanta),
+  );
+  return taggedHash("guld/rotate_keys/v1", payload);
+}
+
 /** Spec 15 claim message (`guld/claim_legacy/v1`). */
 export async function claimMessage(
   chainId,

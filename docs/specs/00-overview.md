@@ -1,7 +1,7 @@
 # Spec 00 — System overview
 
 **Status:** draft  
-**Depends on:** whitepaper v0.14+
+**Depends on:** whitepaper v0.18+ ([`../whitepaper/guld-2.0-draft.md`](../whitepaper/guld-2.0-draft.md) — wins all disputes)
 
 ## 1. Purpose
 
@@ -33,7 +33,7 @@ Define the **components** of a Guld 2.0 deployment, their responsibilities, and 
 | Plane | Stores | Who must have it |
 |-------|--------|------------------|
 | **Consensus / state** | Headers, accounts, balances, tips | Every full node |
-| **CAS** | Home/leaf object bytes by SHA-256 | Full `guld` home for all full nodes; others on demand / leaf-host |
+| **CAS** | Home/leaf object bytes by SHA-256 | **`guld` rule bundle** for all full nodes (small); other account bytes on demand / leaf-host |
 | **Leaf host** | Working trees, optional runtimes | Nodes that serve contentful clients |
 | **Indexer** | SQL projections | Optional operators / apps |
 
@@ -48,7 +48,7 @@ Define the **components** of a Guld 2.0 deployment, their responsibilities, and 
 **MUST:**
 
 - Sync and verify the canonical chain under the fork-choice rule ([`06-blocks-and-consensus.md`](06-blocks-and-consensus.md)).
-- Fully materialize account **`guld`** at the tip ([`02-identity-and-accounts.md`](02-identity-and-accounts.md), [`08-cas-and-homes.md`](08-cas-and-homes.md)).
+- Materialize account **`guld`** **rule bundle** at the tip and match `guld_rules_hash` in headers ([`02-identity-and-accounts.md`](02-identity-and-accounts.md), [`08-cas-and-homes.md`](08-cas-and-homes.md)). Protocol **source code** is off-chain git — not a CAS obligation.
 - Reject txs/blocks that fail schema, proof, fee, or state rules.
 
 **MUST NOT:**
@@ -129,14 +129,14 @@ Define the **components** of a Guld 2.0 deployment, their responsibilities, and 
 
 1. Client builds / signs registration (self-pay or sponsored intent — [`16-sponsored-registration.md`](16-sponsored-registration.md)).
 2. Client → `POST /api/v1/chain/transactions` (or transitional `guld_sendTransaction` / `guld_sendRawTransaction`).
-3. Node verifies schema (dual sig for register), charges `F_user` (to miner) and inclusion fee, updates state.
+3. Node verifies schema (dual sig for register), charges `F_user(L)` (to miner) and inclusion fee, updates state.
 4. Mempool → block → P2P.
 
 ### 4.2 Update home tip
 
 1. Leaf host/SDK builds new home tree in CAS (and optional forge push).
-2. Cosigners sign `threshold_cosign_v1` message ([`04-proofs.md`](04-proofs.md)).
-3. `UpdateMaster` tx submitted; node verifies proof + fees; state `master_hash` advances.
+2. Cosigners fetch current `(master_hash, nonce)`; sign `threshold_cosign_v1` message ([`04-proofs.md`](04-proofs.md), [`02-identity-and-accounts.md`](02-identity-and-accounts.md) §3.0.1).
+3. `UpdateMaster` tx submitted; node verifies proof + fees; state `master_hash` advances and `nonce++`.
 4. Other leaf hosts fetch objects by hash (CAS/P2P/forge hints) to serve clients.
 
 ### 4.3 Transfer GULD
@@ -146,9 +146,14 @@ Define the **components** of a Guld 2.0 deployment, their responsibilities, and 
 
 ### 4.4 Protocol upgrade
 
-1. Governance under account `guld` publishes new tip (software + rule params).
-2. Full nodes sync full `guld` CAS tree.
-3. Activation rule **TBD** (height / timestamp / digest in header).
+Normative detail: [`17-protocol-upgrades.md`](17-protocol-upgrades.md).
+
+1. Governance under account `guld` publishes a new tip whose home commits the next **rule bundle** (schemas, fee tables, proof kinds), including **`activation_height = H`**.  
+2. Operators ship **node software** from ordinary git that understands the new digest and apply logic **before** H.  
+3. Headers through height **H−1** keep the old `guld_rules_hash`; from **H** inclusive they MUST carry the new digest.  
+4. Peers that never learned the new hash cannot validate the tip (Hello / `BadRulesHash`) — intentional hard stop, not silent drift.
+
+Testnets MAY use short activation margins; mainnet SHOULD leave a multi-week gap between publish and H.
 
 ## 5. Trust boundaries
 
@@ -162,5 +167,6 @@ Define the **components** of a Guld 2.0 deployment, their responsibilities, and 
 ## 6. Open parameters
 
 - Wire encoding (SSZ-like vs protobuf vs canonical JSON+hex) — default proposal in [`01-cryptography.md`](01-cryptography.md).
-- P2P stack (libp2p vs custom) — [`09-p2p.md`](09-p2p.md).
+- P2P stack — **libp2p** locked ([`09-p2p.md`](09-p2p.md)); CAS object fetch still phase C.
 - Exact PoW algorithm — [`06-blocks-and-consensus.md`](06-blocks-and-consensus.md).
+- Protocol upgrade activation — [`17-protocol-upgrades.md`](17-protocol-upgrades.md) (height-scheduled; soft/hard class advisory).

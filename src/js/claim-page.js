@@ -172,6 +172,10 @@ function renderForm() {
           <select data-claim-wallet name="walletName"></select>
         </label>
         <p class="wallet__meta" data-claim-pub></p>
+        <label>
+          Passphrase (encrypts key at rest)
+          <input data-claim-pass type="password" autocomplete="new-password" />
+        </label>
         <div class="wallet__actions">
           <button type="button" class="btn btn--outline" data-claim-generate>Generate key for this name</button>
         </div>
@@ -211,7 +215,7 @@ function renderForm() {
     <p class="wallet__note">
       New to Guld 2.0? <a href="/register/">Register a name</a> instead.
       Desktop wallet: same flow in the native app. Spec:
-      <a href="/docs/specs/15-ledger-import.md">15 — ledger import</a>.
+      <a href="/specs/?doc=15-ledger-import">15 — ledger import</a>.
     </p>
   `;
 
@@ -239,9 +243,13 @@ function renderForm() {
       return;
     }
     try {
+      const passEl = hostEl.querySelector("[data-claim-pass]");
+      const pass = passEl instanceof HTMLInputElement ? passEl.value : "";
+      if (!pass) throw new Error("Passphrase required to encrypt your key");
       const priv = await randomPrivateKey();
       const pubHex = await pubkeyHex(priv);
-      keyring.upsertAccount({ name: legacyName, privHex: toHex(priv), pubHex });
+      await keyring.unlock(pass);
+      await keyring.upsertAccount({ name: legacyName, privHex: toHex(priv), pubHex });
       fillWalletSelect(hostEl.querySelector("[data-claim-wallet]"), legacyName);
       updatePubLabel();
       setStatus(`Generated key for ${legacyName}`, "ok");
@@ -353,10 +361,14 @@ function renderForm() {
       assertProofMatchesMessage(proof, claimDraft.messageHex, devUnlock);
 
       const src = keyring.getAccount(walletName) || keyring.getAccount(legacyName);
-      if (src) {
-        keyring.upsertAccount({
+      const privHex =
+        keyring.getPriv(walletName) ||
+        keyring.getPriv(legacyName) ||
+        (src && keyring.isUnlocked() ? null : null);
+      if (src && privHex && keyring.isUnlocked()) {
+        await keyring.upsertAccount({
           name: legacyName,
-          privHex: src.privHex,
+          privHex,
           pubHex: src.pubHex,
         });
         keyring.setActive(legacyName);

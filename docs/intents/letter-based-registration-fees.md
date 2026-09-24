@@ -1,6 +1,6 @@
 # Intent: Letter-based registration fees
 
-Status: **proposed**  
+Status: **accepted**  
 Related: [`../specs/07-fees-and-tokenomics.md`](../specs/07-fees-and-tokenomics.md), [`../specs/02-identity-and-accounts.md`](../specs/02-identity-and-accounts.md), [`name-expiry.md`](name-expiry.md), [`../specs/16-sponsored-registration.md`](../specs/16-sponsored-registration.md)
 
 ## Goal
@@ -30,7 +30,7 @@ L = count of Unicode alphabetic characters in the label (NFC)
 - **Ignore:** `-`, `_`, digits, and other punctuation  
 - **Examples:** `x` → 1; `ai` → 2; `bob` → 3; `jorge-luise-gonzalez` → 17 → **capped**  
 - **Subaccounts:** `parent.label` uses flat **`F_sub`** on the parent (parent already bought root namespace)  
-- **Groups:** root group name uses the same **`F_user(L)`** table (or a parallel `F_group(L, n)` — TBD)
+- **Groups:** root group name uses the same **`F_user(L)`** table via **`F_group(L, n) = F_user(L) × (2 + n)`**
 
 ## Fee schedule (draft)
 
@@ -55,14 +55,14 @@ Legacy-locked imports: after `ClaimLegacy`, normal yearly settle applies at **`F
 
 ## RPC / UX
 
-- `guld_estimateRegistrationBurn` MUST accept **`name`** (or `label`) and return fee from `L`  
+- `guld_estimateRegistrationFee` MUST accept **`name`** (or `label`) and return fee from `L`  
 - Wallet / sponsor flow MUST show letter count + annual fee before pay  
 - Explorer MAY show “renewal: N GULD/yr” from `L`
 
 ## Out of scope (unchanged)
 
 - Subaccount fee **`F_sub = 0.1 GULD`/year** (flat)  
-- Group **`F_group(n) = 2 + n GULD`/year** (flat base + keys) — unless we later add length to group roots  
+- Group **`F_group(L, n) = F_user(L) × (2 + n)` GULD/year** — e.g. 1-letter 1-of-1 = **3_000 GULD**/yr  
 - Name deposits, resale, height-indexed fee ramps
 
 ## Open parameters
@@ -70,10 +70,8 @@ Legacy-locked imports: after `ClaimLegacy`, normal yearly settle applies at **`F
 - Exact premium table (1k / 100 / 10 … vs smooth formula)  
 - `L_cap` = 5 vs 6  
 - Whether digits-only labels (`404`) count as L=0 or reject at validation  
-- Group root names: same ladder or separate policy
-
 ## Next
 
-- [ ] Accept intent → lock table in spec 07 + whitepaper §3.3 / §8.7  
-- [ ] Implement `label_letter_count(name)` in `guld-types`  
-- [ ] Wire `f_user_for_name` in `guld-state` / RPC / wallet estimate
+- [x] Accept intent → lock table in spec 07 + whitepaper §3.3 / §8.7  
+- [x] Implement `label_letter_count(name)` in `guld-types`  
+- [x] Wire letter-based fees in `guld-state` / `guld_estimateRegistrationFee` / wallet estimate

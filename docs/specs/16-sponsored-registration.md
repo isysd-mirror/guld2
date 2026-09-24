@@ -44,7 +44,7 @@ payload = name UTF-8
        ‖ threshold u16 BE
        ‖ initial_master_hash 32 bytes
        ‖ endowment u128 BE
-       ‖ registration_fee u128 BE   // F_user or F_group (fixed) at apply height
+       ‖ registration_fee u128 BE   // F_user(L) or F_group(L, n) at apply height
        ‖ inclusion_fee u128 BE
        ‖ keys[0] ‖ keys[1] ‖ …     // raw 32-byte pubkeys in order
 
@@ -91,7 +91,7 @@ Wallets SHOULD exchange a portable JSON blob before submission:
 
 | Field | Meaning |
 |-------|---------|
-| `registration_fee` | `F_user(h)` (or `F_group`) the registrant accepted |
+| `registration_fee` | `F_user(L)` (or `F_group(L, n)`) the registrant accepted |
 | `height` | Optional hint when estimate was taken |
 | `registrant_signature` | Over intent at listed terms |
 

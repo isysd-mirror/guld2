@@ -20,6 +20,8 @@ Canonical serialization of `Account` (**codec TBD**; fields per [`02-identity-an
 
 `state_root = MerkleRoot(account_leaves)`.
 
+Each account leaf MUST include **`nonce`** (monotonic `u64`) and **`master_hash`**. Nonce semantics and leaf race resolution: [`02-identity-and-accounts.md`](02-identity-and-accounts.md) §3.0.1, [`04-proofs.md`](04-proofs.md) §3.1.
+
 ## 3. Apply block
 
 ```text

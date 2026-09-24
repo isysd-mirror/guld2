@@ -7,6 +7,12 @@ import {
   loadGatewaySettings,
   saveGatewaySettings,
 } from "./lib/gateway-settings.js";
+import { loadWalletPrefs, saveContact } from "./lib/contacts.js";
+import {
+  bindExportKeySections,
+  renderExportKeySection,
+} from "./lib/key-export.js";
+import { keyring } from "./lib/keyring.js";
 import { escapeHtml } from "./lib/rpc.js";
 
 const statusEl = document.querySelector("[data-settings-status]");
@@ -120,6 +126,26 @@ async function render() {
         </label>
       </fieldset>
 
+      ${
+        id.name && keyring.hasStoredKey(id.name)
+          ? renderExportKeySection(id.name, { id: "key-export" })
+          : ""
+      }
+
+      <fieldset>
+        <legend>Contacts</legend>
+        <p class="wallet__meta">Favorites appear first in the wallet send combobox (spec 14 §8.3).</p>
+        <ul class="wallet__meta">${loadWalletPrefs()
+          .contacts.map(
+            (c) =>
+              `<li>${escapeHtml(c.alias || c.name)}${c.favorite ? " ★" : ""} · <code>${escapeHtml(c.name)}</code></li>`,
+          )
+          .join("") || "<li>No contacts yet</li>"}</ul>
+        <label>Name <input name="contactName" type="text" spellcheck="false" placeholder="bob" /></label>
+        <label>Alias (optional) <input name="contactAlias" type="text" placeholder="Bob" /></label>
+        <label class="wallet__check"><input name="contactFavorite" type="checkbox" /> Favorite</label>
+      </fieldset>
+
       <button type="submit" class="btn btn--primary">Save</button>
       ${
         isGatewayConfigured(gw)
@@ -147,6 +173,8 @@ async function render() {
     }
   `;
 
+  bindExportKeySections(hostEl);
+
   hostEl.querySelector("[data-copy-invite]")?.addEventListener("click", async () => {
     const input = hostEl.querySelector("[data-invite-url]");
     if (!(input instanceof HTMLInputElement)) return;
@@ -162,6 +190,14 @@ async function render() {
   hostEl.querySelector("[data-settings-form]")?.addEventListener("submit", async (ev) => {
     ev.preventDefault();
     const fd = new FormData(/** @type {HTMLFormElement} */ (ev.target));
+    const contactName = String(fd.get("contactName") || "").trim().toLowerCase();
+    if (contactName) {
+      saveContact({
+        name: contactName,
+        alias: String(fd.get("contactAlias") || "").trim() || undefined,
+        favorite: fd.get("contactFavorite") === "on",
+      });
+    }
     const nextApi = String(fd.get("apiBase") || "").trim() || "/api/v1";
     persistApiBase(nextApi);
     const secretInput = String(fd.get("webhookSecret") || "").trim();

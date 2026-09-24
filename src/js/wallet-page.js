@@ -1,7 +1,28 @@
 import "./chrome.js";
-import { apiGet, persistApiBase, resolveApiBase } from "./lib/api.js";
+import { apiGet, apiPost, persistApiBase, resolveApiBase } from "./lib/api.js";
 import { getLocalIdentity, LOGIN_HREF, REGISTER_HREF } from "./lib/auth.js";
-import { escapeHtml, formatTime, quantaToGuld, summarizeActivity } from "./lib/rpc.js";
+import { listSendSuggestions, recordSend, saveContact } from "./lib/contacts.js";
+import {
+  cosignMessage,
+  fromHex,
+  rotateKeysIntentMessage,
+  rotateKeysMessage,
+  sign,
+  toHex,
+  transferMessage,
+} from "./lib/crypto.js";
+import {
+  bindExportKeySections,
+  renderExportKeySection,
+} from "./lib/key-export.js";
+import { keyring } from "./lib/keyring.js";
+import {
+  escapeHtml,
+  formatTime,
+  guldToQuanta,
+  quantaToGuld,
+  summarizeActivity,
+} from "./lib/rpc.js";
 import { getActiveName, setActiveName } from "./lib/wallet-session.js";
 
 const statusEl = document.querySelector("[data-wallet-status]");
@@ -134,18 +155,225 @@ async function route() {
       return `<li><strong>${escapeHtml(sum.type)}</strong> ${escapeHtml(sum.primary)} · ${escapeHtml(sum.amount)} GULD <span class="wallet__meta">${escapeHtml(when)}</span></li>`;
     });
 
+    const local = getLocalIdentity();
+    const canSend = local.name === r.name && keyring.hasStoredKey(r.name);
+    const unlocked = canSend && keyring.hasLocalKey(r.name);
+
+    let sendSection = "";
+    if (canSend && !unlocked) {
+      sendSection = `
+        <section class="wallet__send">
+          <h2>Send GULD</h2>
+          <form class="wallet__form" data-unlock-form>
+            <label>Passphrase <input name="pass" type="password" autocomplete="current-password" required /></label>
+            <button type="submit" class="btn btn--outline">Unlock to send</button>
+          </form>
+        </section>`;
+    } else if (canSend && unlocked) {
+      const suggestions = listSendSuggestions();
+      const opts = suggestions
+        .map((s) => `<option value="${escapeHtml(s.name)}">${escapeHtml(s.label)}</option>`)
+        .join("");
+      sendSection = `
+        <section class="wallet__send">
+          <h2>Send GULD</h2>
+          <form class="wallet__form" data-send-form>
+            <label>To
+              <input name="to" type="text" list="send-suggestions" spellcheck="false" required placeholder="bob" autocomplete="off" />
+              <datalist id="send-suggestions">${opts}</datalist>
+            </label>
+            <label>Amount (GULD) <input name="amount" type="text" inputmode="decimal" required placeholder="1" /></label>
+            <label>Inclusion fee (GULD) <input name="fee" type="text" inputmode="decimal" value="0.0000000001" /></label>
+            <label>Memo (optional) <input name="memo" type="text" maxlength="64" placeholder="order id / invoice" /></label>
+            <label class="wallet__check"><input name="favorite" type="checkbox" /> Save recipient as favorite</label>
+            <button type="submit" class="btn btn--primary">Send</button>
+          </form>
+        </section>
+        <section class="wallet__send">
+          <h2>Account management</h2>
+          <details>
+            <summary>Update master hash</summary>
+            <form class="wallet__form" data-update-master-form>
+              <label>New master hash (0x…32 bytes) <input name="master" type="text" spellcheck="false" required /></label>
+              <label>Inclusion fee (GULD) <input name="fee" type="text" value="0.0000000001" /></label>
+              <button type="submit" class="btn btn--outline">Submit UpdateMaster</button>
+            </form>
+          </details>
+          <details style="margin-top:0.75rem">
+            <summary>Rotate keys</summary>
+            <form class="wallet__form" data-rotate-keys-form>
+              <label>New public key (0x…)
+                <input name="pub" type="text" spellcheck="false" required />
+              </label>
+              <label>New private key (0x…, kept locally after rotate)
+                <input name="priv" type="password" spellcheck="false" autocomplete="off" required />
+              </label>
+              <label>Inclusion fee (GULD) <input name="fee" type="text" value="0.0000000001" /></label>
+              <button type="submit" class="btn btn--outline">Submit RotateKeys</button>
+            </form>
+          </details>
+          <details style="margin-top:0.75rem">
+            <summary>Export private key</summary>
+            ${renderExportKeySection(r.name, { id: `wallet-export-${r.name}` })}
+          </details>
+        </section>`;
+    }
+
     hostEl.innerHTML = `
       <article class="wallet__card">
         <p class="wallet__name">${escapeHtml(r.name)}</p>
         <p class="wallet__meta">${escapeHtml(kind)}${escapeHtml(legacy)}</p>
         <p class="wallet__balance">${escapeHtml(balanceGuld)} <span class="wallet__meta">GULD</span></p>
       </article>
+      ${sendSection}
       <section class="wallet__activity">
         <h2>Recent activity</h2>
         ${rows.length ? `<ul>${rows.join("")}</ul>` : `<p class="wallet__empty">No activity yet.</p>`}
       </section>
-      <p class="wallet__note">Send and contacts ship next. Look up any name above anytime.</p>
     `;
+
+    bindExportKeySections(hostEl);
+
+    hostEl.querySelector("[data-unlock-form]")?.addEventListener("submit", async (ev) => {
+      ev.preventDefault();
+      const fd = new FormData(/** @type {HTMLFormElement} */ (ev.target));
+      try {
+        await keyring.unlock(String(fd.get("pass") || ""));
+        if (!keyring.getPriv(r.name)) throw new Error("Wrong passphrase");
+        route();
+      } catch (err) {
+        setStatus(/** @type {Error} */ (err).message, "error");
+      }
+    });
+
+    hostEl.querySelector("[data-send-form]")?.addEventListener("submit", async (ev) => {
+      ev.preventDefault();
+      const fd = new FormData(/** @type {HTMLFormElement} */ (ev.target));
+      const to = String(fd.get("to") || "")
+        .trim()
+        .toLowerCase();
+      const amountQ = guldToQuanta(String(fd.get("amount") || "0"));
+      const feeQ = guldToQuanta(String(fd.get("fee") || "0"));
+      const memoRaw = String(fd.get("memo") || "").trim();
+      const memoBytes = memoRaw ? new TextEncoder().encode(memoRaw) : undefined;
+      if (memoBytes && memoBytes.length > 64) {
+        setStatus("Memo exceeds 64 bytes", "error");
+        return;
+      }
+      const privHex = keyring.getPriv(r.name);
+      if (!privHex) {
+        setStatus("Unlock your keyring first", "error");
+        return;
+      }
+      setStatus("Sending…", "pending");
+      try {
+        const msg = await transferMessage(
+          account.account_id,
+          Number(account.nonce),
+          to,
+          amountQ,
+          feeQ,
+          memoBytes,
+        );
+        const sig = await sign(msg, fromHex(privHex));
+        const body = {
+          type: "transfer",
+          from: r.name,
+          to,
+          amount: amountQ,
+          signature: toHex(sig),
+          inclusion_fee: feeQ,
+        };
+        if (memoRaw) body.memo = memoRaw;
+        await apiPost(apiBase, "/chain/transactions", body);
+        recordSend(to);
+        if (fd.get("favorite")) saveContact({ name: to, favorite: true });
+        setStatus("Transfer submitted", "ok");
+        route();
+      } catch (err) {
+        setStatus(/** @type {Error} */ (err).message, "error");
+      }
+    });
+
+    hostEl.querySelector("[data-update-master-form]")?.addEventListener("submit", async (ev) => {
+      ev.preventDefault();
+      const fd = new FormData(/** @type {HTMLFormElement} */ (ev.target));
+      let master = String(fd.get("master") || "").trim();
+      if (!master.startsWith("0x")) master = `0x${master}`;
+      const feeQ = guldToQuanta(String(fd.get("fee") || "0"));
+      const privHex = keyring.getPriv(r.name);
+      if (!privHex) return setStatus("Unlock keyring first", "error");
+      setStatus("Submitting UpdateMaster…", "pending");
+      try {
+        const chainId = Number(st.chainId ?? 1);
+        const msg = await cosignMessage(
+          account.account_id,
+          account.master_hash,
+          master,
+          Number(account.nonce),
+          chainId,
+        );
+        const sig = await sign(msg, fromHex(privHex));
+        await apiPost(apiBase, "/chain/transactions", {
+          type: "update_master",
+          name: r.name,
+          new_master_hash: master,
+          cosignatures: [{ key_index: 0, signature: toHex(sig) }],
+          inclusion_fee: feeQ,
+        });
+        setStatus("UpdateMaster submitted", "ok");
+        route();
+      } catch (err) {
+        setStatus(/** @type {Error} */ (err).message, "error");
+      }
+    });
+
+    hostEl.querySelector("[data-rotate-keys-form]")?.addEventListener("submit", async (ev) => {
+      ev.preventDefault();
+      const fd = new FormData(/** @type {HTMLFormElement} */ (ev.target));
+      let pubHex = String(fd.get("pub") || "").trim();
+      let privHexNew = String(fd.get("priv") || "").trim();
+      if (!pubHex.startsWith("0x")) pubHex = `0x${pubHex}`;
+      if (!privHexNew.startsWith("0x")) privHexNew = `0x${privHexNew}`;
+      const feeQ = guldToQuanta(String(fd.get("fee") || "0"));
+      const privHex = keyring.getPriv(r.name);
+      if (!privHex) return setStatus("Unlock keyring first", "error");
+      setStatus("Submitting RotateKeys…", "pending");
+      try {
+        const chainId = Number(st.chainId ?? 1);
+        const intent = await rotateKeysIntentMessage(r.name, [pubHex], 1, feeQ);
+        const newSig = await sign(intent, fromHex(privHexNew));
+        const msg = await rotateKeysMessage(
+          account.account_id,
+          Number(account.nonce),
+          chainId,
+          [pubHex],
+          1,
+          feeQ,
+        );
+        const oldSig = await sign(msg, fromHex(privHex));
+        await apiPost(apiBase, "/chain/transactions", {
+          type: "rotate_keys",
+          name: r.name,
+          new_keys: [pubHex],
+          new_threshold: 1,
+          cosignatures: [{ key_index: 0, signature: toHex(oldSig) }],
+          new_key_signature: toHex(newSig),
+          inclusion_fee: feeQ,
+        });
+        if (keyring.isUnlocked()) {
+          await keyring.upsertAccount({
+            name: r.name,
+            privHex: privHexNew,
+            pubHex,
+          });
+        }
+        setStatus("RotateKeys submitted — local key updated", "ok");
+        route();
+      } catch (err) {
+        setStatus(/** @type {Error} */ (err).message, "error");
+      }
+    });
   } catch (err) {
     setStatus(/** @type {Error} */ (err).message, "error");
     hostEl.innerHTML = `<p class="wallet__empty">${escapeHtml(/** @type {Error} */ (err).message)}</p>`;
