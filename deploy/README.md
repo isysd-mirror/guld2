@@ -22,8 +22,7 @@ Do **not** add new product routes or git/SPA rules in nginx. Implement them in [
 | `nginx.conf` / `nginx-http-bootstrap.conf` | TLS vhost; HTTPS proxies all traffic to guld-node `:8088` |
 | `snippets/` | Headers + catch-all `proxy_pass` (static-locations* are transitional leftovers) |
 | `guld-node.service` | **isysd user unit** — `systemctl --user enable --now guld-node` |
-| `guld-api.service` | Deprecated Python API — prefer node `--http` |
-| `SOFT_LAUNCH.md` | Operator runbook (partially outdated; prefer this README + HOSTING.md) |
+| `SOFT_LAUNCH.md` | Operator runbook (prefer this README + HOSTING.md) |
 | `site/` | Bind-mount this repo → `/var/www/guld.io` (ACME / legacy; not required for site content when proxying) |
 
 **Git software remotes:** served by the node from `repos/*.git` → `/repos/<name>.git`.  
