@@ -1,7 +1,7 @@
 # Spec 02 — Identity and accounts
 
 **Status:** draft  
-**Related:** [`03-transactions.md`](03-transactions.md), [`08-cas-and-homes.md`](08-cas-and-homes.md), [`../intents/subaccounts.md`](../intents/subaccounts.md)
+**Related:** [`03-transactions.md`](03-transactions.md), [`08-cas-and-homes.md`](08-cas-and-homes.md), [`../gips/gip-12.md`](../gips/gip-12.md)
 
 ## 1. Names
 
@@ -19,7 +19,7 @@
 | `individual` | `RegisterUsername` | One or more keys; typical threshold 1 |
 | `group` | `RegisterGroup` | `n` keys; fee = `F_user(L) × (2 + n)` GULD |
 | `subaccount` | `RegisterSubaccount` | Under an **individual** parent only; max **8** live |
-| `network` | Genesis only | Reserved name **`guld`** |
+| `network` | Genesis only | Reserved name **`guld`** — **keyless** protocol shell (empty keys). CAP / rules changes are witnessed by miners via header `master_hash` / `guld_rules_hash`, not by a `guld` signature. |
 | `foreign_chain` | Genesis reserved (e.g. `bitcoin`, `ethereum`) | Tip via foreign consensus proof kinds — [`13-foreign-chains.md`](13-foreign-chains.md) |
 
 Groups MUST NOT open subaccounts in v1.
@@ -47,7 +47,7 @@ Account {
 
 ### 3.0 Pay-or-release registration expiry
 
-Fees buy **one year** of control (`REGISTRATION_PERIOD = BLOCKS_PER_YEAR`). See [`../intents/name-expiry.md`](../intents/name-expiry.md).
+Fees buy **one year** of control (`REGISTRATION_PERIOD = BLOCKS_PER_YEAR`). See [`../gips/gip-11.md`](../gips/gip-11.md).
 
 - Current while `chain_height < expires_at_height`; due for `SettleRegistration` when `chain_height >= expires_at_height`.
 - **Pay-or-release:** miners include permissionless `SettleRegistration` — debit `F_*` and extend, or delete the name and pay leftover dust to the miner.

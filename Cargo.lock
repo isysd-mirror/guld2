@@ -2951,6 +2951,16 @@ dependencies = [
 ]
 
 [[package]]
+name = "guld-cli"
+version = "0.1.0"
+dependencies = [
+ "clap",
+ "guld-client",
+ "guld-types",
+ "tokio",
+]
+
+[[package]]
 name = "guld-client"
 version = "0.1.0"
 dependencies = [

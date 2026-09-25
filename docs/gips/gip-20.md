@@ -1,7 +1,18 @@
-# Intent: Wallet contacts, send history, account lookup
+---
+gip: 20
+title: Wallet contacts and account lookup
+description: Local contacts, recent recipients, explorer account lookup without on-chain social graph.
+author: Guld contributors
+discussions-to: ./README.md
+status: Draft
+type: Standards
+category: Application
+created: 2026-09-25
+---
 
-Status: draft  
-**Related:** [`../specs/14-reference-ui.md`](../specs/14-reference-ui.md) §12.3–§12.4, [`../specs/12-rpc.md`](../specs/12-rpc.md), [`../tasks/README.md`](../tasks/README.md)
+## Abstract
+
+Local contacts, recent recipients, explorer account lookup without on-chain social graph.
 
 ## Goal
 
@@ -77,3 +88,7 @@ Everyday send stays **name-to-name**. QR remains for one-time handshakes (sponso
 ## Tasks
 
 Tracked as markdown under [`../tasks/open/`](../tasks/open/).
+
+## History
+
+Supersedes: `docs/intents/wallet-contacts-and-account-lookup.md`

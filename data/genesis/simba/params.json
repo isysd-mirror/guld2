@@ -1,0 +1,8 @@
+{
+  "chain_id": 2,
+  "timestamp": 1770000000,
+  "difficulty": 0,
+  "isysd_pubkey": "0x60eb196599b589530c439dc45223398f88072baa8b4bdb05893985c38c76e7e8",
+  "isysd_threshold": 1,
+  "initial_master_hash": ""
+}

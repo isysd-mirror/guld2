@@ -2,7 +2,7 @@
 
 Status: open
 Priority: low
-Intent: [`../../intents/wallet-contacts-and-account-lookup.md`](../../intents/wallet-contacts-and-account-lookup.md)
+GIP: [`../../gips/gip-20.md`](../../gips/gip-20.md)
 Spec: [`../../specs/12-rpc.md`](../../specs/12-rpc.md)
 
 ## Problem

@@ -2,7 +2,7 @@
 
 **Status:** draft  
 **Whitepaper:** §3.3, §8  
-**Intent:** [`../intents/subaccounts.md`](../intents/subaccounts.md)
+**GIP:** [`../gips/gip-12.md`](../gips/gip-12.md)
 
 ## 1. Weight
 
@@ -25,7 +25,7 @@ weight(tx) = size_bytes(canonical_tx)
 inclusion_fee >= ceil(weight(tx) * fee_rate)   // user-chosen fee_rate
 ```
 
-Relay floor: `fee_rate_min` (**TBD**). Paid to block miner via coinbase accounting.
+Relay floor: `fee_rate_min` = genesis `EconomyParams.fee_rate_min_per_vb` (default **1** quanta per weight unit). Nodes MUST reject mempool inserts with `inclusion_fee < weight(tx) × fee_rate_min` (`SettleRegistration` exempt). Paid to block miner via coinbase accounting.
 
 Optional `memo` bytes ([`03-transactions.md`](03-transactions.md) §2.1) increase `size_bytes(canonical_tx)` like any other field — there is no free metadata channel.
 
@@ -33,15 +33,15 @@ Optional `memo` bytes ([`03-transactions.md`](03-transactions.md) §2.1) increas
 
 Registration / settle protocol fees MUST be paid to **miners** via coinbase accounting. They MUST NOT be burned. They MUST be **spread** over **`REGISTRATION_FEE_VEST_BLOCKS = 8`** consecutive blocks starting at the inclusion height (integer split; remainder to earliest heights). Inclusion (weight) fees remain one-shot to the including miner.
 
-**Lottery:** including a registration schedules the fee across eight heights; recovering the full protocol fee requires winning all eight. Intent: [`../intents/registration-fee-vesting.md`](../intents/registration-fee-vesting.md).
+**Lottery:** including a registration schedules the fee across eight heights; recovering the full protocol fee requires winning all eight. GIP: [`../gips/gip-10.md`](../gips/gip-10.md).
 
 ### 3.1 Registration fees — **per year**
 
-Fees buy **`REGISTRATION_PERIOD = BLOCKS_PER_YEAR` (52_560)** blocks of control ([`../intents/name-expiry.md`](../intents/name-expiry.md)). At period end, miners include `SettleRegistration`: auto-debit `F_*` or release the name (leftover dust `< F_*` → vesting queue).
+Fees buy **`REGISTRATION_PERIOD = BLOCKS_PER_YEAR` (52_560)** blocks of control ([`../gips/gip-11.md`](../gips/gip-11.md)). At period end, miners include `SettleRegistration`: auto-debit `F_*` or release the name (leftover dust `< F_*` → vesting queue).
 
 #### Individual root names — letter-based `F_user(L)`
 
-**Intent:** [`../intents/letter-based-registration-fees.md`](../intents/letter-based-registration-fees.md)
+**GIP:** [`../gips/gip-9.md`](../gips/gip-9.md)
 
 ```text
 label_letter_count(name) → L   // root label only (strip parent.label for subs)
@@ -68,7 +68,7 @@ Long names hit the **floor at 6 letters** — `jorge-luise-gonzalez` (17 letters
 Groups use the same letter ladder as individuals, scaled by signer count:
 
 ```text
-F_group(L, n) = F_user(L) × (2 + n)     // n = initial key count
+F_group(L, n) = F_user(L) × (2 + n)     // n = key count
 ```
 
 | Example | L | n | Fee / year |
@@ -76,6 +76,17 @@ F_group(L, n) = F_user(L) × (2 + n)     // n = initial key count
 | 1-letter 1-of-1 group `x` | 1 | 1 | **3_000 GULD** (= 1000 × 3) |
 | 2-letter 1-of-1 group `ai` | 2 | 1 | **300 GULD** (= 100 × 3) |
 | Long-name 5-key group | ≥6 | 5 | **7 GULD** (= 1 × 7) |
+
+**When charged:**
+
+| Event | Amount |
+|-------|--------|
+| `RegisterGroup` | Full `F_group(L, n)` for initial `n` |
+| `SettleRegistration` (funded) | Full `F_group(L, n)` for **current** `n` |
+| `RotateKeys` with `n_new > n_old` | **Delta only:** `F_group(L, n_new) − F_group(L, n_old)` = `F_user(L) × (n_new − n_old)` |
+| `RotateKeys` with `n_new ≤ n_old` | No protocol fee (inclusion only) |
+
+This closes registering a cheap small group then rotating to a large signer set without paying for the extra proof burden.
 
 #### Subaccounts (flat)
 
@@ -168,4 +179,4 @@ fn vest_registration_fee_shares(fee: u128) -> Vec<u128>;  // REGISTRATION_FEE_VE
 - Final premium table values and `L_cap` (5 vs 6)  
 - Whether name **deposits** exist alongside registration fees  
 - Final audited `x` / per-name manifest hash (does not change `i(y)` shape)  
-- `MAX_SUBACCOUNTS` (default **8**) — [`intents/subaccounts.md`](../intents/subaccounts.md)
+- `MAX_SUBACCOUNTS` (default **8**) — [`../gips/gip-12.md`](../gips/gip-12.md)

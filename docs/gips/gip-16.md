@@ -1,7 +1,18 @@
-# Intent: Tx memo + protocol upgrade activation
+---
+gip: 16
+title: Tx memo + protocol upgrade activation
+description: Optional 64-byte memo on fee-paying txs; height-activated rule-bundle upgrades.
+author: Guld contributors
+discussions-to: ./README.md
+status: Final
+type: Standards
+category: Core
+created: 2026-09-25
+---
 
-Status: accepted · memo + activation_height implemented  
-**Related:** [`../specs/03-transactions.md`](../specs/03-transactions.md), [`../specs/17-protocol-upgrades.md`](../specs/17-protocol-upgrades.md), [`../specs/07-fees-and-tokenomics.md`](../specs/07-fees-and-tokenomics.md)
+## Abstract
+
+Optional 64-byte memo on fee-paying txs; height-activated rule-bundle upgrades.
 
 ## Goal
 
@@ -36,3 +47,7 @@ See [`17-protocol-upgrades.md`](../specs/17-protocol-upgrades.md): `activation_h
 
 - On-chain interpretation of memo (no “OP_RETURN contracts”)  
 - Unbounded metadata or IPFS CIDs in L0 txs (use leaf / `UpdateMaster`)
+
+## History
+
+Supersedes: `docs/intents/tx-memo-and-upgrades.md`

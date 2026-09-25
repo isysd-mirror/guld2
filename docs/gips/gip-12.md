@@ -1,7 +1,18 @@
-# Intent: Subaccounts (hot/cold / device wallets)
+---
+gip: 12
+title: Subaccounts
+description: Individual roots MAY open parent.label device wallets with fixed F_sub fees.
+author: Guld contributors
+discussions-to: ./README.md
+status: Accepted
+type: Standards
+category: Core
+created: 2026-09-25
+---
 
-Status: **accepted**  
-Related: [`../specs/02-identity-and-accounts.md`](../specs/02-identity-and-accounts.md), [`../specs/03-transactions.md`](../specs/03-transactions.md), [`../specs/07-fees-and-tokenomics.md`](../specs/07-fees-and-tokenomics.md), [`../specs/16-sponsored-registration.md`](../specs/16-sponsored-registration.md)
+## Abstract
+
+Individual roots MAY open parent.label device wallets with fixed F_sub fees.
 
 ## Goal
 
@@ -71,3 +82,7 @@ Parent pays `F_sub + endowment + inclusion_fee`; dual-sig (parent spend + new `k
 - [x] Node applies `RegisterSubaccount`; Transfer to/from `parent.label` works
 - [x] Live-cap enforced; fee paid to miner
 - [x] Wallet can create a sub and move funds parent ↔ sub
+
+## History
+
+Supersedes: `docs/intents/subaccounts.md`

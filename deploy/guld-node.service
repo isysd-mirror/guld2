@@ -24,7 +24,7 @@ ExecStart=/home/isysd/Projects/guld2/target/debug/guld-node \
   --http-static . \
   --dev \
   --keys-pgp archives/keys-pgp \
-  --miner isysd \
+  --miner alice \
   --registrar-payment-link default
 Restart=on-failure
 RestartSec=3

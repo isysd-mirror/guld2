@@ -21,17 +21,19 @@
 12. [`11-leaf-host.md`](11-leaf-host.md) — leaf materialization & client-facing host API  
 13. [`12-rpc.md`](12-rpc.md) — node API: HTTP `/api/v1` (canonical) + transitional JSON-RPC  
 14. [`13-foreign-chains.md`](13-foreign-chains.md) — L0: `bitcoin` / `ethereum` / `solana` as names; foreign proofs; settlement dapps  
-15. [`14-reference-ui.md`](14-reference-ui.md) — static PWA wallet + optional desktop wallet  
+15. [`14-reference-ui.md`](14-reference-ui.md) — reference UI: coverage matrix (all tx types + RPC/HTTP), flows, groups + cosign workstation  
 16. [`15-ledger-import.md`](15-ledger-import.md) — 1.0 `ledger-guld` snapshot, pre-mine **x**, `ClaimLegacy` key upgrade  
 17. [`16-sponsored-registration.md`](16-sponsored-registration.md) — pay-for-name bootstrap; dual-signature register  
 18. [`17-protocol-upgrades.md`](17-protocol-upgrades.md) — rule-bundle activation height; soft/hard class  
 
-**Intent (accepted):** [`../intents/pwa-reference-wallet.md`](../intents/pwa-reference-wallet.md) — static guld.io PWA + `guld-node --http`.  
-**Intent (accepted):** [`../intents/bootstrap-gateway-registrar.md`](../intents/bootstrap-gateway-registrar.md) — optional paid registrar (any peer + third-party gateway).  
-**Intent (accepted):** [`../intents/tx-memo-and-upgrades.md`](../intents/tx-memo-and-upgrades.md) — optional tx `memo`; height-activated upgrades.  
-**Intent (accepted):** [`../intents/subaccounts.md`](../intents/subaccounts.md) — `parent.label` device wallets; fixed fees in spec 07.  
-**Intent (accepted):** [`../intents/rotate-keys.md`](../intents/rotate-keys.md) — key change = username transfer via `RotateKeys`.  
-**Intent (draft):** [`../intents/wallet-contacts-and-account-lookup.md`](../intents/wallet-contacts-and-account-lookup.md) — wallet contacts, explorer account pages, prefix search (later).
+**GIP (Accepted):** [GIP-5](../gips/gip-5.md) — static guld.io PWA + `guld-node --http`.  
+**GIP (Accepted):** [GIP-17](../gips/gip-17.md) — UI matrix for all txs; groups + cosign workstation.  
+**GIP (Accepted):** [GIP-8](../gips/gip-8.md) — optional paid registrar (any peer + third-party gateway).  
+**GIP (Final):** [GIP-16](../gips/gip-16.md) — optional tx `memo`; height-activated upgrades.  
+**GIP (Accepted):** [GIP-12](../gips/gip-12.md) — `parent.label` device wallets; fixed fees in spec 07.  
+**GIP (Accepted):** [GIP-13](../gips/gip-13.md) — key change = username transfer via `RotateKeys`.  
+**GIP (Draft):** [GIP-20](../gips/gip-20.md) — wallet contacts, explorer account pages, prefix search (later).  
+**Process:** [GIP-1](../gips/gip-1.md) · [GIP index](../gips/README.md).
 
 **Research:** [`../research/jsonrpc-vs-http-api.md`](../research/jsonrpc-vs-http-api.md) — HTTP canonical; P2P vs HTTP reachability.
 **Tasks:** [`../tasks/README.md`](../tasks/README.md) — git-native issue queue (`open/`, `done/`).

@@ -4,6 +4,9 @@
 [submodule "guld-client"]
 	path = src/guld-client
 	url = https://guld.io/repos/guld-client.git
+[submodule "guld-cli"]
+	path = src/guld-cli
+	url = https://guld.io/repos/guld-cli.git
 [submodule "guld-consensus"]
 	path = src/guld-consensus
 	url = https://guld.io/repos/guld-consensus.git

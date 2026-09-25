@@ -1,10 +1,21 @@
-# Intent: Repository & submodule layout
+---
+gip: 3
+title: Repository and submodule layout
+description: Umbrella repo as site + src/ submodules with repos/ bare remotes served over HTTP.
+author: Guld contributors
+discussions-to: ./README.md
+status: Accepted
+type: Meta
+created: 2026-09-25
+---
 
-Status: accepted (Phase A–B mostly done; public HTTPS URLs + `/software/` UI next)
+## Abstract
+
+Umbrella repo as site + src/ submodules with repos/ bare remotes served over HTTP.
 
 ## Goal
 
-The umbrella repository is both the open-source project and the static website. Implementation packages live under **`src/<component>/`** as **git submodules**. Canonical bare remotes live under **`repos/<name>.git`** in this same tree and are **served over HTTP with the site** (self-replicating). Human UI for that farm: [`software-browser.md`](software-browser.md).
+The umbrella repository is both the open-source project and the static website. Implementation packages live under **`src/<component>/`** as **git submodules**. Canonical bare remotes live under **`repos/<name>.git`** in this same tree and are **served over HTTP with the site** (self-replicating). Human UI for that farm: [`GIP-7`](gip-7.md).
 
 SoT map: [`../REPO_LAYOUT.md`](../REPO_LAYOUT.md) · serving: [`../HOSTING.md`](../HOSTING.md).
 
@@ -28,7 +39,7 @@ SoT map: [`../REPO_LAYOUT.md`](../REPO_LAYOUT.md) · serving: [`../HOSTING.md`](
 
 ## Next
 
-- [`software-browser.md`](software-browser.md) — `/software/` catalog + clone UX
+- [`GIP-7`](gip-7.md) — `/software/` catalog + clone UX
 
 ## Out of scope
 
@@ -36,3 +47,7 @@ SoT map: [`../REPO_LAYOUT.md`](../REPO_LAYOUT.md) · serving: [`../HOSTING.md`](
 - On-chain attestation of guld.io HTML
 - Treating the browser extension as consensus-required
 - Third-party git host farms as the software remote source
+
+## History
+
+Supersedes: `docs/intents/repo-layout.md`

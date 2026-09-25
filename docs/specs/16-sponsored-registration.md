@@ -89,11 +89,14 @@ Wallets SHOULD exchange a portable JSON blob before submission:
 }
 ```
 
+For **groups**, the same shape with `"type": "register_group"`, `keys.length = n ≥ 1`, `threshold` in `1…n`, and `registration_fee = F_group(L, n)`. On-chain tx type is `register_group` (same dual-sig messages as username — [`03-transactions.md`](03-transactions.md) §3.2).
+
 | Field | Meaning |
 |-------|---------|
-| `registration_fee` | `F_user(L)` (or `F_group(L, n)`) the registrant accepted |
+| `type` | `register_username` \| `register_group` |
+| `registration_fee` | `F_user(L)` or `F_group(L, n)` the registrant accepted |
 | `height` | Optional hint when estimate was taken |
-| `registrant_signature` | Over intent at listed terms |
+| `registrant_signature` | Over intent at listed terms (`keys[0]`) |
 
 **Sponsor checks before signing:**
 
@@ -144,7 +147,7 @@ After inclusion, registrant controls the name via keys they generated locally. S
 | Commercial registrar | Off-chain payment (any peer + third-party gateway) → sponsor tx |
 | Legacy claim | Separate path — `ClaimLegacy` unlocks imported name without new registration |
 
-**Any funded account** MAY run a commercial registrar by wiring a supported payment provider and fulfilling registration-request JSON — including everyday users, not only guld.io / isysd. That is an instance of this row, not a consensus role — see [`../intents/bootstrap-gateway-registrar.md`](../intents/bootstrap-gateway-registrar.md).
+**Any funded account** MAY run a commercial registrar by wiring a supported payment provider and fulfilling registration-request JSON — including everyday users, not only guld.io / isysd. That is an instance of this row, not a consensus role — see [`../gips/gip-8.md`](../gips/gip-8.md).
 
 ## 6. Security properties
 

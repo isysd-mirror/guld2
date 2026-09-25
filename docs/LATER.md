@@ -12,7 +12,7 @@ Strategic drivers from 1.0: [`UPGRADE_FROM_1.md`](UPGRADE_FROM_1.md).
 - **Specs (normative drafts):** [`specs/README.md`](specs/README.md) — components, txs, proofs, node/leaf-host/RPC APIs
 - Snapshot rules/balances from `archives/ledger-guld`
 - Not: blockchain-in-git, FUSE mounts, or ETH/SOL as required substrate
-- Intent: [`intents/ledger-migration.md`](intents/ledger-migration.md)
+- GIP: [`gips/gip-14.md`](gips/gip-14.md)
 - Earlier foils (indexer / leaf / election alternatives): [`research/postgres-blockchain.md`](research/postgres-blockchain.md), [`research/block-window-consensus.md`](research/block-window-consensus.md), [`research/storage-scale-git-postgres.md`](research/storage-scale-git-postgres.md)
 - Drivers: [`UPGRADE_FROM_1.md`](UPGRADE_FROM_1.md)
 

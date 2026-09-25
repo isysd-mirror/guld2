@@ -31,6 +31,36 @@ guld-header {
   display: block;
 }
 
+guld-header:has(.site-header--overlay) {
+  position: absolute;
+  inset: 0 0 auto;
+  z-index: 20;
+  width: 100%;
+}
+
+guld-header:has(.site-header--solid) {
+  position: sticky;
+  top: 0;
+  z-index: 20;
+}
+
+.site-banner {
+  padding: 0.45rem clamp(1rem, 4vw, 2.5rem);
+  background: #c45c26;
+  color: #fff;
+  text-align: center;
+  font-size: 0.88rem;
+  line-height: 1.35;
+}
+
+.site-banner p {
+  margin: 0;
+}
+
+.site-banner strong {
+  font-weight: 700;
+}
+
 .site-header {
   z-index: 20;
   display: flex;
@@ -41,13 +71,10 @@ guld-header {
 }
 
 .site-header--overlay {
-  position: absolute;
-  inset: 0 0 auto;
+  position: relative;
 }
 
 .site-header--solid {
-  position: sticky;
-  top: 0;
   background: color-mix(in srgb, var(--guld-theme) 92%, transparent);
   backdrop-filter: blur(8px);
   border-bottom: 1px solid rgba(255, 255, 255, 0.08);

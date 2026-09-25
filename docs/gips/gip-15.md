@@ -1,7 +1,18 @@
-# Intent: P2P mesh (libp2p)
+---
+gip: 15
+title: P2P mesh (libp2p)
+description: guld-p2p + guld-node: discovery, tx gossip, block sync, CAS objects over libp2p.
+author: Guld contributors
+discussions-to: ./README.md
+status: Final
+type: Standards
+category: Networking
+created: 2026-09-25
+---
 
-Status: accepted · phase C complete  
-**Related:** [`../specs/09-p2p.md`](../specs/09-p2p.md), [`../specs/10-node.md`](../specs/10-node.md), [`scaffold-2.0.md`](scaffold-2.0.md), [`../research/jsonrpc-vs-http-api.md`](../research/jsonrpc-vs-http-api.md), [`../../deploy/SIMBA.md`](../../deploy/SIMBA.md)
+## Abstract
+
+guld-p2p + guld-node: discovery, tx gossip, block sync, CAS objects over libp2p.
 
 ## Goal
 
@@ -69,3 +80,7 @@ Ship **`guld-p2p`** and wire it into **`guld-node`** so peers discover each othe
 - [x] Peerstore load/save + ban persistence
 - [x] `--dev` enables mDNS; simba/prod leave it off
 - [x] Spec 09 documents objects + DoS/ban caps
+
+## History
+
+Supersedes: `docs/intents/p2p-mesh.md`

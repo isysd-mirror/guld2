@@ -2,7 +2,7 @@
 
 Status: research (foil / indexer precedents)  
 **L1 preference moved:** [`modern-l1-direction.md`](modern-l1-direction.md) (lean chain DB + master hash; Postgres as indexer only).  
-Related: [`intents/ledger-migration.md`](../intents/ledger-migration.md), [`UPGRADE_FROM_1.md`](../UPGRADE_FROM_1.md)
+Related: [`gips/gip-14.md`](../gips/gip-14.md), [`UPGRADE_FROM_1.md`](../UPGRADE_FROM_1.md)
 
 ## Question
 
@@ -78,7 +78,7 @@ What Postgres does **not** replace:
 
 **Active consensus sketch:** block time windows where nodes **fetch and validate** new commits under software rules, then seal a Postgres-chained block. **Tip election prefers weighted votes / PoS** (legacy continuity); PoW optional only. See [`block-window-consensus.md`](block-window-consensus.md).
 
-Remaining open items: [ledger-migration intent](../intents/ledger-migration.md). Scale and “don’t put all users in one git DB”: [`storage-scale-git-postgres.md`](storage-scale-git-postgres.md).
+Remaining open items: [ledger-migration intent](../gips/gip-14.md). Scale and “don’t put all users in one git DB”: [`storage-scale-git-postgres.md`](storage-scale-git-postgres.md).
 
 ## Pros
 

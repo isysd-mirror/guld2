@@ -5,7 +5,7 @@ template.innerHTML = `
   <footer class="site-footer">
     <div class="site-footer__brand">
       <img src="/assets/guld.svg" width="28" height="28" alt="" />
-      <p class="site-footer__legal">Guld 2.0 · open-source peer</p>
+      <p class="site-footer__legal">Guld 2.0 beta · Simba testnet</p>
     </div>
     <nav class="site-footer__nav" aria-label="Documents">
       <ul class="site-footer__list"></ul>

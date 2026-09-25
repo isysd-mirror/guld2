@@ -51,14 +51,17 @@ For network account `guld`:
 
 1. Account exists as network kind (spec 02).  
 2. **No** ERC20 bucket credit — genesis balance from import is **0** unless a future audited manifest says otherwise.  
-3. Governance keys come from genesis / protocol policy; `guld` is **not** legacy-locked.
+3. **`guld` is keyless** (empty `keys`, threshold 0). There is no `guld` spend/tip signature. CAP / rules evolution is **witnessed by miners**: sealed headers commit `guld.master_hash` and `guld_rules_hash`; extending the chain on a tip attests that CAP state. `guld` is **not** legacy-locked.  
+4. Genesis MUST pin `import_manifest_hash` in chain meta (and/or a consensus-visible field) so peers can re-verify the committed manifest.  
+5. Simba / public testnets SHOULD genesis-claim **`isysd`** (PGP clearsign over the ClaimLegacy challenge, applied as a height-0 state effect with empty block body) so unbound `isysd_attestation_v1` works from block 0. Artifacts live under `data/genesis/<network>/`.
 
 **MUST NOT:**
 
 - Haircut, round (except exact quanta conversion), or merge distinct names.  
 - Import ERC20 / foreign-mirror protocol buckets into circulating supply.  
 - Allow `Transfer` / spend from a `legacy.status = locked` account.  
-- Treat OpenPGP as the post-claim hot path.
+- Treat OpenPGP as the post-claim hot path.  
+- Invent a funded fictional premine account (e.g. `alice`) on shared networks.
 
 ## 4. Legacy lock
 
@@ -143,7 +146,7 @@ fn verify_claim_proof(name, message, proof, &BindingSet) -> Result<()>;
 // State.set_claim_verifier(BindingClaimVerifier) wires apply(ClaimLegacy)
 ```
 
-Crate: `guld-legacy`. Node flags: `--keys-pgp`, `--import-ledger`.
+Crate: `guld-legacy`. Tools: `guld-genesis` (`preprocess` / `challenge` / `verify-claim` / `build`). Node: `--network <name>` loads `data/genesis/<name>/`; ad-hoc `--keys-pgp` / `--import-ledger` remain for local/dev only.
 
 ## 8. Open parameters
 

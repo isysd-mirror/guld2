@@ -1,0 +1,39 @@
+---
+description: Never run sudo; ask the human for any privileged or OS package install
+alwaysApply: true
+---
+
+# System installs and sudo
+
+Agents MUST NOT run `sudo` (or equivalent privileged elevation). Password prompts and peer host policies make it unreliable and unsafe to assume.
+
+Peers may run **any OS** (Linux distros, macOS, BSD, WSL, containers). Do not assume Ubuntu/`apt`. Prefer the project’s documented toolchain (`cargo`, `node`, repo scripts) when that is enough.
+
+## Do not run privileged installs yourself
+
+- Do **not** invent workarounds that skip a standard system package when that package is clearly the right tool.
+- Do **not** silently fall back to brittle alternatives without asking first.
+- User-level installs without elevation (e.g. rustup, nvm, cargo install into `$HOME`) are fine when they already work and fit the project.
+
+## Ask clearly
+
+When a system package or privileged install would help, **stop and ask** the human to run it on their machine. Be direct:
+
+1. What you need (one line)
+2. Why (one line)
+3. A **copy-pasteable** command for **their** package manager when known — or ask which OS/package manager they use if unclear
+
+Examples (illustrative only — match the contributor’s OS):
+
+```bash
+# Debian/Ubuntu
+sudo apt-get install -y tesseract-ocr tesseract-ocr-eng
+
+# Fedora
+sudo dnf install -y tesseract
+
+# macOS (Homebrew — often no sudo for formulae)
+brew install tesseract
+```
+
+After they confirm it is installed, continue.

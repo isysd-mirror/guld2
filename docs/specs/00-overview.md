@@ -107,7 +107,7 @@ Define the **components** of a Guld 2.0 deployment, their responsibilities, and 
 
 ### 3.8b Reference UI (repo-root PWA + optional `guld-wallet`)
 
-**Responsibility:** Reference user agents: **static PWA at repo root** (primary wallet) and optional **desktop wallet**. Not consensus. Speak node **HTTP API**. guld.io the domain is a bootstrap mirror + optional paid registrar desk ([`../intents/bootstrap-gateway-registrar.md`](../intents/bootstrap-gateway-registrar.md)) — out of protocol.
+**Responsibility:** Reference user agents: **static PWA at repo root** (primary wallet) and optional **desktop wallet**. Not consensus. Speak node **HTTP API**. guld.io the domain is a bootstrap mirror + optional paid registrar desk ([`../gips/gip-8.md`](../gips/gip-8.md)) — out of protocol.
 
 **API:** [`14-reference-ui.md`](14-reference-ui.md).
 

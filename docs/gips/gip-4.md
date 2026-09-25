@@ -1,6 +1,17 @@
-# Intent: Guld 2.0 protocol & component specs
+---
+gip: 4
+title: Guld 2.0 protocol and component specs
+description: Turn the whitepaper into implementable numbered specs before large node work.
+author: Guld contributors
+discussions-to: ./README.md
+status: Accepted
+type: Meta
+created: 2026-09-25
+---
 
-Status: accepted (drafting in progress)
+## Abstract
+
+Turn the whitepaper into implementable numbered specs before large node work.
 
 ## Goal
 
@@ -10,7 +21,7 @@ Turn the whitepaper into **implementable specs**: clear components, wire/logical
 
 - [`../specs/README.md`](../specs/README.md) index  
 - Specs `00`–`14`: protocol through foreign chains + **reference UI (PWA wallet on guld.io)**  
-- Scaffold: `src/guld-types`, `src/guld-crypto`, `src/guld-wallet` ([`scaffold-2.0.md`](scaffold-2.0.md))
+- Scaffold: `src/guld-types`, `src/guld-crypto`, `src/guld-wallet` ([`GIP-2`](gip-2.md))
 
 ## Next acceptance criteria
 
@@ -25,3 +36,7 @@ Turn the whitepaper into **implementable specs**: clear components, wire/logical
 
 - Shipping mainnet  
 - Indexer SQL schema as consensus
+
+## History
+
+Supersedes: `docs/intents/specs-2.0.md`

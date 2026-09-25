@@ -1,7 +1,18 @@
-# Intent: guld.io in the `guld` leaf + scoped miner governance
+---
+gip: 21
+title: guld.io in guld leaf + miner governance
+description: Host reference site in guld leaf; miners govern only enumerated critical objects like gateway roster.
+author: Guld contributors
+discussions-to: ./README.md
+status: Draft
+type: Standards
+category: Core
+created: 2026-09-25
+---
 
-Status: draft  
-**Related:** [`bootstrap-gateway-registrar.md`](bootstrap-gateway-registrar.md), [`software-browser.md`](software-browser.md), [`repo-layout.md`](repo-layout.md), [`pwa-reference-wallet.md`](pwa-reference-wallet.md), [`../specs/02-identity-and-accounts.md`](../specs/02-identity-and-accounts.md), [`../specs/08-cas-and-homes.md`](../specs/08-cas-and-homes.md), [`../specs/06-blocks-and-consensus.md`](../specs/06-blocks-and-consensus.md)
+## Abstract
+
+Host reference site in guld leaf; miners govern only enumerated critical objects like gateway roster.
 
 ## Goal
 
@@ -111,3 +122,7 @@ So **guld.io itself does not occupy a special place in the network**—only an e
 - Replacing PoW fork choice with website or CSS votes  
 - Miner micromanagement of the reference UI  
 - Preventing alternate UIs, forks, or friend sponsorship
+
+## History
+
+Supersedes: `docs/intents/guld-leaf-site-and-miner-governance.md`

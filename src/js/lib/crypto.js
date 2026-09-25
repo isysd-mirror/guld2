@@ -32,6 +32,12 @@ export async function sign(message, priv) {
   return ed.signAsync(message, priv);
 }
 
+/** @param {Uint8Array} message @param {Uint8Array} sig @param {Uint8Array|string} pub */
+export async function verify(message, sig, pub) {
+  const pubBytes = typeof pub === "string" ? fromHex(pub) : pub;
+  return ed.verifyAsync(sig, message, pubBytes);
+}
+
 export async function pubkeyHex(priv) {
   return toHex(await getPublicKey(priv));
 }

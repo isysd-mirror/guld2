@@ -1,5 +1,5 @@
 {
-  "generated": "2026-09-24",
+  "generated": "2026-09-25",
   "extras": [
     {
       "name": "README.md",
@@ -8,6 +8,103 @@
     }
   ],
   "tree": [
+    {
+      "name": "gips",
+      "children": [
+        {
+          "name": "gip-1.md",
+          "path": "gips/gip-1.md"
+        },
+        {
+          "name": "gip-10.md",
+          "path": "gips/gip-10.md"
+        },
+        {
+          "name": "gip-11.md",
+          "path": "gips/gip-11.md"
+        },
+        {
+          "name": "gip-12.md",
+          "path": "gips/gip-12.md"
+        },
+        {
+          "name": "gip-13.md",
+          "path": "gips/gip-13.md"
+        },
+        {
+          "name": "gip-14.md",
+          "path": "gips/gip-14.md"
+        },
+        {
+          "name": "gip-15.md",
+          "path": "gips/gip-15.md"
+        },
+        {
+          "name": "gip-16.md",
+          "path": "gips/gip-16.md"
+        },
+        {
+          "name": "gip-17.md",
+          "path": "gips/gip-17.md"
+        },
+        {
+          "name": "gip-18.md",
+          "path": "gips/gip-18.md"
+        },
+        {
+          "name": "gip-19.md",
+          "path": "gips/gip-19.md"
+        },
+        {
+          "name": "gip-2.md",
+          "path": "gips/gip-2.md"
+        },
+        {
+          "name": "gip-20.md",
+          "path": "gips/gip-20.md"
+        },
+        {
+          "name": "gip-21.md",
+          "path": "gips/gip-21.md"
+        },
+        {
+          "name": "gip-3.md",
+          "path": "gips/gip-3.md"
+        },
+        {
+          "name": "gip-4.md",
+          "path": "gips/gip-4.md"
+        },
+        {
+          "name": "gip-5.md",
+          "path": "gips/gip-5.md"
+        },
+        {
+          "name": "gip-6.md",
+          "path": "gips/gip-6.md"
+        },
+        {
+          "name": "gip-7.md",
+          "path": "gips/gip-7.md"
+        },
+        {
+          "name": "gip-8.md",
+          "path": "gips/gip-8.md"
+        },
+        {
+          "name": "gip-9.md",
+          "path": "gips/gip-9.md"
+        },
+        {
+          "name": "gip-template.md",
+          "path": "gips/gip-template.md"
+        },
+        {
+          "name": "README.md",
+          "path": "gips/README.md"
+        }
+      ]
+    },
     {
       "name": "help",
       "children": [
@@ -21,80 +118,8 @@
       "name": "intents",
       "children": [
         {
-          "name": "bootstrap-gateway-registrar.md",
-          "path": "intents/bootstrap-gateway-registrar.md"
-        },
-        {
-          "name": "consumer-integration.md",
-          "path": "intents/consumer-integration.md"
-        },
-        {
-          "name": "docs-browser.md",
-          "path": "intents/docs-browser.md"
-        },
-        {
-          "name": "guld-leaf-site-and-miner-governance.md",
-          "path": "intents/guld-leaf-site-and-miner-governance.md"
-        },
-        {
-          "name": "ledger-migration.md",
-          "path": "intents/ledger-migration.md"
-        },
-        {
-          "name": "letter-based-registration-fees.md",
-          "path": "intents/letter-based-registration-fees.md"
-        },
-        {
-          "name": "mempool-visualizer.md",
-          "path": "intents/mempool-visualizer.md"
-        },
-        {
-          "name": "name-expiry.md",
-          "path": "intents/name-expiry.md"
-        },
-        {
-          "name": "p2p-mesh.md",
-          "path": "intents/p2p-mesh.md"
-        },
-        {
-          "name": "pwa-reference-wallet.md",
-          "path": "intents/pwa-reference-wallet.md"
-        },
-        {
           "name": "README.md",
           "path": "intents/README.md"
-        },
-        {
-          "name": "repo-layout.md",
-          "path": "intents/repo-layout.md"
-        },
-        {
-          "name": "rotate-keys.md",
-          "path": "intents/rotate-keys.md"
-        },
-        {
-          "name": "scaffold-2.0.md",
-          "path": "intents/scaffold-2.0.md"
-        },
-        {
-          "name": "software-browser.md",
-          "path": "intents/software-browser.md"
-        },
-        {
-          "name": "specs-2.0.md",
-          "path": "intents/specs-2.0.md"
-        },
-        {
-          "name": "subaccounts.md",
-          "path": "intents/subaccounts.md"
-        },
-        {
-          "name": "tx-memo-and-upgrades.md",
-          "path": "intents/tx-memo-and-upgrades.md"
-        },
-        {
-          "name": "wallet-contacts-and-account-lookup.md",
-          "path": "intents/wallet-contacts-and-account-lookup.md"
         }
       ]
     },
@@ -208,12 +233,17 @@
       "name": "tasks",
       "children": [
         {
-          "name": "open",
+          "name": "done",
           "children": [
             {
               "name": "001-explorer-account-lookup.md",
-              "path": "tasks/open/001-explorer-account-lookup.md"
-            },
+              "path": "tasks/done/001-explorer-account-lookup.md"
+            }
+          ]
+        },
+        {
+          "name": "open",
+          "children": [
             {
               "name": "002-wallet-send-contacts.md",
               "path": "tasks/open/002-wallet-send-contacts.md"

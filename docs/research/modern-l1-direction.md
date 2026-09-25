@@ -4,7 +4,7 @@ Status: research (active sketch)
 **Note:** filename kept for link stability; Guld is **L0** (witness substrate below foreign L1s such as Ethereum and Solana).  
 Supersedes as **L0 SoT preference**: treating Postgres + PGP-signed git votes as the network consensus path. Those remain valid for **indexers**, **leaf git hosting**, and **2.0 meta-FS packages** — not for what every block producer must run.
 
-Related: [`postgres-blockchain.md`](postgres-blockchain.md), [`block-window-consensus.md`](block-window-consensus.md), [`storage-scale-git-postgres.md`](storage-scale-git-postgres.md), [`../intents/ledger-migration.md`](../intents/ledger-migration.md), [`../UPGRADE_FROM_1.md`](../UPGRADE_FROM_1.md), **draft whitepaper:** [`../whitepaper/guld-2.0-draft.md`](../whitepaper/guld-2.0-draft.md), **specs:** [`../specs/README.md`](../specs/README.md)
+Related: [`postgres-blockchain.md`](postgres-blockchain.md), [`block-window-consensus.md`](block-window-consensus.md), [`storage-scale-git-postgres.md`](storage-scale-git-postgres.md), [`../gips/gip-14.md`](../gips/gip-14.md), [`../UPGRADE_FROM_1.md`](../UPGRADE_FROM_1.md), **draft whitepaper:** [`../whitepaper/guld-2.0-draft.md`](../whitepaper/guld-2.0-draft.md), **specs:** [`../specs/README.md`](../specs/README.md)
 
 ## Goal bar
 

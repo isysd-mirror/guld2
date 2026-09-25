@@ -1,7 +1,18 @@
-# Intent: PWA reference wallet on guld.io
+---
+gip: 5
+title: PWA reference wallet on guld.io
+description: Reference wallet is the installable static PWA at repo root, mirrored at guld.io.
+author: Guld contributors
+discussions-to: ./README.md
+status: Accepted
+type: Standards
+category: Application
+created: 2026-09-25
+---
 
-Status: accepted  
-**Related:** [`../specs/14-reference-ui.md`](../specs/14-reference-ui.md), [`../specs/16-sponsored-registration.md`](../specs/16-sponsored-registration.md), [`bootstrap-gateway-registrar.md`](bootstrap-gateway-registrar.md), [`../../README.md`](../../README.md), whitepaper §1.4
+## Abstract
+
+Reference wallet is the installable static PWA at repo root, mirrored at guld.io.
 
 ## Decision
 
@@ -67,6 +78,15 @@ Extension / web-login conventions are **ecosystem** (not consensus opcodes) but 
 - [ ] **Browser extension**: site-login challenges for Guld dapps  
 - [x] Contacts / recent recipients on send combobox  
 
+### Phase 3b — Groups + threshold cosign (spec 14 §8.6 / §9)
+
+Protocol and explorer already know `RegisterGroup` and `threshold_cosign_v1`; the PWA still assumes 1-of-1. Normative UI: [`../specs/14-reference-ui.md`](../specs/14-reference-ui.md).
+
+- [x] **RegisterGroup** wizard (`kind=group`, `nKeys`, threshold, fee `F_group(L,n)`, friend + paid sponsor)  
+- [x] **Cosign workstation** — export/import partial cosignatures; progress; broadcast when ≥ threshold  
+- [x] Wire workstation into UpdateMaster, RotateKeys (Transfer remains 1-of-1 until consensus)  
+- [x] Account card: kind, threshold, key indices this device holds, expiry funding hint  
+
 ### Phase 4 — Optional surfaces
 
 - [ ] Desktop `guld-wallet` (legacy claim, external signer) — **deprecated** as default  
@@ -76,4 +96,8 @@ Extension / web-login conventions are **ecosystem** (not consensus opcodes) but 
 
 - Replacing full node or leaf-host  
 - Consensus-mandated extension (validation works without it)  
-- Native mobile app before PWA + extension story works  
+- Native mobile app before PWA + extension story works
+
+## History
+
+Supersedes: `docs/intents/pwa-reference-wallet.md`

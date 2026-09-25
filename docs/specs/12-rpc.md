@@ -33,12 +33,20 @@ Prefix: `/api/v1`. Shipped today on `guld-node --http`:
 |--------|------|-------------|--------|
 | `GET` | `/health` | — | shipped |
 | `GET` | `/chain/status` | `guld_blockNumber`, `guld_chainId`, `guld_ready`, `guld_syncing` | shipped |
+| `GET` | `/chain/accounts` | `guld_searchAccounts` (`?prefix=&limit=`) | shipped |
 | `GET` | `/chain/accounts/{name}` | `guld_getAccount`, `guld_getBalance` | shipped |
 | `GET` | `/chain/accounts/{name}/activity` | `guld_getAccountActivity` | shipped |
 | `GET` | `/chain/accounts/{name}/exists` | `guld_accountExists` | shipped |
+| `GET` | `/chain/blocks/{height}` | `guld_getBlockByNumber` (`?full=`) | shipped |
+| `GET` | `/chain/blocks/by-hash/{hash}` | `guld_getBlockByHash` | shipped |
+| `GET` | `/chain/transactions/{txid}` | `guld_getTransaction` | shipped |
+| `POST` | `/chain/transactions` | `guld_sendTransaction` | shipped |
+| `POST` | `/chain/estimate-weight` | `guld_estimateWeight` | shipped |
+| `GET` | `/chain/fees/registration` | `guld_estimateRegistrationFee` | shipped |
+| `GET` | `/chain/fees/mempool` | `guld_getMempoolFeeHints` | shipped |
+| `GET` | `/cas/objects/{id}/exists` | `guld_hasObject` | shipped |
 | `GET` | `/registrar` | — (optional paid desk config) | shipped |
 | `POST` | `/payment-gateway-webhook` | — (Paymento HMAC webhook) | shipped |
-| `POST` | `/chain/transactions` | `guld_sendTransaction` / `guld_sendRawTransaction` | **target** (PWA write path) |
 
 Further routes (blocks, CAS, estimates, net) SHOULD be added as resources with the same coverage as §4 — not a looser subset.
 
@@ -53,7 +61,7 @@ When `--registrar-payment-link` (or `GULD_REGISTRAR_PAYMENT_LINK`) is set:
 | `GET` | `/registrar` | `{ enabled, provider, paymentLink }` for wallet UI |
 | `POST` | `/payment-gateway-webhook` | Paymento Payment Link webhooks; requires `PAYMENTO_WEBHOOK_SECRET` |
 
-See [`../intents/bootstrap-gateway-registrar.md`](../intents/bootstrap-gateway-registrar.md).
+See [`../gips/gip-8.md`](../gips/gip-8.md).
 
 ## 4. Logical operations (JSON-RPC method names)
 
@@ -80,11 +88,14 @@ See [`../intents/bootstrap-gateway-registrar.md`](../intents/bootstrap-gateway-r
 | `guld_getMasterHash` | `[name]` | Hash |
 | `guld_accountExists` | `[name]` | bool |
 | `guld_getAccountActivity` | `[name, limit]` | `ActivityItem[]` |
-| `guld_searchAccounts` | `[prefix, limit]` | `[AccountSummary]` — **draft / not implemented** |
 
-`guld_searchAccounts` (when added): case-sensitive prefix match on registered names; `limit` default 20, max 100. Large deployments SHOULD use an off-consensus indexer.
+`ActivityItem`: `{ height, block_hash, kind, direction?, amount?, fee?, counterparty?, tx_id?, tx_index? }`.
+`tx_index` is the body index in that block (omitted for coinbase).
+| `guld_searchAccounts` | `[prefix, limit]` | `[AccountSummary]` |
 
-Draft `AccountSummary`: `{ "name", "balance", "kind" }`.
+`guld_searchAccounts`: case-sensitive prefix match on registered names; `limit` default 20, max 100. Large deployments SHOULD use an off-consensus indexer.
+
+`AccountSummary`: `{ "name", "balance", "kind" }`.
 
 ### Transactions
 
@@ -174,7 +185,7 @@ Remote TLS authenticates the **server name** to the client. It does not replace 
 
 ## 9. Open parameters
 
-- Complete HTTP route table for all §4 ops + OpenAPI  
+- OpenAPI document for `/api/v1`  
 - SSE / WebSocket for `newHeads`  
-- `guld_searchAccounts` index strategy  
+- Off-consensus indexer when in-process `guld_searchAccounts` is too slow  
 - Deprecation timeline for JSON-RPC adapter  

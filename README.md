@@ -4,7 +4,9 @@
 
 This repository **is** the open-source project **and** the static website (framework-less JS, web components, no bundler). The **guld.io** domain is a bootstrap mirror of this tree — not a GitHub host, not a consensus hub.
 
-Design SoT: [`docs/whitepaper/guld-2.0-draft.md`](docs/whitepaper/guld-2.0-draft.md) · [`docs/specs/`](docs/specs/README.md) · [`docs/REPO_LAYOUT.md`](docs/REPO_LAYOUT.md)
+Design SoT: [`docs/whitepaper/guld-2.0-draft.md`](docs/whitepaper/guld-2.0-draft.md) · [`docs/specs/`](docs/specs/README.md) · [`docs/gips/`](docs/gips/README.md) · [`docs/REPO_LAYOUT.md`](docs/REPO_LAYOUT.md)
+
+Contributing: [`CONTRIBUTING.md`](CONTRIBUTING.md) · process: [GIP-1](docs/gips/gip-1.md) · delivery: [`docs/SOFTWARE_FLOW.md`](docs/SOFTWARE_FLOW.md)
 
 ## Layout
 
@@ -16,7 +18,7 @@ Design SoT: [`docs/whitepaper/guld-2.0-draft.md`](docs/whitepaper/guld-2.0-draft
 | `src/guld-*` | Package **submodules** (node, client, wallet, …) |
 | `repos/guld.git` | **Umbrella bare** — site + docs + submodule pins ([clone first](https://guld.io/repos/guld.git)) |
 | `repos/*.git` | Package bares — `https://guld.io/repos/<name>.git` |
-| `docs/` | Specs, whitepaper, intents (markdown SoT; site fetches these paths) |
+| `docs/` | Specs, whitepaper, GIPs (markdown SoT; site fetches these paths) |
 | `deploy/` | Operator nginx / bind-mount / publish |
 | `test/` | JS site tests (`node --test`) |
 
@@ -43,7 +45,17 @@ cargo run -p guld-node -- \
   --dev \
   --keys-pgp archives/keys-pgp \
   --import-ledger archives/guld-ledger-all.dat \
-  --miner isysd
+  --miner alice
+
+# Simba testnet (committed genesis under data/genesis/simba/):
+# cargo run -p guld-node -- --network simba --datadir ./.guld-data/simba \
+#   --rpc 127.0.0.1:8545 --http 127.0.0.1:8080 --http-static . --p2p 0.0.0.0:4001
+# Add --miner <name> only when sealing blocks.
+
+# Wallet CLI (keys, balance, send)
+cargo run -p guld-cli -- --help
+# cargo run -p guld-cli -- keygen alice
+# cargo run -p guld-cli -- pubkey
 
 # Desktop wallet (optional)
 cargo run -p guld-wallet
@@ -86,7 +98,7 @@ cargo run -p guld-node -- \
 # POST /api/v1/payment-gateway-webhook   ← https://guld.io/api/v1/payment-gateway-webhook
 ```
 
-Details: [`docs/intents/bootstrap-gateway-registrar.md`](docs/intents/bootstrap-gateway-registrar.md).
+Details: [`docs/gips/gip-8.md`](docs/gips/gip-8.md).
 
 ## Host model
 

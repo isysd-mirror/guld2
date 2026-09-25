@@ -57,6 +57,7 @@ Each `src/guld-*` directory is a submodule. Its **`origin`** is the bare on disk
 | `src/guld-p2p` | `repos/guld-p2p.git` | `https://guld.io/repos/guld-p2p.git` |
 | `src/guld-node` | `repos/guld-node.git` | `https://guld.io/repos/guld-node.git` |
 | `src/guld-client` | `repos/guld-client.git` | `https://guld.io/repos/guld-client.git` |
+| `src/guld-cli` | `repos/guld-cli.git` | `https://guld.io/repos/guld-cli.git` |
 | `src/guld-wallet` | `repos/guld-wallet.git` | `https://guld.io/repos/guld-wallet.git` |
 | `src/guld-extension` | `repos/guld-extension.git` | `https://guld.io/repos/guld-extension.git` |
 | `src/guld-js` | `repos/guld-js.git` | `https://guld.io/repos/guld-js.git` |
@@ -176,7 +177,7 @@ Framework-less JS (web components):
 - **Clone** — `<origin>/repos/<name>.git` (dumb HTTP from `--http-static`)
 - **API** — `guld-node` reads bare repos under `repos/*.git` via git subprocess
 
-Intent: [`intents/software-browser.md`](intents/software-browser.md).
+GIP: [`gips/gip-7.md`](gips/gip-7.md).
 
 ## Serving the rest of the site
 
@@ -188,5 +189,5 @@ Intent: [`intents/software-browser.md`](intents/software-browser.md).
 
 - [`HOSTING.md`](HOSTING.md) — software remotes vs `/srv/guld` content homes  
 - [`PACKAGES.md`](PACKAGES.md) · [`SOFTWARE_FLOW.md`](SOFTWARE_FLOW.md)  
-- [`intents/repo-layout.md`](intents/repo-layout.md) · [`intents/software-browser.md`](intents/software-browser.md)  
+- [`gips/gip-3.md`](gips/gip-3.md) · [`gips/gip-7.md`](gips/gip-7.md)  
 - [`../README.md`](../README.md)

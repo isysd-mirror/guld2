@@ -1,6 +1,18 @@
-# Intent: ledger beyond ledger-cli (research)
+---
+gip: 14
+title: Ledger 1.0 to 2.0 import and claim
+description: Import 1.0 balances 1:1 and port spend authority via ClaimLegacy key upgrade.
+author: Guld contributors
+discussions-to: ./README.md
+status: Draft
+type: Standards
+category: Core
+created: 2026-09-25
+---
 
-Status: draft / research — **import numbers + claim path drafted in** [`../specs/15-ledger-import.md`](../specs/15-ledger-import.md)
+## Abstract
+
+Import 1.0 balances 1:1 and port spend authority via ClaimLegacy key upgrade.
 
 ## Goal
 
@@ -69,3 +81,7 @@ Optional later: bridges to external tokens for settlement, after the native ledg
     joestang:Assets   40 GULD
     joestang:Income   -40 GULD
 ```
+
+## History
+
+Supersedes: `docs/intents/ledger-migration.md`

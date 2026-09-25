@@ -5,13 +5,13 @@ alwaysApply: true
 
 # Commit and push policy for agents
 
-Applies to **all projects** under this workspace.
+Applies to **this Guld repository** (umbrella and its `src/*` submodules).
 
 ## Allowed (dev workflow)
 
 - **Commit** when a coherent slice of work is done and tests pass (or failures are understood and unrelated).
-- **Push** after commit when the change is ready for dev QA — no need to wait for `/publish-commit` unless the user prefers it for a given task.
-- Follow `~/.cursor/skills/publish-commit/SKILL.md` for leaf→trunk submodule order when both parent and submodule changed.
+- **Push** after commit when the change is ready for peer QA — no need to wait for `/publish-commit` unless the user prefers it for a given task.
+- Follow [`.cursor/skills/publish-commit/SKILL.md`](../skills/publish-commit/SKILL.md) for leaf→trunk submodule order when both parent and submodule changed.
 - Edit files, run tests, fix linter/pre-commit failures in the working tree.
 - Read-only git (`git status`, `git diff`, `git log`).
 
@@ -25,9 +25,10 @@ Applies to **all projects** under this workspace.
 ## `/publish-commit`
 
 When the user invokes `/publish-commit`, follow
-`~/.cursor/skills/publish-commit/SKILL.md` for that turn (security review, HEREDOC messages, optional push/recursive flags).
+[`.cursor/skills/publish-commit/SKILL.md`](../skills/publish-commit/SKILL.md)
+for that turn (security review, HEREDOC messages, optional push/recursive flags).
 
 ## Flow context
 
-Full loop (intent → dev → signed prod tags): `iramillercom/docs/SOFTWARE_FLOW.md`
-and `software-flow.mdc`. Dev hosts pick up branch tips; production ships on **signed tags only**.
+Full loop (GIP/task → implement → commit → QA → signed tags): [`docs/SOFTWARE_FLOW.md`](../../docs/SOFTWARE_FLOW.md)
+and [`software-flow.mdc`](software-flow.mdc). Peers run published trees; production protocol releases are **signed tags only**.

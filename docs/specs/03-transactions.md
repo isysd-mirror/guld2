@@ -96,7 +96,7 @@ Same as username, plus:
 
 ### 3.2a `RegisterSubaccount`
 
-Opens `parent.label` under an **individual** root (intent: [`../intents/subaccounts.md`](../intents/subaccounts.md)).
+Opens `parent.label` under an **individual** root (GIP: [`../gips/gip-12.md`](../gips/gip-12.md)).
 
 ```text
 RegisterSubaccount {
@@ -124,7 +124,7 @@ RegisterSubaccount {
 
 ### 3.3 `RotateKeys`
 
-Change keys/threshold under the **current** policy (own key hygiene / group re-key). **Not** a username resale market — see [`../intents/rotate-keys.md`](../intents/rotate-keys.md) and pay-or-release in [`../intents/name-expiry.md`](../intents/name-expiry.md).
+Change keys/threshold under the **current** policy (own key hygiene / group re-key). **Not** a username resale market — see [`../gips/gip-13.md`](../gips/gip-13.md) and pay-or-release in [`../gips/gip-11.md`](../gips/gip-11.md).
 
 ```text
 RotateKeys {
@@ -141,9 +141,15 @@ RotateKeys {
 
 - Account exists; not legacy-locked; kind ∈ {individual, group, subaccount}.  
 - Dual auth: old threshold cosign + `new_keys[0]` intent.  
-- `balance >= inclusion_fee`.
+- Let `n_old = keys.len()`, `n_new = new_keys.len()`.  
+- **Group expansion fee** (protocol, not inclusion): if `kind = group` and `n_new > n_old`,  
+  `expansion = F_group(L, n_new) − F_group(L, n_old)` (= `F_user(L) × (n_new − n_old)`).  
+  Otherwise `expansion = 0`. Shrinking or same-size key sets: no protocol fee.  
+- `balance >= inclusion_fee + expansion`.
 
-**Effects:** `keys` / `threshold` replaced; `nonce++`; `account_id`, balance, `master_hash`, `parent`, `expires_at_height` unchanged. No registration protocol fee.
+**Effects:** `keys` / `threshold` replaced; `nonce++`; `account_id`, balance (after fees), `master_hash`, `parent`, `expires_at_height` unchanged. `expansion` (if any) is debited and vested to miners over 8 blocks like registration fees ([`07-fees-and-tokenomics.md`](07-fees-and-tokenomics.md)).
+
+Individuals and subaccounts: inclusion fee only (registration fees are not per-signer for those kinds).
 
 ### 3.3a `SettleRegistration`
 

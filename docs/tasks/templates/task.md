@@ -2,7 +2,7 @@
 
 Status: open
 Priority: normal
-Intent:
+GIP:
 Spec:
 
 ## Problem

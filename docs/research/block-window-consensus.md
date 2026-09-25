@@ -2,7 +2,7 @@
 
 Status: research (election / window foil)  
 **L1 preference moved:** [`modern-l1-direction.md`](modern-l1-direction.md) (cosign + gas + PoW-capable lean nodes; git/PGP leaf-only). Weighted git votes / PoS below remain a documented alternative.  
-Related: [`postgres-blockchain.md`](postgres-blockchain.md), [`../intents/ledger-migration.md`](../intents/ledger-migration.md), [`../UPGRADE_FROM_1.md`](../UPGRADE_FROM_1.md)
+Related: [`postgres-blockchain.md`](postgres-blockchain.md), [`../gips/gip-14.md`](../gips/gip-14.md), [`../UPGRADE_FROM_1.md`](../UPGRADE_FROM_1.md)
 
 ## Sketch
 

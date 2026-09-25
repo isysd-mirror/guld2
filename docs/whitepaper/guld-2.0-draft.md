@@ -149,13 +149,13 @@ Registering a name consumes **global namespace** and creates durable validator s
 
 **Why scale group fees with signer count:** each additional key enlarges proofs the network must verify for the life of that account (registration now; every threshold tip later). Charging upfront for `n` aligns payment with **proof complexity** the validators will perform.
 
-**Length pricing:** count **letters only** in the root label (`x` = 1, `jorge-luise-gonzalez` = 17 → capped). Short names are scarce and expensive; names with **≥ 6 letters** pay the **1 GULD**/year floor (1.0 continuity for ordinary names). Subaccounts stay cheap so one human can hold multiple custody zones without burning another top-level name. Fees buy **DNS-style pay-or-release** control ([`../intents/name-expiry.md`](../intents/name-expiry.md)); keep the wallet funded or the name is released. Legacy claims stay open (PGP or isysd attestation). No resale market. See §8.7 and [`../specs/07-fees-and-tokenomics.md`](../specs/07-fees-and-tokenomics.md).
+**Length pricing:** count **letters only** in the root label (`x` = 1, `jorge-luise-gonzalez` = 17 → capped). Short names are scarce and expensive; names with **≥ 6 letters** pay the **1 GULD**/year floor (1.0 continuity for ordinary names). Subaccounts stay cheap so one human can hold multiple custody zones without burning another top-level name. Fees buy **DNS-style pay-or-release** control ([`../gips/gip-11.md`](../gips/gip-11.md)); keep the wallet funded or the name is released. Legacy claims stay open (PGP or isysd attestation). No resale market. See §8.7 and [`../specs/07-fees-and-tokenomics.md`](../specs/07-fees-and-tokenomics.md).
 
 **Miner lottery (8-block vest):** `F_user(L)`, `F_group(L, n)`, `F_sub`, and settle renewals/releases are debited in full at apply, then **credited to miners over 8 consecutive blocks** starting at the inclusion height (`REGISTRATION_FEE_VEST_BLOCKS = 8`). The including miner receives only ~1/8 in that block's coinbase; recovering the full fee requires winning all eight. No burn. Inclusion fees stay one-shot to the including miner. Optional **name deposits** may lock separately (returnable/slashable under policy).
 
 **Bootstrap (no name yet):** registration requires a **sponsor** with GULD. The future name holder signs a **registration intent** (`guld/register/intent/v1`); the sponsor signs the spend (`guld/register/v1`). Both signatures are required on-chain — see [`../specs/16-sponsored-registration.md`](../specs/16-sponsored-registration.md).
 
-A sponsor is usually a **friend** (or any funded account). Anyone with GULD MAY also run an **optional paid registrar**: the newcomer pays via a **third-party payment service** (BTC/ETH/SOL/USDT/fiat); after payment, automation submits the **same** sponsor tx. Early on, guld.io / **isysd** may be a convenient first desk — not a privileged one. Everyday users can turn the same feature on against their own node. The desk is **not** consensus authority, **not** required to join, and **turn-offable**. The first user can still build from git and never visit guld.io. See [`../intents/bootstrap-gateway-registrar.md`](../intents/bootstrap-gateway-registrar.md).
+A sponsor is usually a **friend** (or any funded account). Anyone with GULD MAY also run an **optional paid registrar**: the newcomer pays via a **third-party payment service** (BTC/ETH/SOL/USDT/fiat); after payment, automation submits the **same** sponsor tx. Early on, guld.io / **isysd** may be a convenient first desk — not a privileged one. Everyday users can turn the same feature on against their own node. The desk is **not** consensus authority, **not** required to join, and **turn-offable**. The first user can still build from git and never visit guld.io. See [`../gips/gip-8.md`](../gips/gip-8.md).
 
 ```
 RegisterUsername / RegisterGroup(
@@ -335,7 +335,7 @@ A leaf might expose an HTTP server + browser UI, load a game binary, run noteboo
 
 ### 4.5 Reference UI and guld.io
 
-Reference clients ([`../specs/14-reference-ui.md`](../specs/14-reference-ui.md); intent [`../intents/pwa-reference-wallet.md`](../intents/pwa-reference-wallet.md)):
+Reference clients ([`../specs/14-reference-ui.md`](../specs/14-reference-ui.md); GIP [`../gips/gip-5.md`](../gips/gip-5.md)):
 
 | Surface | Role |
 |---------|------|
@@ -350,7 +350,7 @@ Reference clients ([`../specs/14-reference-ui.md`](../specs/14-reference-ui.md);
 
 ### 4.6 Optional paid registrar (any peer)
 
-The bottleneck for a newcomer is finding someone with GULD to sponsor a name. **Any funded account** MAY enable a **paid registrar** in the reference software: connect a **supported third-party payment gateway**, publish a pay link, and on webhook fulfillment submit the portable registration request as payer — identical to friend-sponsor on-chain ([`../intents/bootstrap-gateway-registrar.md`](../intents/bootstrap-gateway-registrar.md)).
+The bottleneck for a newcomer is finding someone with GULD to sponsor a name. **Any funded account** MAY enable a **paid registrar** in the reference software: connect a **supported third-party payment gateway**, publish a pay link, and on webhook fulfillment submit the portable registration request as payer — identical to friend-sponsor on-chain ([`../gips/gip-8.md`](../gips/gip-8.md)).
 
 guld.io / **isysd** may run this **first** during bootstrap. That does **not** reserve the role:
 
@@ -382,7 +382,7 @@ It does **not** host user-defined functions, loops, or leaf languages. Those run
 | `RegisterUsername` | Bind individual name; pay `F_user(L)` + inclusion fee |
 | `RegisterGroup` | Bind group name with `n` signers; pay `F_group(L, n)` + miner fee |
 | `RegisterSubaccount` | Bind `parent.label`; pay `F_sub` + inclusion fee |
-| `RotateKeys` | Change keys/threshold (own key hygiene — not resale); dual auth old+new |
+| `RotateKeys` | Change keys/threshold (own key hygiene — not resale); dual auth old+new; **group key-set growth** pays `F_group` delta |
 | `SettleRegistration` | Pay-or-release at expiry: auto-debit `F_*` or delete name (miner) |
 | `UpdateMaster` | Advance `master_hash` with leaf-consensus proof |
 | `Transfer` | Move GULD between named accounts |
@@ -452,7 +452,7 @@ The network has a **fixed transaction vocabulary**. There is no user-defined opc
 | **Transfers / DeFi** | Settlements between named identities |
 | **Miner rewards** | Block subsidy (PoW issuance) + inclusion fees + registration fees |
 
-Hard fork from 1.0: import every positive `*:Assets` balance from `archives/ledger-guld` as genesis pre-mine **x**, then unlock per name via **key upgrade** (spec: [`../specs/15-ledger-import.md`](../specs/15-ledger-import.md); intent: [`../intents/ledger-migration.md`](../intents/ledger-migration.md)). See §8.6.
+Hard fork from 1.0: import every positive `*:Assets` balance from `archives/ledger-guld` as genesis pre-mine **x**, then unlock per name via **key upgrade** (spec: [`../specs/15-ledger-import.md`](../specs/15-ledger-import.md); GIP: [`../gips/gip-14.md`](../gips/gip-14.md)). See §8.6.
 
 ### 8.2 Why not an EVM-style gas ISA
 
@@ -726,7 +726,7 @@ When a registration/settle debits `R` at height `H`, consensus adds shares of `R
 | Miner self-registers / self-settles | Full `F_*` only if they win **8 consecutive** blocks |
 | Groups cheap vs proof cost | `F_group(L, n) = F_user(L) × (2 + n)` |
 
-Normative detail: [`../specs/07-fees-and-tokenomics.md`](../specs/07-fees-and-tokenomics.md) §3; intent: [`../intents/registration-fee-vesting.md`](../intents/registration-fee-vesting.md).
+Normative detail: [`../specs/07-fees-and-tokenomics.md`](../specs/07-fees-and-tokenomics.md) §3; GIP: [`../gips/gip-10.md`](../gips/gip-10.md).
 
 ### 8.8 Content retention (leaf, not L0)
 

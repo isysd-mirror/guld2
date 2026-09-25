@@ -94,6 +94,6 @@ Toast / Gateway → **Sign registration** with your local key → friend polls u
 
 ## Further reading
 
-- Intent: [`../intents/bootstrap-gateway-registrar.md`](../intents/bootstrap-gateway-registrar.md)
+- GIP: [`../gips/gip-8.md`](../gips/gip-8.md)
 - Spec 16: [`../specs/16-sponsored-registration.md`](../specs/16-sponsored-registration.md)
 - Paymento: [Payment Links](https://docs.paymento.io/payment-links), [IPN](https://docs.paymento.io/api-documentation/payment-callback)

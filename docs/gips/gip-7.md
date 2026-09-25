@@ -1,7 +1,18 @@
-# Intent: Software browser (document, display, serve git)
+---
+gip: 7
+title: Software browser
+description: Ship /software/ to discover, read, and clone packages from repos/ on every peer.
+author: Guld contributors
+discussions-to: ./README.md
+status: Final
+type: Standards
+category: Application
+created: 2026-09-25
+---
 
-Status: accepted · MVP done (catalog + README + clone URLs + tree/blob view)  
-**Related:** [`../REPO_LAYOUT.md`](../REPO_LAYOUT.md), [`../HOSTING.md`](../HOSTING.md), [`../PACKAGES.md`](../PACKAGES.md), [`repo-layout.md`](repo-layout.md)
+## Abstract
+
+Ship /software/ to discover, read, and clone packages from repos/ on every peer.
 
 ## Goal
 
@@ -59,7 +70,7 @@ Details: [`../HOSTING.md`](../HOSTING.md), [`../REPO_LAYOUT.md`](../REPO_LAYOUT.
 
 - Issues / PRs / CI UI
 - Hosting arbitrary third-party repos on guld.io
-- Treating guld.io DNS as protocol authority (see [`guld-leaf-site-and-miner-governance.md`](guld-leaf-site-and-miner-governance.md))
+- Treating guld.io DNS as protocol authority (see [`GIP-21`](gip-21.md))
 - Replacing `/srv/guld` content homes
 - Implementing git semantics in nginx
 
@@ -69,3 +80,7 @@ Details: [`../HOSTING.md`](../HOSTING.md), [`../REPO_LAYOUT.md`](../REPO_LAYOUT.
 - [x] At least one package page renders README + clone instructions
 - [ ] `git clone` against a peer’s `guld-node` `/repos/<name>.git` works from a clean machine
 - [ ] Docs stay consistent with node-first hosting
+
+## History
+
+Supersedes: `docs/intents/software-browser.md`

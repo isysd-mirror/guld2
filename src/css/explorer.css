@@ -1,3 +1,11 @@
+.explorer {
+  padding: clamp(1.5rem, 4vw, 2.5rem);
+  max-width: 72rem;
+  margin: 0 auto;
+  width: 100%;
+  box-sizing: border-box;
+}
+
 .explorer__lookup {
   margin: 0 0 1.25rem;
 }
@@ -19,6 +27,72 @@
 .explorer__lookup input {
   min-width: 12rem;
   padding: 0.4rem 0.55rem;
+}
+
+.explorer__lookup-hint {
+  margin: 0.45rem 0 0;
+  font-size: 0.8rem;
+  color: color-mix(in srgb, var(--guld-ink) 65%, transparent);
+}
+
+.explorer__suggest {
+  margin-top: 0.5rem;
+}
+
+.explorer__suggest ul {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  border: 1px solid color-mix(in srgb, var(--guld-ink) 12%, transparent);
+  border-radius: 0.3rem;
+  background: var(--guld-white);
+}
+
+.explorer__suggest li {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.5rem;
+  align-items: baseline;
+  padding: 0.4rem 0.65rem;
+  border-bottom: 1px solid color-mix(in srgb, var(--guld-ink) 8%, transparent);
+}
+
+.explorer__suggest li:last-child {
+  border-bottom: 0;
+}
+
+.explorer__suggest a {
+  color: var(--guld-primary);
+  text-decoration: none;
+  font-weight: 600;
+}
+
+.explorer__suggest a:hover {
+  text-decoration: underline;
+}
+
+.explorer__tx-summary {
+  margin: 0 0 1rem;
+  font-size: 1.05rem;
+}
+
+.explorer-kv a,
+.explorer__crumb a,
+.explorer__block-nav a,
+.explorer__banner a,
+.explorer__foot-note a,
+.explorer__tx-summary a {
+  color: var(--guld-primary);
+  text-decoration: none;
+  font-weight: 600;
+}
+
+.explorer-kv a:hover,
+.explorer__block-nav a:hover,
+.explorer__banner a:hover,
+.explorer__foot-note a:hover,
+.explorer__tx-summary a:hover {
+  text-decoration: underline;
 }
 
 .explorer__balance {

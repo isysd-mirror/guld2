@@ -6,12 +6,12 @@ Lightweight, **git-native** issue tracking — no GitHub Issues required. Canoni
 
 | Layer | Path | Use for |
 |-------|------|---------|
-| **Intent** | [`../intents/`](../intents/) | Larger features / protocol slices — document *before* implementation ([`SOFTWARE_FLOW.md`](../SOFTWARE_FLOW.md)) |
+| **GIP** | [`../gips/`](../gips/) | Larger features / protocol slices — document *before* implementation ([`SOFTWARE_FLOW.md`](../SOFTWARE_FLOW.md)) |
 | **Task** | `docs/tasks/` (here) | Actionable tickets: bugs, UI polish, single PR-sized work |
 | **Spec** | [`../specs/`](../specs/) | Normative behavior once agreed |
 | **Later** | [`../LATER.md`](../LATER.md) | Strategic backlog, research, multi-quarter |
 
-Promote a task → intent when scope grows. Close tasks when merged; archive under `done/`.
+Promote a task → GIP when scope grows. Close tasks when merged; archive under `done/`.
 
 ## Layout (`.github`-like, but markdown)
 
@@ -35,7 +35,7 @@ Filename: `NNN-short-slug.md` (zero-padded number, kebab-case).
 
 Status: open | blocked | done
 Priority: low | normal | high
-Intent: ../intents/foo.md   # optional link
+GIP: ../gips/gip-N.md   # optional link
 Spec: ../specs/14-reference-ui.md   # optional
 
 ## Problem

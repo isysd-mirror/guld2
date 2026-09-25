@@ -5,6 +5,12 @@
 /** Loopback default for local `guld-node --rpc` (CLI / same-machine browser). */
 export const DEFAULT_RPC_URL = "http://127.0.0.1:8545";
 
+/**
+ * Default inclusion fee in GULD — enough for typical tx weight at `fee_rate_min_per_vb = 1`.
+ * Prefer `guld_getMempoolFeeHints` + `guld_estimateWeight` when wiring fee UI.
+ */
+export const DEFAULT_INCLUSION_FEE_GULD = "0.000001";
+
 /** Same-origin JSON-RPC when the site is served from the node (or nginx → node). */
 export const SAME_ORIGIN_RPC_PATH = "/rpc";
 

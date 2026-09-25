@@ -34,7 +34,7 @@ Goals:
 - Preserve **historical balances** 1:1 via import from `ledger-guld`; unlock spend with **key upgrade** (`ClaimLegacy`)
 - BTC/ETH/SOL-class security bar; differentiate on signed personal trees and foreign-chain witness
 
-SoT research: [`research/modern-l1-direction.md`](research/modern-l1-direction.md). Intent: [`intents/ledger-migration.md`](intents/ledger-migration.md).
+SoT research: [`research/modern-l1-direction.md`](research/modern-l1-direction.md). GIP: [`gips/gip-14.md`](gips/gip-14.md).
 
 ### Explicitly rejected from 1.0-era experiments
 

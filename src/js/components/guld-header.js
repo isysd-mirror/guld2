@@ -21,6 +21,12 @@ import { KEYRING_EVENT } from "../lib/keyring.js";
 const template = document.createElement("template");
 template.innerHTML = `
   <a class="skip-link" href="#main">Skip to content</a>
+  <aside class="site-banner" role="status" aria-label="Network status">
+    <p>
+      <strong>Guld 2.0 is in beta.</strong>
+      This site shows <strong>Simba testnet</strong> data — not mainnet.
+    </p>
+  </aside>
   <header class="site-header">
     <a class="site-header__brand" href="/" aria-label="Guld home">
       <img src="/assets/logo.svg" width="120" height="40" alt="Guld" />

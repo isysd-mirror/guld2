@@ -1,7 +1,18 @@
-# Intent: Docs browser (markdown viewer + file tree)
+---
+gip: 6
+title: Docs browser
+description: Static-site markdown viewer with file tree so humans never land on raw .md URLs.
+author: Guld contributors
+discussions-to: ./README.md
+status: Accepted
+type: Standards
+category: Application
+created: 2026-09-25
+---
 
-Status: accepted  
-**Related:** [`../REPO_LAYOUT.md`](../REPO_LAYOUT.md), [`software-browser.md`](software-browser.md), [`../brand-concepts.md`](../brand-concepts.md)
+## Abstract
+
+Static-site markdown viewer with file tree so humans never land on raw .md URLs.
 
 ## Goal
 
@@ -46,3 +57,7 @@ Curated routes **`/whitepaper/`**, **`/specs/`**, **`/help/paymento/`** stay as 
 - [x] Selecting a doc renders via marked + existing TOC / mermaid / xychart polish
 - [x] In-document `.md` links resolve to the viewer (or curated whitepaper/specs URLs)
 - [x] Brand / chrome tests cover the shell and nav hrefs
+
+## History
+
+Supersedes: `docs/intents/docs-browser.md`

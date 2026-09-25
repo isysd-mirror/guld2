@@ -2,13 +2,30 @@
 
 **Network name:** `simba` · **`chain_id`:** `2` · **Bootstrap peer:** guld.io  
 
-Config SoT: [`data/networks/simba.json`](../data/networks/simba.json)
+Config SoT: [`data/networks/simba.json`](../data/networks/simba.json)  
+Genesis SoT: [`data/genesis/simba/`](../data/genesis/simba/) (committed manifest + params + `isysd-claim.asc`)
+
+## Genesis (locked artifacts)
+
+Empty `--network simba` datadirs load height-0 from `data/genesis/simba/`:
+
+| Piece | Behavior |
+|-------|----------|
+| `guld` | Keyless network shell (no `guld.sk`). CAP / rules tips are witnessed by miners via header commitments. |
+| Import | All positive 1.0 `Assets` rows from `import-manifest.json` (legacy-locked) |
+| `isysd` | Genesis-claimed via committed PGP clearsign (attestation authority from block 0) |
+| alice | **Gone** — never created on Simba |
+| `--miner` | **No default.** Required only to seal blocks; omit for validating peers |
+
+Ceremony / refresh: see [`data/genesis/simba/README.md`](../data/genesis/simba/README.md). Until `isysd-claim.asc` and a real `isysd_pubkey` are committed, empty Simba datadirs will refuse to start.
+
+Do **not** pass `--import-ledger` on Simba — the manifest is already in artifacts.
 
 ## What works today (P2P phase C)
 
 | Works | Still limited |
 |-------|----------------|
-| Two peers dial, Hello, `guld_peerCount` | Different genesis keys still cannot sync |
+| Two peers dial, Hello, `guld_peerCount` | Different genesis artifacts still cannot sync |
 | Gossip txs into each other’s mempool | Rich Bitcoin-style locator |
 | Mine on A → B imports block via InvBlock / headers sync | Hole punching / DHT |
 | Fresh node with **same genesis** catches tip from guld.io | |
@@ -16,7 +33,7 @@ Config SoT: [`data/networks/simba.json`](../data/networks/simba.json)
 | Ban scoring + `datadir/peerstore/peers.json` | |
 | `--dev` LAN mDNS (off on simba) | |
 
-**Genesis:** empty datadirs still create different `alice` keys. For a second machine either (a) copy genesis keys/`blocks/0.json` once, or (b) start empty only if you accept a fork. After shared genesis, **block sync replaces full datadir tarballs** for tip catch-up.
+**`--dev` (not Simba):** keyless `guld` + local `alice` premine for smoke tests only. Pass `--miner alice` if sealing.
 
 
 ## Paths (conventions)
@@ -67,18 +84,9 @@ Optional: after first start, put the peer id into [`data/p2p-bootnodes.json`](..
 
 ## 2. Share genesis (once)
 
-Peers must share **height-0** (same keys / `blocks/0.json`). Easiest: copy from guld.io after first start, then let **P2P block sync** pull the tip.
+Peers that check out the same repo already share `data/genesis/simba/`. Empty datadir + `--network simba` rebuilds the same height-0. After that, **P2P block sync** pulls the tip — no full-datadir tarball required for catch-up.
 
-```bash
-# on guld.io — copy only genesis materials (or full datadir once)
-sudo systemctl stop guld-node-simba
-tar -C /home/guld/guld-data -czf /tmp/simba-genesis.tgz \
-  simba/keys simba/blocks/0.json simba/blocks/tip.json simba/state simba/cas
-sudo systemctl start guld-node-simba
-```
-
-On the laptop, extract into `./.guld-data/simba` (or copy full datadir). If you only plant genesis and your tip is behind, start the node — it will Hello guld.io and sync headers/blocks.
-
+(Legacy note: copying `blocks/0.json` + state from guld.io still works if you already forked an older genesis; prefer resetting to artifact genesis.)
 
 ## 3. Laptop peer (live, not `--dev`)
 
@@ -92,9 +100,10 @@ cargo build -p guld-node --release
   --rpc 127.0.0.1:8545 \
   --http 127.0.0.1:8080 \
   --http-static . \
-  --p2p 0.0.0.0:4001 \
-  --miner alice
+  --p2p 0.0.0.0:4001
 ```
+
+Add `--miner <name>` only if this process should seal blocks (e.g. `--miner isysd`).
 
 `--network simba` sets `chain_id=2`, difficulty, `auto_mine=false`, and dials guld.io bootnodes. Do **not** pass `--dev` (that skips default bootnodes and enables empty-block mining).
 
@@ -107,8 +116,9 @@ curl -s http://127.0.0.1:8545/ -H 'content-type: application/json' \
 
 ## 4. Mining policy (simba)
 
-- Default on simba: **`auto_mine=false`** — txs sit in mempool until someone calls `guld_mineBlock` or you turn auto-mine on for a designated miner.
-- Reasonable v1: **only guld.io mines**; laptop is a validating peer for gossip. After phase B, any peer can catch up.
+- Default on simba: **`auto_mine=false`** — txs sit in mempool until someone calls `guld_mineBlock` or turns auto-mine on for a designated miner.
+- **`--miner <name>` is required to seal.** No default miner.
+- Reasonable v1: **only guld.io mines** with an explicit `--miner isysd` (after genesis claim); laptop is a validating peer.
 
 Force a block on the miner:
 
@@ -117,19 +127,7 @@ curl -s http://127.0.0.1:8545/ -H 'content-type: application/json' \
   -d '{"jsonrpc":"2.0","id":1,"method":"guld_mineBlock","params":[]}'
 ```
 
-## 5. Optional ledger / PGP (height 0 only)
-
-Only on **first** empty datadir create (before height advances):
-
-```bash
-# add to ExecStart / laptop command — once at genesis
---keys-pgp archives/keys-pgp \
---import-ledger archives/guld-ledger-all.dat
-```
-
-If the datadir already exists, those flags are ignored for import (height ≠ 0).
-
-## 6. Replace deprecated API unit
+## 5. Replace deprecated API unit
 
 guld.io still has [`guld-api.service`](guld-api.service) (Python). Prefer:
 
@@ -142,6 +140,6 @@ Point nginx `proxy_pass` at **`127.0.0.1:8080`** (node `--http`), not `:8004`. S
 
 ## Next engineering
 
-- **Phase C** — CAS GetObjects, DoS / ban scoring  
+- Commit `isysd-claim.asc` + real `isysd_pubkey` (ceremony above)  
 - Stable bootnode multiaddr with `/p2p/<peer-id>` once guld.io identity is fixed under `guld-data/simba/keys/p2p.key`  
-- Optional: commit simba genesis key material for testnet-only reproducible starts
+- Reset existing Simba datadirs once after artifact lock

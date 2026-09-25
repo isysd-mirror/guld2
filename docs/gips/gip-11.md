@@ -1,7 +1,18 @@
-# Intent: Name registration expiry (DNS-style pay-or-release)
+---
+gip: 11
+title: Name registration expiry
+description: DNS-style pay-or-release: fees buy one year of control via SettleRegistration.
+author: Guld contributors
+discussions-to: ./README.md
+status: Accepted
+type: Standards
+category: Core
+created: 2026-09-25
+---
 
-Status: **accepted** (revised — soft lapse replaced)  
-Related: [`../specs/02-identity-and-accounts.md`](../specs/02-identity-and-accounts.md), [`../specs/03-transactions.md`](../specs/03-transactions.md), [`../specs/07-fees-and-tokenomics.md`](../specs/07-fees-and-tokenomics.md), [`../specs/15-ledger-import.md`](../specs/15-ledger-import.md), [`subaccounts.md`](subaccounts.md), [`rotate-keys.md`](rotate-keys.md)
+## Abstract
+
+DNS-style pay-or-release: fees buy one year of control via SettleRegistration.
 
 ## Goal
 
@@ -47,3 +58,7 @@ Permissionless (no signature). Valid when overdue and not network / foreign / le
 - [x] Intent accepted
 - [x] Specs + state/apply + miner enqueue
 - [x] Dual ClaimLegacy (PGP vs isysd)
+
+## History
+
+Supersedes: `docs/intents/name-expiry.md`

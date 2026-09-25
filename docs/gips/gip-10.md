@@ -1,7 +1,18 @@
-# Intent: Registration fee vesting (8 blocks)
+---
+gip: 10
+title: Registration fee vesting (8 blocks)
+description: Vest protocol registration/settle fees across eight consecutive block heights.
+author: Guld contributors
+discussions-to: ./README.md
+status: Final
+type: Standards
+category: Core
+created: 2026-09-25
+---
 
-Status: accepted · implemented  
-**Related:** [`../specs/07-fees-and-tokenomics.md`](../specs/07-fees-and-tokenomics.md), [`../specs/06-blocks-and-consensus.md`](../specs/06-blocks-and-consensus.md), whitepaper §3.3 / §8.7
+## Abstract
+
+Vest protocol registration/settle fees across eight consecutive block heights.
 
 ## Problem
 
@@ -27,3 +38,7 @@ Recovering the **full** `R` therefore requires winning **8 consecutive** blocks.
 - Spreading inclusion (weight) fees
 - Changing `F_*` amounts or letter tables
 - Header field for vested totals (deterministic from state + receipts)
+
+## History
+
+Supersedes: `docs/intents/registration-fee-vesting.md`

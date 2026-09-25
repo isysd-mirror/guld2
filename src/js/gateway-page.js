@@ -1,15 +1,10 @@
 import "./chrome.js";
-import { apiGet, apiPatch, apiPost, resolveApiBase } from "./lib/api.js";
+import { apiGet, apiPatch, resolveApiBase } from "./lib/api.js";
 import { getLocalIdentity, LOGIN_HREF, requireLogin, SETTINGS_HREF } from "./lib/auth.js";
-import {
-  fromHex,
-  registerMessage,
-  sign,
-  toHex,
-} from "./lib/crypto.js";
 import { isGatewayConfigured, loadGatewaySettings } from "./lib/gateway-settings.js";
 import { keyring } from "./lib/keyring.js";
 import { escapeHtml } from "./lib/rpc.js";
+import { parseRegistrationRequest, sponsorRegistration } from "./lib/sponsor.js";
 
 const statusEl = document.querySelector("[data-gateway-status]");
 const hostEl = document.querySelector("[data-gateway-host]");
@@ -37,60 +32,13 @@ function setStatus(msg, kind = "pending") {
  * @param {string} payerName
  */
 async function signAndSubmit(order, payerName) {
-  const req = /** @type {Record<string, unknown>} */ (order.request);
-  if (!req || typeof req !== "object") {
-    throw new Error("Order has no registration request — registrant must complete Sign up first.");
-  }
-  const privHex = keyring.getPriv(payerName);
-  if (!privHex) {
+  const req = parseRegistrationRequest(order.request);
+  if (!keyring.getPriv(payerName)) {
     throw new Error(
       `Unlock your keyring first — log in with your passphrase for “${payerName}”.`,
     );
   }
-  const acctBody = await apiGet(apiBase, `/chain/accounts/${encodeURIComponent(payerName)}`);
-  const account = acctBody.account || {};
-  const accountId = account.account_id;
-  const nonce = account.nonce;
-  if (!accountId || nonce == null) {
-    throw new Error("Could not read payer account_id / nonce");
-  }
-
-  const name = String(req.name);
-  const keys = /** @type {string[]} */ (req.keys || []);
-  const threshold = Number(req.threshold || 1);
-  const master = String(req.initial_master_hash);
-  const endowment = String(req.endowment || "0");
-  const regFee = String(req.registration_fee || "0");
-  const inclusionFee = String(req.inclusion_fee || "0");
-  const registrantSig = String(req.registrant_signature || "");
-
-  const msg = await registerMessage(
-    accountId,
-    nonce,
-    name,
-    threshold,
-    master,
-    endowment,
-    regFee,
-    inclusionFee,
-    keys,
-  );
-  const payerSig = await sign(msg, fromHex(privHex));
-
-  const tx = {
-    type: "register_username",
-    payer: payerName,
-    name,
-    keys,
-    threshold,
-    initial_master_hash: master,
-    endowment,
-    payer_signature: toHex(payerSig),
-    registrant_signature: registrantSig,
-    inclusion_fee: inclusionFee,
-  };
-
-  const result = await apiPost(apiBase, "/chain/transactions", tx);
+  const result = await sponsorRegistration(apiBase, payerName, req);
   await apiPatch(apiBase, `/registrar/orders/${encodeURIComponent(String(order.id))}`, {
     status: "registered",
   });

@@ -1,47 +1,7 @@
-# Intents
+# Intents (retired)
 
-Document planned work here before large implementation slices.
+The pre-GIP **intent** series has been migrated to numbered **[Guld Improvement Proposals](../gips/)**.
 
-| Track | Path |
-|-------|------|
-| Protocol / large features | `docs/intents/` (this folder) |
-| Actionable tickets | [`../tasks/`](../tasks/README.md) |
-| Strategic backlog | [`../LATER.md`](../LATER.md) |
+See **[GIP-1](../gips/gip-1.md)** for the process and the [GIP index](../gips/README.md) for GIP-2…GIP-21 (former intents).
 
-## Accepted (product / UX)
-
-| Intent | Summary |
-|--------|---------|
-| [`pwa-reference-wallet.md`](pwa-reference-wallet.md) | Static guld.io PWA + `guld-node --http` as reference wallet |
-| [`bootstrap-gateway-registrar.md`](bootstrap-gateway-registrar.md) | Optional paid registrar — any peer + third-party gateway |
-| [`subaccounts.md`](subaccounts.md) | `parent.label` device wallets |
-| [`rotate-keys.md`](rotate-keys.md) | `RotateKeys` = key hygiene / username transfer |
-| [`letter-based-registration-fees.md`](letter-based-registration-fees.md) | Letter-count `F_user` |
-| [`name-expiry.md`](name-expiry.md) | Pay-or-release names |
-| [`ledger-migration.md`](ledger-migration.md) | 1.0 → 2.0 import / claim |
-| [`specs-2.0.md`](specs-2.0.md) | Spec suite track |
-| [`scaffold-2.0.md`](scaffold-2.0.md) | Repo / crate scaffold |
-| [`repo-layout.md`](repo-layout.md) | Umbrella + `src/` submodules + `repos/` bares |
-| [`software-browser.md`](software-browser.md) | `/software/` catalog — document, display, serve git |
-| [`docs-browser.md`](docs-browser.md) | `/docs/` markdown viewer + file tree (no raw `.md` UI links) |
-| [`p2p-mesh.md`](p2p-mesh.md) | libp2p mesh — Hello + tx gossip + block sync |
-| [`tx-memo-and-upgrades.md`](tx-memo-and-upgrades.md) | Optional tx `memo`; height-activated rule upgrades |
-| [`consumer-integration.md`](consumer-integration.md) | External consumer apps |
-
-## Draft
-
-| Intent | Summary |
-|--------|---------|
-| [`mempool-visualizer.md`](mempool-visualizer.md) | Explorer live mempool via SSE (`/api/v1/chain/events`) |
-| [`wallet-contacts-and-account-lookup.md`](wallet-contacts-and-account-lookup.md) | Contacts, explorer lookup, QR contact card |
-| [`guld-leaf-site-and-miner-governance.md`](guld-leaf-site-and-miner-governance.md) | guld.io in `guld` leaf; miners govern gateway roster only (scoped) |
-
-Template:
-
-```markdown
-# Intent: <title>
-Status: draft | accepted | done
-## Goal
-## Out of scope
-## Acceptance
-```
+Do not add new files here.

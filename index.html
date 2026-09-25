@@ -6,13 +6,13 @@
     <meta name="theme-color" content="#000000" />
     <meta
       name="description"
-      content="Guld 2.0 — a global, identity-focused DeFi layer-0. Address by name. Commit by hash. Authorize by proof."
+      content="Guld 2.0 beta — a global, identity-focused DeFi layer-0. This site shows Simba testnet data. Address by name. Commit by hash. Authorize by proof."
     />
     <meta property="og:url" content="https://guld.io/" />
-    <meta property="og:title" content="Guld 2.0" />
+    <meta property="og:title" content="Guld 2.0 beta" />
     <meta
       property="og:description"
-      content="Identity-focused L0: names, hash-tree homes, threshold proofs. The network is a witness — not a general VM."
+      content="Guld 2.0 is in beta. This site shows Simba testnet data. Identity-focused L0: names, hash-tree homes, threshold proofs."
     />
     <meta property="og:image" content="https://guld.io/assets/og.jpg" />
     <meta
@@ -26,7 +26,7 @@
     <link rel="stylesheet" href="/src/css/base.css" />
     <link rel="stylesheet" href="/src/css/layout.css" />
     <link rel="stylesheet" href="/src/css/docs.css" />
-    <title>Guld 2.0</title>
+    <title>Guld 2.0 beta</title>
   </head>
   <body class="site-body">
     <guld-header variant="overlay"></guld-header>
@@ -42,11 +42,12 @@
             height="93"
             alt="Guld"
           />
-          <p class="hero__version">2.0</p>
+          <p class="hero__version">2.0 beta</p>
           <h1 class="hero__title">Address by name. Commit by hash.</h1>
           <p class="hero__lede">
-            A global, identity-focused DeFi layer-0. Run a node, open the wallet,
-            and use names — not opaque key hashes alone.
+            A global, identity-focused DeFi layer-0 — currently in beta on the
+            <strong>Simba testnet</strong>. Run a node, open the wallet, and use
+            names — not opaque key hashes alone.
           </p>
           <div class="hero__actions">
             <a class="btn btn--primary" href="/register/">Sign up</a>
@@ -59,7 +60,8 @@
       <section id="start" class="section">
         <h2>Get started</h2>
         <p>
-          The site and wallet are this open-source tree. Your peer runs
+          The site and wallet are this open-source tree (Guld 2.0 beta on
+          <strong>Simba testnet</strong>). Your peer runs
           <code>guld-node</code>; the browser talks to its HTTP API.
         </p>
         <ol class="flow-steps">
@@ -104,7 +106,8 @@
   --rpc 127.0.0.1:8545 \
   --http 127.0.0.1:8080 \
   --http-static . \
-  --dev</code></pre>
+  --dev \
+  --miner alice</code></pre>
         <p style="margin-top: 1rem">
           Then open <a href="http://127.0.0.1:8080/wallet/">http://127.0.0.1:8080/wallet/</a>.
           Full flags and legacy import: see the repo

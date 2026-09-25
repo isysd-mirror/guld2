@@ -1,31 +1,30 @@
 ---
-description: Canonical software loop — intent → implement → commit → dev QA → version → maintainer signed tag → prod
+description: Canonical software loop — GIP/task → implement → commit → QA → maintainer signed tag → peers
 alwaysApply: true
 ---
 
-# Software flow (all Projects)
+# Software flow (Guld protocol)
 
-SoT: [`iramillercom/docs/SOFTWARE_FLOW.md`](../../iramillercom/docs/SOFTWARE_FLOW.md).
+SoT: [`docs/SOFTWARE_FLOW.md`](../../docs/SOFTWARE_FLOW.md). Proposals: [`docs/gips/`](../../docs/gips/) ([GIP-1](../../docs/gips/gip-1.md)). Contributing: [`CONTRIBUTING.md`](../../CONTRIBUTING.md).
 
 ## Loop
 
-1. **Intent** — maintainer documents feature/bug/chore first.
-2. **Implement** — agents assist in `/home/isysd/Projects/<app>` (no unprompted commits).
-3. **Commit** — only via explicit `/publish-commit` (hooks on; push / leaf-to-trunk when asked).
-4. **Dev** — `dev.*` serves Projects (see `iramillercom/deploy/dev/`).
-5. **QA + docs** — verify on `dev.*`; doc updates as needed.
-6. **Release prep** — bump version + changelog, then `/publish-commit` again.
+1. **GIP / task** — substantial work documented as a GIP first; small tickets under `docs/tasks/`.
+2. **Implement** — edit the right `src/<component>/` submodule; site/docs in the umbrella. New HTTP behavior → **guld-node**, not nginx.
+3. **Commit (leaf)** — push to `repos/<component>.git` (hooks on; leaf→trunk when both change).
+4. **Commit (umbrella)** — pin gitlinks + site/docs; push `repos/guld.git`.
+5. **Dev / QA** — `guld-node --http` + `--http-static .`; verify `/repos/`, `/wallet/`, docs.
+6. **Release prep** — version + changelog in the leaf that ships.
 7. **Release** — **maintainer only**: PGP-signed annotated tag. Agents never tag.
-8. **Prod** — CD picks up **signed tags only** (not branch tips).
+8. **Prod** — any peer runs the published tree. guld.io may add nginx for TLS only.
 
 ## Hosting
 
-Canonical clone/docs/tree/blob URLs are on **iramiller.com** — see `iramiller-hosting.mdc`.
-New or imported repos: run `igithost` (bash CLI in `iramillercom/tools/igithost/`).
+Canonical clones and docs: peer `/repos/` via `guld-node` — see [`docs/HOSTING.md`](../../docs/HOSTING.md) and [`docs/REPO_LAYOUT.md`](../../docs/REPO_LAYOUT.md). GitHub is a mirror only.
 
 ## Agent stops
 
-- Do not create tags, unsigned releases, or tell the user that `main` alone ships prod.
-- Do not bypass hooks. Suggest `/publish-commit` when they ask to “just commit.”
-- Do not treat GitHub as the canonical host for Projects software.
-- Do not run `igithost` steps that need **sudo**; ask the human to run `igithost` in their terminal.
+- Do not create tags, unsigned releases, or treat branch tips alone as a production protocol release.
+- Do not bypass hooks. Use `/publish-commit` (in-repo skill under `.cursor/skills/publish-commit/`) when asked to commit/push a ready slice.
+- Do not treat GitHub as the canonical host for Guld software.
+- Consensus rule changes need height-activated rule bundles ([spec 17](../../docs/specs/17-protocol-upgrades.md)); shipping a binary is not activation by itself.

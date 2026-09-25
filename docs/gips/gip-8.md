@@ -1,7 +1,18 @@
-# Intent: Optional paid registrar (any peer + third-party gateway)
+---
+gip: 8
+title: Optional paid registrar
+description: Any funded account MAY run a paid name registrar via third-party payment gateways.
+author: Guld contributors
+discussions-to: ./README.md
+status: Accepted
+type: Standards
+category: Interface
+created: 2026-09-25
+---
 
-Status: accepted (Paymento desk wiring in progress on guld.io)  
-**Related:** [`../specs/16-sponsored-registration.md`](../specs/16-sponsored-registration.md), [`pwa-reference-wallet.md`](pwa-reference-wallet.md), [`../specs/14-reference-ui.md`](../specs/14-reference-ui.md), [`../specs/12-rpc.md`](../specs/12-rpc.md), [`guld-leaf-site-and-miner-governance.md`](guld-leaf-site-and-miner-governance.md) (draft: miner-curated gateway roster / leaf hosting)
+## Abstract
+
+Any funded account MAY run a paid name registrar via third-party payment gateways.
 
 ## Decision
 
@@ -105,3 +116,7 @@ guld.io may ship with the feature **on** for isysd during bootstrap; clones defa
 - [ ] Auto `RegisterUsername` as payer after paid / OrderStatus 7–8  
 - [ ] Optional: call Paymento Verify Payment API before fulfill  
 - [ ] Clear UI: “This peer sells sponsorships; any other sponsor also works.”
+
+## History
+
+Supersedes: `docs/intents/bootstrap-gateway-registrar.md`

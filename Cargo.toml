@@ -10,6 +10,7 @@ members = [
     "src/guld-p2p",
     "src/guld-node",
     "src/guld-client",
+    "src/guld-cli",
     "src/guld-wallet",
 ]
 default-members = [
@@ -22,6 +23,7 @@ default-members = [
     "src/guld-p2p",
     "src/guld-node",
     "src/guld-client",
+    "src/guld-cli",
 ]
 
 [workspace.package]

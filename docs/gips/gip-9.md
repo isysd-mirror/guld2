@@ -1,7 +1,18 @@
-# Intent: Letter-based registration fees
+---
+gip: 9
+title: Letter-based registration fees
+description: Length-based annual F_user(L) for root names with a six-letter floor.
+author: Guld contributors
+discussions-to: ./README.md
+status: Accepted
+type: Standards
+category: Core
+created: 2026-09-25
+---
 
-Status: **accepted**  
-Related: [`../specs/07-fees-and-tokenomics.md`](../specs/07-fees-and-tokenomics.md), [`../specs/02-identity-and-accounts.md`](../specs/02-identity-and-accounts.md), [`name-expiry.md`](name-expiry.md), [`../specs/16-sponsored-registration.md`](../specs/16-sponsored-registration.md)
+## Abstract
+
+Length-based annual F_user(L) for root names with a six-letter floor.
 
 ## Goal
 
@@ -75,3 +86,7 @@ Legacy-locked imports: after `ClaimLegacy`, normal yearly settle applies at **`F
 - [x] Accept intent → lock table in spec 07 + whitepaper §3.3 / §8.7  
 - [x] Implement `label_letter_count(name)` in `guld-types`  
 - [x] Wire letter-based fees in `guld-state` / `guld_estimateRegistrationFee` / wallet estimate
+
+## History
+
+Supersedes: `docs/intents/letter-based-registration-fees.md`

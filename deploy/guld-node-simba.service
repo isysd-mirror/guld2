@@ -18,8 +18,9 @@ ExecStart=/home/guld/guld/target/release/guld-node \
   --http 127.0.0.1:8080 \
   --http-static /home/guld/guld \
   --p2p 0.0.0.0:4001 \
-  --no-default-bootnodes \
-  --miner alice
+  --no-default-bootnodes
+# Add --miner <name> when this host should seal blocks (no default).
+# Example after genesis claim: --miner isysd
 Restart=on-failure
 RestartSec=3
 LimitNOFILE=65535

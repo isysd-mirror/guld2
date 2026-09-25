@@ -1,7 +1,18 @@
-# Intent: Mempool visualizer (PWA + live stream)
+---
+gip: 19
+title: Mempool visualizer
+description: Live mempool and tip view in the PWA via SSE from guld-node.
+author: Guld contributors
+discussions-to: ./README.md
+status: Draft
+type: Standards
+category: Interface
+created: 2026-09-25
+---
 
-Status: draft  
-**Related:** [`../specs/12-rpc.md`](../specs/12-rpc.md) §9, [`../specs/14-reference-ui.md`](../specs/14-reference-ui.md), [`pwa-reference-wallet.md`](pwa-reference-wallet.md), [`../research/jsonrpc-vs-http-api.md`](../research/jsonrpc-vs-http-api.md) §4.1 / §9
+## Abstract
+
+Live mempool and tip view in the PWA via SSE from guld-node.
 
 ## Goal
 
@@ -142,3 +153,7 @@ Manual Refresh remains for snapshot re-sync; SSE is the default live path.
 - Whether `received_at` is node-local wall clock (document as such)
 - Keepalive interval vs reverse-proxy idle timeouts
 - Whether wallet Phase 2 ships in the same release as explorer Phase 1
+
+## History
+
+Supersedes: `docs/intents/mempool-visualizer.md`

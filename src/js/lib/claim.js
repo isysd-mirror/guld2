@@ -149,7 +149,7 @@ export async function sendClaim(apiBase, opts) {
     threshold: opts.threshold,
     initial_master_hash: opts.initialMasterHash,
     legacy_proof: proof,
-    inclusion_fee: "0",
+    inclusion_fee: "10000",
   };
   return apiPost(apiBase, "/chain/transactions", tx);
 }

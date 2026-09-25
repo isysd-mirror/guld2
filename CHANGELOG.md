@@ -4,17 +4,22 @@
 
 ### Added
 
+- Reproducible Simba genesis artifacts (`data/genesis/simba/`) + `guld-genesis` CLI (`preprocess` / `challenge` / `verify-claim` / `build`)
+- Keyless `guld` network shell; genesis-claim path for `isysd` via committed PGP clearsign
 - `archives/ledger-guld` and `archives/keys-pgp` as git submodules from `github.com/guldcoin/`
 - Registration-fee vesting over 8 blocks; height-activated `RulesSchedule` / `activation_height`
 - Explorer account lookup (`#/account/<name>`); wallet subaccount create UI
 
 ### Changed
 
+- `--miner` has no default — required to seal blocks; validating peers omit it
+- `--network simba` loads committed genesis (no alice premine; `--import-ledger` ignored)
 - Inflation `i(y) = max(0.04, (2/3)^(y-1))` (cooler early years; 4% from year 9)
 - Flattened archive import paths (`archives/guld-ledger-all.dat`)
 
 ### Removed
 
+- Fake alice genesis premine on shared networks (alice remains `--dev`-only)
 - `guld-api` submodule, catalog entries, and `deploy/guld-api.service` — HTTP surface is `guld-node --http` only
 
 ## [0.1.0] - 2026-09-24
@@ -41,4 +46,4 @@
 ### Notes
 
 - Snapshot before reorg preserved locally (maintainer).
-- Next: `/software/` catalog UI ([`docs/intents/software-browser.md`](docs/intents/software-browser.md)).
+- Next: `/software/` catalog UI ([`docs/gips/gip-7.md`](docs/gips/gip-7.md)).

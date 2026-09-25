@@ -6,10 +6,10 @@
     <meta name="theme-color" content="#000000" />
     <meta
       name="description"
-      content="Guld 2.0 explorer — recent blocks and transactions from a connected node."
+      content="Guld 2.0 beta explorer — Simba testnet blocks and transactions from a connected node."
     />
     <meta property="og:url" content="https://guld.io/explorer/" />
-    <meta property="og:title" content="Guld explorer" />
+    <meta property="og:title" content="Guld explorer (Simba testnet)" />
     <meta property="og:image" content="https://guld.io/assets/og.jpg" />
     <meta
       http-equiv="Content-Security-Policy"
@@ -31,9 +31,11 @@
       <header class="explorer__head">
         <h1>Explorer</h1>
         <p>
-          Live blocks, transactions, and account lookup from a <code>guld-node</code> JSON-RPC endpoint.
-          Search a name below or open <code>#/account/&lt;name&gt;</code>. Genesis import balances are under
-          <a href="#/block/0">block 0</a> /
+          Live <strong>Simba testnet</strong> blocks, transactions, and accounts
+          from a <code>guld-node</code> JSON-RPC endpoint (Guld 2.0 beta — not mainnet).
+          Look up a name, block height, or <code>height:index</code> tx —
+          routes <code>#/account/…</code>, <code>#/block/…</code>, <code>#/tx/…/…</code>.
+          Genesis import balances: <a href="#/block/0">block 0</a> /
           <a href="/explorer/legacy/">legacy details</a>.
         </p>
         <div class="explorer__status-row">

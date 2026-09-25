@@ -42,6 +42,15 @@
       "topics": ["rust", "wallet"]
     },
     {
+      "id": "guld-cli",
+      "title": "guld-cli",
+      "summary": "Wallet CLI — keygen, pubkey, privkey, balance, send",
+      "kind": "software",
+      "home": "here",
+      "href": "/software/guld-cli/",
+      "topics": ["rust", "wallet", "cli"]
+    },
+    {
       "id": "guld-state",
       "title": "guld-state",
       "summary": "Apply layer — accounts, economy, transaction validation",

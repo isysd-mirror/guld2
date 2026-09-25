@@ -20,7 +20,7 @@ Submodule URLs in `.gitmodules` point at **`https://guld.io/repos/<name>.git`**.
 | Path | Role |
 |------|------|
 | `index.html`, `wallet/`, `explorer/`, … | Static PWA routes |
-| `software/` | Package catalog + source browser — [`intents/software-browser.md`](intents/software-browser.md) |
+| `software/` | Package catalog + source browser — [`gips/gip-7.md`](gips/gip-7.md) |
 | `data/software.json` | Catalog metadata merged with live `/api/v1/repos` |
 | `src/css`, `src/js` | Framework-less site assets |
 | `docs/` | Specs / whitepaper markdown (fetched as `/docs/…`) |
@@ -40,6 +40,7 @@ Submodule URLs in `.gitmodules` point at **`https://guld.io/repos/<name>.git`**.
 | guld-p2p | `src/guld-p2p/` | `repos/guld-p2p.git` | Rust | Libp2p mesh (Hello + tx gossip) |
 | guld-node | `src/guld-node/` | `repos/guld-node.git` | Rust | Full node + HTTP API + JSON-RPC |
 | guld-client | `src/guld-client/` | `repos/guld-client.git` | Rust | Wallet library |
+| guld-cli | `src/guld-cli/` | `repos/guld-cli.git` | Rust | Wallet CLI (`guld`) |
 | guld-wallet | `src/guld-wallet/` | `repos/guld-wallet.git` | Rust | Dioxus desktop wallet |
 | guld-extension | `src/guld-extension/` | `repos/guld-extension.git` | JS | Browser provider — **not protocol** |
 | guld-js | `src/guld-js/` | `repos/guld-js.git` | JS | Later |
