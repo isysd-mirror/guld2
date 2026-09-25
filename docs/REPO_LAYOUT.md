@@ -147,6 +147,22 @@ git push local HEAD         # → repos/guld.git (umbrella bare)
 git -C repos/guld.git update-server-info   # if hook missing
 ```
 
+### Auto-sync worktrees (`post-receive`)
+
+On this bootstrap host, each `repos/*.git` can run a shared hook that, on push to **`refs/heads/guld`**:
+
+1. `git update-server-info` (dumb HTTP)
+2. Fast-forward the matching worktree (`guld2/` or `src/<name>/`) to that tip (skips if dirty)
+3. **Umbrella (`repos/guld.git`) only:** `submodule update`, `cargo build -p guld-node`, then `systemctl --user try-restart guld-node.service`
+
+Leaf package pushes sync their worktrees but do **not** rebuild or restart the node (avoids a restart storm). Push the umbrella last.
+
+```bash
+./scripts/install-bare-hooks.sh   # symlinks repos/*.git/hooks/post-receive
+```
+
+Logic lives in [`scripts/bare-post-receive.sh`](../scripts/bare-post-receive.sh) (versioned); `repos/` stays gitignored.
+
 **Fresh checkout (any peer):**
 
 ```bash

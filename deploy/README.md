@@ -22,6 +22,7 @@ Do **not** add new product routes or git/SPA rules in nginx. Implement them in [
 | `nginx.conf` / `nginx-http-bootstrap.conf` | TLS vhost; HTTPS proxies all traffic to guld-node `:8088` |
 | `snippets/` | Headers + catch-all `proxy_pass` (static-locations* are transitional leftovers) |
 | `guld-node.service` | **isysd user unit** — `systemctl --user enable --now guld-node` |
+| `../scripts/install-bare-hooks.sh` | Symlink `repos/*.git` `post-receive` → auto-pull `guld` + restart node |
 | `guld-node-simba.service` | **Simba testnet** (`chain_id` 2) — see [`SIMBA.md`](SIMBA.md) |
 | `SOFT_LAUNCH.md` | Operator runbook (prefer this README + HOSTING.md) |
 | `SIMBA.md` | Live testnet: guld.io + laptop peers |
