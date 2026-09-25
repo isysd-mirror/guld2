@@ -104,9 +104,4 @@ else
   log "systemctl --user try-restart guld-node-simba.service failed (is linger/session up?)"
 fi
 
-# Legacy --dev unit (if still enabled on this host).
-if systemctl --user is-enabled guld-node.service &>/dev/null; then
-  systemctl --user try-restart guld-node.service 2>/dev/null || true
-fi
-
 exit 0
