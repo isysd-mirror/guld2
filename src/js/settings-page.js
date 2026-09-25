@@ -90,7 +90,11 @@ async function render() {
         </p>
         ${
           peer?.paymentLink
-            ? `<p class="wallet__note">Peer bootstrap desk: <code>${escapeHtml(String(peer.paymentLink))}</code> · $${escapeHtml(String(peer.feeUsd ?? 10))}</p>`
+            ? `<p class="wallet__note">Peer bootstrap desk: <code>${escapeHtml(String(peer.paymentLink))}</code>${
+                peer.feeUsd != null
+                  ? ` · operator asks $${escapeHtml(String(peer.feeUsd))} (not a GULD market price)`
+                  : ""
+              }</p>`
             : `<p class="wallet__note">This peer has no bootstrap payment link — publish yours to sell here.</p>`
         }
         <label class="wallet__check">
@@ -114,8 +118,9 @@ async function render() {
             placeholder="https://app.paymento.io/payment-link/…" spellcheck="false" />
         </label>
         <label>
-          Desk fee (USD)
+          Your desk asking price (USD)
           <input name="feeUsd" type="number" min="1" max="10000" step="1" value="${escapeHtml(String(gw.feeUsd))}" />
+          <span class="wallet__meta">What you charge off-chain — not a protocol or GULD market price.</span>
         </label>
         <label>
           Paymento API key <span class="wallet__meta">(optional)</span>

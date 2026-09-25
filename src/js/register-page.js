@@ -12,6 +12,7 @@ import {
 } from "./lib/crypto.js";
 import { resolveRegistrationDesk } from "./lib/desk.js";
 import { keyring } from "./lib/keyring.js";
+import { loadNetworkInfo } from "./lib/network.js";
 import { escapeHtml, quantaToGuld } from "./lib/rpc.js";
 
 const statusEl = document.querySelector("[data-register-status]");
@@ -193,7 +194,7 @@ function renderStep1() {
           `/chain/fees/registration?kind=individual&name=${encodeURIComponent(name)}`,
         );
         setStatus(
-          `“${name}” is available · on-chain fee ≈ ${escapeHtml(String(fee.feeGuld ?? quantaToGuld(fee.fee)))} GULD (paid by sponsor) + $10 fiat desk fee.`,
+          `“${name}” is available · on-chain fee ≈ ${escapeHtml(String(fee.feeGuld ?? quantaToGuld(fee.fee)))} GULD (paid by your sponsor).`,
           "ok",
         );
         renderStepPassphrase();
@@ -329,7 +330,7 @@ function renderStepConfirm() {
   hostEl.innerHTML = `
     <article class="wallet__card">
       <p class="wallet__name">${escapeHtml(state.name)}</p>
-      <p class="wallet__meta">Confirm before payment — sponsor pays the on-chain fee.</p>
+      <p class="wallet__meta">Confirm — a sponsor pays the on-chain fee in GULD.</p>
       <ul class="wallet__meta">
         <li>Type: <strong>${isGroup ? "group" : "individual"}</strong></li>
         <li>Registration fee: <strong>${escapeHtml(regFeeGuld)} GULD</strong> / year (to block miner)</li>
@@ -343,9 +344,9 @@ function renderStepConfirm() {
       <p style="margin-top:0.5rem">
         <button type="button" class="btn btn--outline" data-copy-req>Copy request JSON</button>
       </p>
-      <p class="wallet__note">Your encrypted key stays on this device. Fiat desk fee is separate from the on-chain fee.</p>
+      <p class="wallet__note">Your encrypted key stays on this device. GULD has no fixed USD price — any off-chain desk fee is set by that operator, not the protocol.</p>
       <p data-faucet-slot></p>
-      <button type="button" class="btn btn--primary" data-confirm-register>Confirm &amp; pay desk</button>
+      <button type="button" class="btn btn--outline" data-confirm-register>Continue with paid desk</button>
       <button type="button" class="btn btn--outline" data-friend-only style="margin-left:0.5rem">Friend sponsor only</button>
       <button type="button" class="btn btn--outline" data-back style="margin-left:0.5rem">Back</button>
     </article>
@@ -357,7 +358,7 @@ function renderStepConfirm() {
       if (!info?.ready) return;
       faucetSlot.innerHTML = `
         <p class="wallet__note">
-          <strong>Testnet faucet</strong> — free sponsorship (no fiat). Cooldown applies.
+          <strong>Testnet faucet</strong> — this peer can sponsor you in GULD (no off-chain payment). Cooldown applies.
         </p>
         <button type="button" class="btn btn--primary" data-faucet-register>Register via faucet</button>
       `;
@@ -484,9 +485,13 @@ function renderStep3(checkout, desk) {
       : desk.source === "local"
         ? "Paying your local OTC desk"
         : "Paying this peer’s bootstrap desk";
+  const feeLabel =
+    checkout.feeUsd != null || desk.feeUsd != null
+      ? `Desk asking price: $${escapeHtml(String(checkout.feeUsd ?? desk.feeUsd))} (operator-set, not a GULD market price)`
+      : "Continue to this desk’s payment link";
   hostEl.innerHTML = `
     <article class="wallet__card">
-      <p class="wallet__name">Pay $${escapeHtml(String(checkout.feeUsd ?? desk.feeUsd ?? 10))}</p>
+      <p class="wallet__name">${feeLabel}</p>
       <p class="wallet__meta">${escapeHtml(who)}</p>
       <p class="wallet__meta">Order <code>${escapeHtml(state.orderId)}</code> · name <strong>${escapeHtml(state.name)}</strong></p>
       ${
@@ -494,8 +499,9 @@ function renderStep3(checkout, desk) {
           ? `<p class="wallet__note">${escapeHtml(state.instructions)}</p>`
           : `<p class="wallet__meta">Payment is matched by this Order ID automatically when using the gateway API.</p>`
       }
+      <p class="wallet__note">On-chain registration is still paid in GULD by the sponsoring account after payment clears.</p>
       <p style="margin-top:1rem">
-        <a class="btn btn--primary" href="${escapeHtml(state.paymentUrl)}" rel="noopener" target="_blank" data-pay>Open payment</a>
+        <a class="btn btn--primary" href="${escapeHtml(state.paymentUrl)}" rel="noopener" target="_blank" data-pay>Open payment link</a>
         <button type="button" class="btn btn--outline" data-paid style="margin-left:0.5rem">I’ve paid — continue</button>
       </p>
     </article>
@@ -595,25 +601,43 @@ async function pollUntilRegistered() {
 
 async function boot() {
   if (titleEl) titleEl.textContent = isGroup ? "Create a group" : "Sign up";
+
+  const net = await loadNetworkInfo(apiBase);
+  const faucetReady = Boolean(net.faucet?.ready);
   if (leadEl) {
-    leadEl.innerHTML = isGroup
-      ? `Choose an available <strong>group</strong> name, set co-signer keys and threshold, then get sponsored (friend JSON or paid desk). Fee scales with signer count.`
-      : `Choose an available name, generate keys in this browser, then pay <strong>$10</strong> via the registrar’s payment link — or export a request for a friend sponsor.`;
+    if (isGroup) {
+      leadEl.innerHTML = `Choose an available <strong>group</strong> name, set co-signer keys and threshold, then get sponsored (faucet, friend, or optional paid desk). On-chain fee scales with signer count.`;
+    } else if (faucetReady) {
+      leadEl.innerHTML = `Choose an available name and generate keys here. On <strong>testnet</strong>, this peer’s faucet can sponsor you in GULD — or use a friend / optional paid desk.`;
+    } else {
+      leadEl.innerHTML = `Choose an available name and generate keys here. A funded sponsor pays the on-chain fee in GULD (friend JSON, or an optional paid desk if this peer lists one).`;
+    }
   }
 
   try {
     state.desk = await resolveRegistrationDesk(apiBase);
-    if (state.desk) {
+    if (faucetReady) {
+      setStatus(
+        net.network
+          ? `Testnet faucet ready on ${net.network} — you can register without off-chain payment.`
+          : "Testnet faucet ready — you can register without off-chain payment.",
+        "ok",
+      );
+    } else if (state.desk) {
       const label =
         state.desk.source === "invite"
           ? `Invite desk${state.desk.sponsor ? ` · ${state.desk.sponsor}` : ""}`
           : state.desk.source === "local"
             ? "Your OTC desk"
             : "Peer bootstrap desk";
-      setStatus(`${label} · $${state.desk.feeUsd}`, "ok");
+      const fee =
+        state.desk.feeUsd != null
+          ? ` · operator asks $${state.desk.feeUsd} off-chain`
+          : "";
+      setStatus(`${label}${fee}`, "ok");
     } else {
       setStatus(
-        "No payment desk found — use friend sponsor (copy request JSON), or configure Settings on a funded node.",
+        "No paid desk on this peer — use friend sponsor (copy request JSON), or wait for a faucet-enabled testnet peer.",
         "pending",
       );
     }
