@@ -13,6 +13,7 @@ import {
   renderExportKeySection,
 } from "./lib/key-export.js";
 import { keyring } from "./lib/keyring.js";
+import { loadNetworkInfo, NETWORK_PRESETS } from "./lib/network.js";
 import { escapeHtml } from "./lib/rpc.js";
 
 const statusEl = document.querySelector("[data-settings-status]");
@@ -42,15 +43,28 @@ async function render() {
   const id = getLocalIdentity();
   const peer = await loadPeerInfo(apiBase);
   const invite = deskInviteUrl(gw);
+  const net = await loadNetworkInfo(apiBase);
+  const presets = NETWORK_PRESETS.map(
+    (p) =>
+      `<button type="button" class="btn btn--outline" data-preset="${escapeHtml(p.id)}" style="margin:0.25rem 0.35rem 0.25rem 0">${escapeHtml(p.label)}</button>`,
+  ).join("");
 
   hostEl.innerHTML = `
     <form class="wallet__form" data-settings-form>
       <fieldset>
-        <legend>Node</legend>
+        <legend>Network</legend>
+        <p class="wallet__meta">
+          Connected mode: <strong>${escapeHtml(net.mode)}</strong>
+          ${net.network ? ` · <code>${escapeHtml(net.network)}</code>` : ""}
+          · chain ${escapeHtml(String(net.chainId))}
+          ${net.faucet?.ready ? " · faucet ready" : net.mode === "testnet" ? " · faucet off on this peer" : ""}
+        </p>
         <label>
           API base
           <input name="apiBase" type="text" value="${escapeHtml(apiBase)}" spellcheck="false" />
         </label>
+        <p class="wallet__meta">Presets (testnet and mainnet stay available forever — pick the peer URL):</p>
+        <p>${presets}</p>
         <p class="wallet__meta">Same-origin <code>/api/v1</code> when the node serves this tree.</p>
       </fieldset>
 
@@ -174,6 +188,19 @@ async function render() {
   `;
 
   bindExportKeySections(hostEl);
+
+  hostEl.querySelectorAll("[data-preset]").forEach((btn) => {
+    btn.addEventListener("click", () => {
+      const id = btn.getAttribute("data-preset");
+      const preset = NETWORK_PRESETS.find((p) => p.id === id);
+      if (!preset) return;
+      const input = hostEl.querySelector('input[name="apiBase"]');
+      if (input instanceof HTMLInputElement) input.value = preset.apiBase;
+      persistApiBase(preset.apiBase);
+      setStatus(`${preset.label}: ${preset.hint}`, "ok");
+      void render();
+    });
+  });
 
   hostEl.querySelector("[data-copy-invite]")?.addEventListener("click", async () => {
     const input = hostEl.querySelector("[data-invite-url]");

@@ -1,5 +1,5 @@
 import "./chrome.js";
-import { apiGet, apiPost, resolveApiBase } from "./lib/api.js";
+import { apiGet, apiPost, faucetInfo, faucetRegister, resolveApiBase } from "./lib/api.js";
 import { activateAccount } from "./lib/auth.js";
 import {
   DEFAULT_MASTER_HASH,
@@ -344,11 +344,47 @@ function renderStepConfirm() {
         <button type="button" class="btn btn--outline" data-copy-req>Copy request JSON</button>
       </p>
       <p class="wallet__note">Your encrypted key stays on this device. Fiat desk fee is separate from the on-chain fee.</p>
+      <p data-faucet-slot></p>
       <button type="button" class="btn btn--primary" data-confirm-register>Confirm &amp; pay desk</button>
       <button type="button" class="btn btn--outline" data-friend-only style="margin-left:0.5rem">Friend sponsor only</button>
       <button type="button" class="btn btn--outline" data-back style="margin-left:0.5rem">Back</button>
     </article>
   `;
+  const faucetSlot = hostEl.querySelector("[data-faucet-slot]");
+  void faucetInfo(apiBase)
+    .then((info) => {
+      if (!(faucetSlot instanceof HTMLElement)) return;
+      if (!info?.ready) return;
+      faucetSlot.innerHTML = `
+        <p class="wallet__note">
+          <strong>Testnet faucet</strong> — free sponsorship (no fiat). Cooldown applies.
+        </p>
+        <button type="button" class="btn btn--primary" data-faucet-register>Register via faucet</button>
+      `;
+      faucetSlot.querySelector("[data-faucet-register]")?.addEventListener("click", async () => {
+        setStatus("Requesting faucet sponsorship…", "pending");
+        try {
+          const out = await faucetRegister(apiBase, req);
+          setStatus(
+            `Faucet registered “${state.name}” · tx ${out?.result?.tx_id || "ok"} — open your wallet.`,
+            "ok",
+          );
+          setStep(4);
+          hostEl.innerHTML = `
+            <article class="wallet__card">
+              <p class="wallet__name">${escapeHtml(state.name)}</p>
+              <p class="wallet__meta">Testnet faucet sponsored your registration. Keys stay encrypted on this device.</p>
+              <p style="margin-top:1rem">
+                <a class="btn btn--primary" href="/wallet/#/account/${encodeURIComponent(state.name)}">Open wallet</a>
+              </p>
+            </article>
+          `;
+        } catch (err) {
+          setStatus(/** @type {Error} */ (err).message, "error");
+        }
+      });
+    })
+    .catch(() => {});
   hostEl.querySelector("[data-back]")?.addEventListener("click", () => renderStepPassphrase());
   hostEl.querySelector("[data-copy-req]")?.addEventListener("click", async () => {
     try {

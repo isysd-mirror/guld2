@@ -1,5 +1,5 @@
 import "./chrome.js";
-import { apiGet, apiPost, persistApiBase, resolveApiBase } from "./lib/api.js";
+import { apiGet, apiPost, faucetDrip, faucetInfo, persistApiBase, resolveApiBase } from "./lib/api.js";
 import { getLocalIdentity, LOGIN_HREF, REGISTER_HREF } from "./lib/auth.js";
 import {
   buildCosignRequest,
@@ -267,6 +267,7 @@ async function route() {
           </form>`
               : `<p class="wallet__note">This account is ${threshold}-of-n. L0 <code>Transfer</code> still requires threshold 1 — fund a 1-of-1 subaccount or rotate keys to spend.</p>`
           }
+          <div data-faucet-drip style="margin-top:1rem"></div>
         </section>
         <section class="wallet__send">
           <h2>Account management</h2>
@@ -363,6 +364,32 @@ async function route() {
     `;
 
     bindExportKeySections(hostEl);
+
+    const dripSlot = hostEl.querySelector("[data-faucet-drip]");
+    if (dripSlot instanceof HTMLElement && unlocked) {
+      void faucetInfo(apiBase)
+        .then((info) => {
+          if (!info?.ready) return;
+          dripSlot.innerHTML = `
+            <p class="wallet__note"><strong>Testnet faucet</strong> — request ${escapeHtml(String(info.dripGuld ?? 10))} GULD (cooldown applies).</p>
+            <button type="button" class="btn btn--outline" data-request-drip>Request faucet drip</button>
+          `;
+          dripSlot.querySelector("[data-request-drip]")?.addEventListener("click", async () => {
+            setStatus("Requesting faucet drip…", "pending");
+            try {
+              const out = await faucetDrip(apiBase, r.name);
+              setStatus(
+                `Faucet sent ${out?.amountGuld ?? 10} GULD · tx ${out?.result?.tx_id || "ok"}`,
+                "ok",
+              );
+              route();
+            } catch (err) {
+              setStatus(/** @type {Error} */ (err).message, "error");
+            }
+          });
+        })
+        .catch(() => {});
+    }
 
     const cosignMount =
       hostEl.querySelector("[data-cosign-host]") || hostEl.querySelector("[data-cosign-guest]");

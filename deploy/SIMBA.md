@@ -5,7 +5,48 @@
 Config SoT: [`data/networks/simba.json`](../data/networks/simba.json)  
 Genesis SoT: [`data/genesis/simba/`](../data/genesis/simba/) (committed manifest + params + `isysd-claim.asc`)
 
-## Genesis (locked artifacts)
+## Testnet vs mainnet (forever)
+
+| Mode | Profile | Notes |
+|------|---------|--------|
+| **testnet** | `--network simba` (`mode: testnet`) | Public QA net; faucet available when a faucet key is configured |
+| **mainnet** | `--network main` (`mode: mainnet`) | Stub until `data/genesis/main/` is locked — no faucet |
+
+The UI reads `mode` / `network` / `faucet` from `GET /api/v1/chain/status` and updates the site banner. Settings can switch API base between peers (testnet and mainnet stay available after launch).
+
+### Faucet (testnet only)
+
+When `mode=testnet` and a signing key is present:
+
+| Endpoint | Effect |
+|----------|--------|
+| `GET /api/v1/faucet` | Status (`enabled`, drip size, cooldown) |
+| `POST /api/v1/faucet/drip` `{ "name": "…" }` | Send **10 GULD** to an existing account |
+| `POST /api/v1/faucet/register` `{ "request": {…} }` | Sponsor registration (6+ letter names) |
+
+Configure the key (never commit secrets):
+
+```bash
+# Option A — env (recommended on guld.io)
+export GULD_FAUCET_KEY=0x…   # Ed25519 secret matching --faucet-name (default isysd)
+
+# Option B — file in datadir
+# cp /path/to/isysd.sk ./.guld-data/simba/keys/isysd.sk
+```
+
+```bash
+cargo run -p guld-node -- \
+  --network simba \
+  --datadir ./.guld-data/simba \
+  --rpc 127.0.0.1:8545 \
+  --http 127.0.0.1:8088 \
+  --http-static . \
+  --miner isysd \
+  --faucet-name isysd
+```
+
+The faucet account must exist on-chain with spendable balance (Simba `isysd` after genesis claim). Cooldown default: 1 hour per name. On mainnet the faucet routes stay off.
+
 
 Empty `--network simba` datadirs load height-0 from `data/genesis/simba/`:
 

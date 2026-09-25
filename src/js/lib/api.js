@@ -183,3 +183,24 @@ export async function apiDelete(base, path, opts = {}) {
     clearTimeout(timer);
   }
 }
+
+/** @param {string} base */
+export async function faucetInfo(base) {
+  return apiGet(base, "/faucet");
+}
+
+/**
+ * @param {string} base
+ * @param {string} name
+ */
+export async function faucetDrip(base, name) {
+  return apiPost(base, "/faucet/drip", { name });
+}
+
+/**
+ * @param {string} base
+ * @param {object} request — registration request JSON
+ */
+export async function faucetRegister(base, request) {
+  return apiPost(base, "/faucet/register", { request });
+}

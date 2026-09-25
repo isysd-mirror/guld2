@@ -60,6 +60,16 @@ Any funded peer MAY enable **paid registrations** by connecting a supported thir
 
 The wallet MUST still support **friend sponsor** (paste/QR registration JSON) without any payment gateway.
 
+### 2.2 Testnet vs mainnet (durable)
+
+Peers expose `mode` (`testnet` | `mainnet`), `network`, and optional `faucet` on `GET /api/v1/chain/status`. The reference UI MUST:
+
+- Show a site-wide banner/footer derived from that peer (not a hard-coded “beta forever” string).
+- Keep **settings presets** for both testnet and mainnet API bases after mainnet launch.
+- On testnet when `faucet.ready`, offer **faucet register** (`POST /api/v1/faucet/register`) and **10 GULD drip** (`POST /api/v1/faucet/drip`) on register / wallet. Mainnet peers MUST NOT enable faucet routes.
+
+Ops: [`../../deploy/SIMBA.md`](../../deploy/SIMBA.md).
+
 ---
 
 ## 3. Coverage matrix (protocol → API → UI)
@@ -70,7 +80,7 @@ Status: **shipped** | **partial** | **missing** | **out of UI** (node/miner/ops 
 
 | Tx type | User need | Node API | Reference UI | Status |
 |---------|-----------|----------|--------------|--------|
-| `RegisterUsername` | Claim individual name | Fee estimate + `POST …/transactions` (or `guld_sendTransaction`) | `/register/` + friend JSON + gateway | **shipped** |
+| `RegisterUsername` | Claim individual name | Fee estimate + `POST …/transactions` (or `guld_sendTransaction`) | `/register/` + friend JSON + gateway + **testnet faucet** | **shipped** |
 | `RegisterGroup` | Multi-key group name; fee `F_group(L,n)` | Same + `kind=group`, `nKeys` | Group create wizard (§8.6) | **shipped** |
 | `RegisterSubaccount` | `parent.label` device wallets (max 8) | Fee `kind=subaccount` + broadcast | Wallet account → create sub | **shipped** |
 | `Transfer` | Send GULD name→name; optional memo ≤64 B | Broadcast | Wallet Send | **partial** (threshold 1 only) |
@@ -125,13 +135,14 @@ Logical ops: [`12-rpc.md`](12-rpc.md). Prefer HTTP where a route exists.
 
 | Screen / flow | Prefer (HTTP) | RPC equivalent | Notes |
 |---------------|---------------|----------------|-------|
-| Status strip | `GET /chain/status` | `guld_blockNumber`, `guld_chainId`, `guld_ready` | |
+| Status strip | `GET /chain/status` | `guld_blockNumber`, `guld_chainId`, `guld_ready` | Includes `mode` / `network` / `faucet` |
 | Account card | `GET /chain/accounts/{name}` | `guld_getAccount` | |
 | Activity | `GET …/activity` | `guld_getAccountActivity` | Use `tx_index` for explorer deep links |
 | Exists while typing | `GET …/exists` | `guld_accountExists` | Debounce |
 | Registration fee | `GET /chain/fees/registration?…` (when present) | `guld_estimateRegistrationFee` | Pass `kind`, `nKeys` for groups |
 | Broadcast signed tx | `POST /chain/transactions` | `guld_sendTransaction` | **PWA write path** |
 | Paid desk | `GET /registrar`, gateway orders | — | Spec 16; out of consensus |
+| Testnet faucet | `GET/POST /faucet…` | — | Drip + free register; testnet only |
 | Explorer blocks | — (today) | `guld_getBlockByNumber` | MAY add HTTP later |
 | Explorer account | — or HTTP | `guld_getAccount` + activity | |
 | CAS (tools) | — | `guld_putObject` / `guld_getObject` | Not default wallet chrome |

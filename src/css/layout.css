@@ -44,14 +44,14 @@ guld-header:has(.site-header--solid) {
   z-index: 20;
 }
 
-.site-banner {
-  padding: 0.45rem clamp(1rem, 4vw, 2.5rem);
-  background: #c45c26;
-  color: #fff;
-  text-align: center;
-  font-size: 0.88rem;
-  line-height: 1.35;
+.site-banner[data-mode="mainnet"] {
+  background: #1a4d3a;
 }
+
+.site-banner[data-mode="testnet"] {
+  background: #c45c26;
+}
+
 
 .site-banner p {
   margin: 0;

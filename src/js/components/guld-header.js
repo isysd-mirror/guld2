@@ -17,15 +17,13 @@ import {
 } from "../lib/wallet-session.js";
 import { startGatewayPaymentWatcher } from "../lib/gateway-watcher.js";
 import { KEYRING_EVENT } from "../lib/keyring.js";
+import { bannerText, loadNetworkInfo } from "../lib/network.js";
 
 const template = document.createElement("template");
 template.innerHTML = `
   <a class="skip-link" href="#main">Skip to content</a>
-  <aside class="site-banner" role="status" aria-label="Network status">
-    <p>
-      <strong>Guld 2.0 is in beta.</strong>
-      This site shows <strong>Simba testnet</strong> data — not mainnet.
-    </p>
+  <aside class="site-banner" role="status" aria-label="Network status" data-site-banner>
+    <p>Connecting…</p>
   </aside>
   <header class="site-header">
     <a class="site-header__brand" href="/" aria-label="Guld home">
@@ -57,6 +55,14 @@ export class GuldHeader extends HTMLElement {
     } else if (header instanceof HTMLElement) {
       header.classList.add("site-header--solid");
     }
+
+    const banner = this.querySelector("[data-site-banner]");
+    void loadNetworkInfo().then((info) => {
+      if (!(banner instanceof HTMLElement)) return;
+      const { html } = bannerText(info);
+      banner.innerHTML = `<p>${html}</p>`;
+      banner.dataset.mode = info.mode;
+    });
 
     const list = /** @type {HTMLUListElement} */ (this.querySelector(".site-nav__list"));
     const profileWrap = /** @type {HTMLElement} */ (this.querySelector("[data-header-profile]"));

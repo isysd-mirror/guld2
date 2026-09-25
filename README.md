@@ -49,8 +49,10 @@ cargo run -p guld-node -- \
 
 # Simba testnet (committed genesis under data/genesis/simba/):
 # cargo run -p guld-node -- --network simba --datadir ./.guld-data/simba \
-#   --rpc 127.0.0.1:8545 --http 127.0.0.1:8080 --http-static . --p2p 0.0.0.0:4001
-# Add --miner <name> only when sealing blocks.
+#   --rpc 127.0.0.1:8545 --http 127.0.0.1:8080 --http-static . --p2p 0.0.0.0:4001 \
+#   --miner isysd
+# Optional faucet (testnet only): export GULD_FAUCET_KEY=0x… or place
+#   .guld-data/simba/keys/isysd.sk — see deploy/SIMBA.md
 
 # Wallet CLI (keys, balance, send)
 cargo run -p guld-cli -- --help
@@ -99,6 +101,12 @@ cargo run -p guld-node -- \
 ```
 
 Details: [`docs/gips/gip-8.md`](docs/gips/gip-8.md).
+
+### Testnet and mainnet (durable)
+
+Profiles under `data/networks/` carry a durable **`mode`**: `testnet` (Simba) or `mainnet`. Both stay available forever — after prod launch, guld.io can still serve testnet peers and the UI keeps network presets. Status exposes `mode` / `network` / `faucet`; the site banner and footer follow the peer.
+
+On **testnet**, an optional faucet (keyed account + balance) sponsors free registration and drips **10 GULD**. Ops: [`deploy/SIMBA.md`](deploy/SIMBA.md).
 
 ## Host model
 

@@ -1,11 +1,12 @@
 import { FOOTER_NAV } from "../lib/site-nav.js";
+import { loadNetworkInfo } from "../lib/network.js";
 
 const template = document.createElement("template");
 template.innerHTML = `
   <footer class="site-footer">
     <div class="site-footer__brand">
       <img src="/assets/guld.svg" width="28" height="28" alt="" />
-      <p class="site-footer__legal">Guld 2.0 beta · Simba testnet</p>
+      <p class="site-footer__legal" data-footer-network>Guld</p>
     </div>
     <nav class="site-footer__nav" aria-label="Documents">
       <ul class="site-footer__list"></ul>
@@ -31,6 +32,17 @@ export class GuldFooter extends HTMLElement {
     year.className = "site-footer__year";
     year.textContent = String(new Date().getFullYear());
     list.append(year);
+
+    const legal = this.querySelector("[data-footer-network]");
+    void loadNetworkInfo().then((info) => {
+      if (!(legal instanceof HTMLElement)) return;
+      if (info.mode === "mainnet") {
+        legal.textContent = "Guld mainnet · open-source peer";
+      } else {
+        const net = info.network || "testnet";
+        legal.textContent = `Guld 2.0 testnet · ${net}`;
+      }
+    });
   }
 }
 

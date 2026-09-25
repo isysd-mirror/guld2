@@ -32,7 +32,7 @@ Prefix: `/api/v1`. Shipped today on `guld-node --http`:
 | Method | Path | Logical ops | Status |
 |--------|------|-------------|--------|
 | `GET` | `/health` | — | shipped |
-| `GET` | `/chain/status` | `guld_blockNumber`, `guld_chainId`, `guld_ready`, `guld_syncing` | shipped |
+| `GET` | `/chain/status` | `guld_blockNumber`, `guld_chainId`, `guld_ready`, `guld_syncing` (+ `mode`, `network`, `faucet`) | shipped |
 | `GET` | `/chain/accounts` | `guld_searchAccounts` (`?prefix=&limit=`) | shipped |
 | `GET` | `/chain/accounts/{name}` | `guld_getAccount`, `guld_getBalance` | shipped |
 | `GET` | `/chain/accounts/{name}/activity` | `guld_getAccountActivity` | shipped |
@@ -62,6 +62,18 @@ When `--registrar-payment-link` (or `GULD_REGISTRAR_PAYMENT_LINK`) is set:
 | `POST` | `/payment-gateway-webhook` | Paymento Payment Link webhooks; requires `PAYMENTO_WEBHOOK_SECRET` |
 
 See [`../gips/gip-8.md`](../gips/gip-8.md).
+
+### Testnet faucet (out of consensus)
+
+When the network profile `mode` is `testnet` and a faucet signing key is configured (`GULD_FAUCET_KEY` or `datadir/keys/<name>.sk`):
+
+| Method | Path | Notes |
+|--------|------|-------|
+| `GET` | `/faucet` | `{ enabled, ready, dripGuld, cooldownSecs, … }` |
+| `POST` | `/faucet/drip` | `{ "name" }` → transfer **10 GULD** (rate-limited) |
+| `POST` | `/faucet/register` | `{ "request": RegistrationRequest }` → sponsor registration |
+
+Mainnet peers MUST leave these disabled. Ops: [`../../deploy/SIMBA.md`](../../deploy/SIMBA.md).
 
 ## 4. Logical operations (JSON-RPC method names)
 

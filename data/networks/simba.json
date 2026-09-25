@@ -1,5 +1,6 @@
 {
   "name": "simba",
+  "mode": "testnet",
   "chain_id": 2,
   "difficulty": 16,
   "p2p_listen": "0.0.0.0:4001",
@@ -7,5 +8,5 @@
   "bootnodes": [
     "/dns4/guld.io/tcp/4001"
   ],
-  "comment": "First public Guld 2.0 testnet. guld.io is the bootstrap peer (not consensus authority). Same genesis required; tip catch-up via P2P headers/blocks (phase B). See deploy/SIMBA.md."
+  "comment": "Guld 2.0 public testnet. Always available alongside mainnet. Faucet on when GULD_FAUCET_KEY or datadir/keys/<faucet>.sk is set. See deploy/SIMBA.md."
 }

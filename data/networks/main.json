@@ -1,0 +1,10 @@
+{
+  "name": "main",
+  "mode": "mainnet",
+  "chain_id": 1,
+  "difficulty": 20,
+  "p2p_listen": "0.0.0.0:4001",
+  "auto_mine": false,
+  "bootnodes": [],
+  "comment": "Mainnet profile stub. Genesis artifacts under data/genesis/main/ are not locked yet — do not advertise as live until height-0 is committed."
+}
