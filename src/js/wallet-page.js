@@ -287,6 +287,10 @@ async function route() {
           <details style="margin-top:0.75rem">
             <summary>Rotate keys</summary>
             <form class="wallet__form" data-rotate-keys-form>
+              <p class="wallet__actions" style="margin-bottom:0.75rem">
+                <button type="button" class="btn btn--outline" data-rotate-generate>Generate new key</button>
+              </p>
+              <p class="wallet__meta">Shortcut fills <code>keys[0]</code> and the private-key field with a fresh Ed25519 pair. Extra pub lines (multisig) are left alone.</p>
               <label>New public keys (one per line)
                 <textarea name="pubs" rows="3" spellcheck="false" required placeholder="0x…"></textarea>
               </label>
@@ -610,6 +614,38 @@ async function route() {
     }
     rotateForm?.querySelector("[name=pubs]")?.addEventListener("input", () => {
       refreshRotateFeeHint();
+    });
+
+    rotateForm?.querySelector("[data-rotate-generate]")?.addEventListener("click", async () => {
+      if (!(rotateForm instanceof HTMLFormElement)) return;
+      try {
+        setStatus("Generating key…", "pending");
+        const priv = await randomPrivateKey();
+        const pubHex = await pubkeyHex(priv);
+        const privHex = toHex(priv);
+        const pubsEl = rotateForm.querySelector("[name=pubs]");
+        const privEl = rotateForm.querySelector("[name=priv]");
+        if (pubsEl instanceof HTMLTextAreaElement) {
+          const rest = pubsEl.value
+            .split(/[\n,]+/)
+            .map((s) => s.trim())
+            .filter(Boolean)
+            .slice(1);
+          pubsEl.value = [pubHex, ...rest].join("\n");
+          pubsEl.dispatchEvent(new Event("input", { bubbles: true }));
+        }
+        if (privEl instanceof HTMLInputElement) {
+          privEl.value = privHex;
+          privEl.type = "text";
+        }
+        const thrEl = rotateForm.querySelector("[name=threshold]");
+        if (thrEl instanceof HTMLInputElement && (!thrEl.value || Number(thrEl.value) < 1)) {
+          thrEl.value = "1";
+        }
+        setStatus(`New key ready — keys[0]=${pubHex.slice(0, 18)}… Submit when ready.`, "ok");
+      } catch (err) {
+        setStatus(/** @type {Error} */ (err).message, "error");
+      }
     });
 
     hostEl.querySelector("[data-rotate-keys-form]")?.addEventListener("submit", async (ev) => {
