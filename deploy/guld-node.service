@@ -25,6 +25,7 @@ ExecStart=/home/isysd/Projects/guld2/target/debug/guld-node \
   --dev \
   --keys-pgp archives/keys-pgp \
   --miner alice \
+  --mine-cpu-percent 1 \
   --registrar-payment-link default
 Restart=on-failure
 RestartSec=3

@@ -42,10 +42,13 @@ cargo run -p guld-node -- \
   --http 127.0.0.1:8088 \
   --http-static . \
   --miner isysd \
+  --mine-cpu-percent 1 \
   --faucet-name isysd
 ```
 
 The faucet account must exist on-chain with spendable balance (Simba `isysd` after genesis claim). Cooldown default: 1 hour per name. On mainnet the faucet routes stay off.
+
+Faucet txs are **mempool-queued** then sealed in the **background** when `--miner` is set (Simba keeps `auto_mine: false` so ordinary traffic is not auto-sealed). PoW at difficulty 16 can take ~1 minute — the UI polls until the name/balance appears. The peer **must** run with `--miner <faucet-account>` or faucet grants stay pending forever.
 
 
 Empty `--network simba` datadirs load height-0 from `data/genesis/simba/`:
@@ -158,7 +161,7 @@ cargo build -p guld-node --release
   --p2p 0.0.0.0:4001
 ```
 
-Add `--miner <name>` only if this process should seal blocks (e.g. `--miner isysd`).
+Add `--miner <name>` only if this process should seal blocks (e.g. `--miner isysd`). On shared bootstrap hosts always pass `--mine-cpu-percent 1`.
 
 `--network simba` sets `chain_id=2`, difficulty, `auto_mine=false`, and dials guld.io bootnodes. Do **not** pass `--dev` (that skips default bootnodes and enables empty-block mining).
 
@@ -174,6 +177,7 @@ curl -s http://127.0.0.1:8545/ -H 'content-type: application/json' \
 - Default on simba: **`auto_mine=false`** — txs sit in mempool until someone calls `guld_mineBlock` or turns auto-mine on for a designated miner.
 - **`--miner <name>` is required to seal.** No default miner.
 - Reasonable v1: **only guld.io mines** with an explicit `--miner isysd` (after genesis claim); laptop is a validating peer.
+- **Shared hosts (guld.io / this machine):** always `--mine-cpu-percent 1` (PoW duty cycle of one core). Service units under `deploy/` already set this.
 
 Force a block on the miner:
 

@@ -43,6 +43,7 @@ Prefix: `/api/v1`. Shipped today on `guld-node --http`:
 | `POST` | `/chain/transactions` | `guld_sendTransaction` | shipped |
 | `POST` | `/chain/estimate-weight` | `guld_estimateWeight` | shipped |
 | `GET` | `/chain/fees/registration` | `guld_estimateRegistrationFee` | shipped |
+| `GET` | `/chain/mempool` | `guld_getMempool` (`?limit=`) | shipped |
 | `GET` | `/chain/fees/mempool` | `guld_getMempoolFeeHints` | shipped |
 | `GET` | `/cas/objects/{id}/exists` | `guld_hasObject` | shipped |
 | `GET` | `/registrar` | — (optional paid desk config) | shipped |
@@ -118,8 +119,10 @@ Mainnet peers MUST leave these disabled. Ops: [`../../deploy/SIMBA.md`](../../de
 | `guld_estimateRegistrationBurn` | *(deprecated alias)* | Same as `guld_estimateRegistrationFee` |
 | `guld_sendRawTransaction` | `[rawHex]` | `TxId` |
 | `guld_sendTransaction` | `[txJson]` | `TxId` (node MAY refuse if unsigned) |
-| `guld_getTransaction` | `[txid]` | Tx + receipt meta |
+| `guld_getTransaction` | `[txid]` | Tx + receipt meta (`pending: true` when still in mempool) |
+| `guld_getMempool` | `[limit?]` | `{ count, weight_used, weight_limit, truncated, txs[] }` fee-rate ordered |
 | `guld_getMempoolFeeHints` | [] | `{ fee_rate_min, fee_rate_recommended }` |
+| `guld_txPoolStatus` | [] | `{ pending, weight_used, weight_limit }` |
 
 ### CAS
 

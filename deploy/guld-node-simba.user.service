@@ -19,6 +19,7 @@ WorkingDirectory=/home/isysd/Projects/guld2
 EnvironmentFile=-/home/isysd/Projects/guld2/.env
 # --network simba applies data/networks/simba.json (chain_id 2, p2p 0.0.0.0:4001, auto_mine=false).
 # HTTP stays on :8088 so existing nginx proxy_pass keeps working (SIMBA.md system unit uses :8080).
+# Cap PoW to 1% of one core on this shared host.
 ExecStart=/home/isysd/Projects/guld2/target/debug/guld-node \
   --network simba \
   --datadir ./.guld-data/simba \
@@ -27,6 +28,7 @@ ExecStart=/home/isysd/Projects/guld2/target/debug/guld-node \
   --http-static . \
   --keys-pgp archives/keys-pgp \
   --miner isysd \
+  --mine-cpu-percent 1 \
   --faucet-name isysd \
   --registrar-payment-link default
 Restart=on-failure

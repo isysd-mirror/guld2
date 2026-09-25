@@ -8,6 +8,7 @@
 - Keyless `guld` network shell; genesis-claim path for `isysd` via committed PGP clearsign
 - Durable **testnet / mainnet** network modes (`data/networks/*.json` `mode` field) exposed on `/chain/status`
 - Testnet faucet APIs (`/api/v1/faucet`, drip 10 GULD, free registration sponsorship)
+- Explorer mempool snapshot (`GET /api/v1/chain/mempool`, home panel, `#/mempool`, pending tx view)
 - `archives/ledger-guld` and `archives/keys-pgp` as git submodules from `github.com/guldcoin/`
 - Registration-fee vesting over 8 blocks; height-activated `RulesSchedule` / `activation_height`
 - Explorer account lookup (`#/account/<name>`); wallet subaccount create UI

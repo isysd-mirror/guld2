@@ -365,20 +365,20 @@ function renderStepConfirm() {
         setStatus("Requesting faucet sponsorship…", "pending");
         try {
           const out = await faucetRegister(apiBase, req);
-          setStatus(
-            `Faucet registered “${state.name}” · tx ${out?.result?.tx_id || "ok"} — open your wallet.`,
-            "ok",
-          );
+          const txid = out?.result?.tx_id || "ok";
           setStep(4);
+          setStatus(
+            `Faucet queued “${state.name}” · tx ${txid} — waiting for a block (PoW may take ~1 min)…`,
+            "pending",
+          );
           hostEl.innerHTML = `
             <article class="wallet__card">
               <p class="wallet__name">${escapeHtml(state.name)}</p>
-              <p class="wallet__meta">Testnet faucet sponsored your registration. Keys stay encrypted on this device.</p>
-              <p style="margin-top:1rem">
-                <a class="btn btn--primary" href="/wallet/#/account/${encodeURIComponent(state.name)}">Open wallet</a>
-              </p>
+              <p class="wallet__meta">Faucet sponsored your registration; waiting for the peer to seal a block.</p>
+              <p class="wallet__meta" data-wait-detail>Polling chain…</p>
             </article>
           `;
+          await pollNameOnly();
         } catch (err) {
           setStatus(/** @type {Error} */ (err).message, "error");
         }
@@ -536,18 +536,27 @@ async function markRegistered() {
 }
 
 async function pollNameOnly() {
+  const detail = hostEl.querySelector("[data-wait-detail]");
   for (let i = 0; i < 90; i++) {
     try {
       if ((await checkAvailability(state.name)) === false) {
         await markRegistered();
+        if (detail) detail.textContent = "Registered on-chain.";
+        hostEl.insertAdjacentHTML(
+          "beforeend",
+          `<p style="margin-top:1rem">
+            <a class="btn btn--primary" href="/wallet/#/account/${encodeURIComponent(state.name)}">Open wallet</a>
+          </p>`,
+        );
         return;
       }
     } catch {
       /* keep polling */
     }
+    if (detail) detail.textContent = `Still pending… (${i + 1})`;
     await new Promise((r) => setTimeout(r, 4000));
   }
-  setStatus("Still waiting — check back from your wallet after your friend sponsors.", "pending");
+  setStatus("Still waiting — check back from your wallet after the peer seals a block.", "pending");
 }
 
 async function pollUntilRegistered() {

@@ -371,16 +371,52 @@ async function route() {
         .then((info) => {
           if (!info?.ready) return;
           dripSlot.innerHTML = `
-            <p class="wallet__note"><strong>Testnet faucet</strong> — request ${escapeHtml(String(info.dripGuld ?? 10))} GULD (cooldown applies).</p>
+            <p class="wallet__note"><strong>Testnet faucet</strong> — request ${escapeHtml(String(info.dripGuld ?? 10))} GULD (cooldown applies; inclusion may take ~1 min of PoW).</p>
             <button type="button" class="btn btn--outline" data-request-drip>Request faucet drip</button>
           `;
           dripSlot.querySelector("[data-request-drip]")?.addEventListener("click", async () => {
             setStatus("Requesting faucet drip…", "pending");
             try {
+              const before = Number(
+                (await apiGet(apiBase, `/chain/accounts/${encodeURIComponent(r.name)}`))?.balance
+                  ?.quanta ?? 0,
+              );
               const out = await faucetDrip(apiBase, r.name);
+              const txid = out?.result?.tx_id || "";
               setStatus(
-                `Faucet sent ${out?.amountGuld ?? 10} GULD · tx ${out?.result?.tx_id || "ok"}`,
-                "ok",
+                `Faucet queued ${out?.amountGuld ?? 10} GULD · tx ${txid || "ok"} — waiting for block…`,
+                "pending",
+              );
+              for (let i = 0; i < 45; i++) {
+                await new Promise((res) => setTimeout(res, 4000));
+                try {
+                  if (txid) {
+                    const tx = await apiGet(
+                      apiBase,
+                      `/chain/transactions/${encodeURIComponent(txid)}`,
+                    );
+                    if (tx && tx.pending !== true && tx.height != null) {
+                      setStatus(`Faucet drip included · tx ${txid}`, "ok");
+                      route();
+                      return;
+                    }
+                  }
+                  const after = Number(
+                    (await apiGet(apiBase, `/chain/accounts/${encodeURIComponent(r.name)}`))
+                      ?.balance?.quanta ?? 0,
+                  );
+                  if (after > before) {
+                    setStatus(`Faucet drip included · tx ${txid || "ok"}`, "ok");
+                    route();
+                    return;
+                  }
+                } catch {
+                  /* keep waiting */
+                }
+              }
+              setStatus(
+                `Drip still pending · tx ${txid || "ok"} — refresh the wallet shortly.`,
+                "pending",
               );
               route();
             } catch (err) {

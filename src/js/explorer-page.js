@@ -46,17 +46,26 @@ window.addEventListener("hashchange", () => route());
 /**
  * @returns {
  *   | { view: "home" }
+ *   | { view: "mempool" }
  *   | { view: "block", height: number }
  *   | { view: "account", name: string }
  *   | { view: "tx", height: number, index: number }
+ *   | { view: "pendingTx", id: string }
  * }
  */
 function parseRoute() {
   const raw = (location.hash || "#/").replace(/^#/, "") || "/";
   const parts = raw.split("/").filter(Boolean);
+  if (parts[0] === "mempool") {
+    return { view: "mempool" };
+  }
   if (parts[0] === "block" && parts[1] != null) {
     const height = Number(parts[1]);
     if (Number.isFinite(height) && height >= 0) return { view: "block", height };
+  }
+  if (parts[0] === "tx" && parts[1] === "pending" && parts[2]) {
+    const id = parts[2].startsWith("0x") ? parts[2].toLowerCase() : `0x${parts[2].toLowerCase()}`;
+    return { view: "pendingTx", id };
   }
   if (parts[0] === "tx" && parts[1] != null && parts[2] != null) {
     const height = Number(parts[1]);
@@ -104,6 +113,18 @@ function blockLink(height, label) {
 function txLink(height, index, label) {
   const text = label != null ? label : `${height}:${index}`;
   return `<a href="${txHref(height, index)}">${escapeHtml(text)}</a>`;
+}
+
+/** @param {string} id */
+function pendingTxHref(id) {
+  const hex = String(id || "").startsWith("0x") ? String(id) : `0x${id}`;
+  return `#/tx/pending/${encodeURIComponent(hex)}`;
+}
+
+/** @param {string} id @param {string} [label] */
+function pendingTxLink(id, label) {
+  const text = label != null ? label : shortHash(id, 10);
+  return `<a href="${pendingTxHref(id)}"><code>${escapeHtml(text)}</code></a>`;
 }
 
 /**
@@ -181,7 +202,7 @@ async function navigateLookup(query) {
         return;
       }
       if (tx && tx.pending) {
-        setStatus("ok", `Pending tx ${shortHash(hex, 10)} (not mined yet)`);
+        location.hash = pendingTxHref(tx.tx_id || hex);
         return;
       }
       const block = await rpcCall(rpcUrl, "guld_getBlockByHash", [hex, false]);
@@ -208,6 +229,10 @@ async function route() {
       await renderBlock(r.height);
     } else if (r.view === "tx") {
       await renderTx(r.height, r.index);
+    } else if (r.view === "pendingTx") {
+      await renderPendingTx(r.id);
+    } else if (r.view === "mempool") {
+      await renderMempool();
     } else if (r.view === "account") {
       await renderAccount(r.name);
     } else {
@@ -320,7 +345,7 @@ async function updateAccountSuggest(input, suggest) {
 async function renderHome() {
   const info = await rpcCall(rpcUrl, "guld_nodeInfo", []);
   tipHeight = Number(info.height || 0);
-  const pending = info.txPoolPending ?? 0;
+  const pending = Number(info.txPoolPending ?? 0);
   setStatus(
     "ok",
     `Height ${tipHeight.toLocaleString()} · ${pending} pending · miner ${info.miner || "—"} · chain ${info.chainId ?? "—"}`,
@@ -340,12 +365,32 @@ async function renderHome() {
     if (recentTxs.length >= PAGE_SIZE) break;
   }
 
+  let mempool = { count: pending, txs: [] };
+  try {
+    mempool = await rpcCall(rpcUrl, "guld_getMempool", [12]);
+  } catch (err) {
+    console.warn("mempool snapshot", err);
+  }
+  const pendingTxs = Array.isArray(mempool.txs) ? mempool.txs : [];
+
   if (!(hostEl instanceof HTMLElement)) return;
 
   const older = to > 0;
+  const pendingLabel =
+    Number(mempool.count ?? pending) === 1
+      ? "1 pending"
+      : `${Number(mempool.count ?? pending)} pending`;
 
   hostEl.innerHTML = `
     ${lookupFormHtml()}
+    <section class="explorer__panel explorer__panel--mempool">
+      <header class="explorer__panel-head">
+        <h2>Mempool</h2>
+        <p>${escapeHtml(pendingLabel)} · waiting for the next block
+          · <a href="#/mempool">Open full list</a></p>
+      </header>
+      ${mempoolTable(pendingTxs, { empty: "Mempool empty — no unconfirmed transactions." })}
+    </section>
     <div class="explorer__grid">
       <section class="explorer__panel">
         <header class="explorer__panel-head">
@@ -357,7 +402,7 @@ async function renderHome() {
       </section>
       <section class="explorer__panel">
         <header class="explorer__panel-head">
-          <h2>Transactions</h2>
+          <h2>Confirmed transactions</h2>
           <p>From recent blocks</p>
         </header>
         ${txsTable(recentTxs)}
@@ -370,6 +415,125 @@ async function renderHome() {
     </p>
   `;
   bindLookupForm();
+}
+
+async function renderMempool() {
+  const info = await rpcCall(rpcUrl, "guld_nodeInfo", []);
+  tipHeight = Number(info.height || 0);
+  const pool = await rpcCall(rpcUrl, "guld_getMempool", [100]);
+  const count = Number(pool.count ?? 0);
+  const weightUsed = pool.weight_used ?? "0";
+  const weightLimit = pool.weight_limit ?? "—";
+  const txs = Array.isArray(pool.txs) ? pool.txs : [];
+  setStatus(
+    "ok",
+    `Height ${tipHeight.toLocaleString()} · mempool ${count} · weight ${weightUsed} / ${weightLimit}`,
+  );
+
+  if (!(hostEl instanceof HTMLElement)) return;
+  hostEl.innerHTML = `
+    <nav class="explorer__crumb">
+      <a href="#/">Explorer</a>
+      <span aria-hidden="true">/</span>
+      <span>Mempool</span>
+    </nav>
+    <section class="explorer__panel">
+      <header class="explorer__panel-head">
+        <h2>Mempool</h2>
+        <p>${count} pending · weight ${escapeHtml(String(weightUsed))} / ${escapeHtml(String(weightLimit))}
+          ${pool.truncated ? " · truncated" : ""}</p>
+      </header>
+      <p class="explorer__meta">Unconfirmed txs sit here until a miner seals a block (testnet PoW can take ~1 minute).</p>
+      ${mempoolTable(txs, { empty: "Mempool empty." })}
+    </section>
+  `;
+}
+
+/**
+ * @param {Array<{ id?: string, inclusion_fee?: string, weight?: string, tx?: Record<string, unknown> }>} items
+ * @param {{ empty?: string }} [opts]
+ */
+function mempoolTable(items, opts = {}) {
+  if (!items.length) {
+    return `<p class="explorer__empty">${escapeHtml(opts.empty || "No pending transactions.")}</p>`;
+  }
+  const body = items
+    .map((row) => {
+      const tx = /** @type {Record<string, unknown>} */ (row.tx || {});
+      const s = summarizeTx(tx);
+      const id = String(row.id || "");
+      const fee = quantaToGuld(row.inclusion_fee || tx.inclusion_fee || "0");
+      return `<tr>
+        <td class="num">${pendingTxLink(id)}</td>
+        <td><a href="${pendingTxHref(id)}"><span class="tx-pill tx-pill--pending">${escapeHtml(s.type)}</span></a></td>
+        <td>${linkifyTxPrimary(tx, s.primary)}</td>
+        <td class="num">${escapeHtml(s.amount)}</td>
+        <td class="num">${escapeHtml(fee)}</td>
+      </tr>`;
+    })
+    .join("");
+  return `<div class="explorer__table-wrap"><table class="explorer-table">
+    <thead><tr>
+      <th class="num">Id</th><th>Type</th><th>Detail</th><th class="num">Amount</th><th class="num">Fee</th>
+    </tr></thead>
+    <tbody>${body}</tbody>
+  </table></div>`;
+}
+
+/** @param {string} id */
+async function renderPendingTx(id) {
+  const info = await rpcCall(rpcUrl, "guld_nodeInfo", []);
+  tipHeight = Number(info.height || 0);
+  const loc = await rpcCall(rpcUrl, "guld_getTransaction", [id]);
+
+  if (!(hostEl instanceof HTMLElement)) return;
+  if (!loc) {
+    setStatus("ok", `Height ${tipHeight.toLocaleString()} · tx not found`);
+    hostEl.innerHTML = `
+      <div class="explorer__empty">
+        <p>No mempool or chain tx for <code>${escapeHtml(shortHash(id, 14))}</code>.</p>
+        <p><a href="#/mempool">← Mempool</a></p>
+      </div>`;
+    return;
+  }
+
+  // Mined since lookup — bounce to confirmed route.
+  if (!loc.pending && loc.height != null && loc.index != null) {
+    location.hash = txHref(loc.height, loc.index);
+    return;
+  }
+
+  const tx = /** @type {Record<string, unknown>} */ (loc.tx || {});
+  const s = summarizeTx(tx);
+  setStatus("ok", `Height ${tipHeight.toLocaleString()} · pending ${shortHash(id, 10)}`);
+
+  const kvRows = txDetailRows(tx)
+    .map(([label, html]) => {
+      return `<div class="explorer-kv"><dt>${escapeHtml(label)}</dt><dd>${html}</dd></div>`;
+    })
+    .join("");
+
+  hostEl.innerHTML = `
+    <nav class="explorer__crumb">
+      <a href="#/">Explorer</a>
+      <span aria-hidden="true">/</span>
+      <a href="#/mempool">Mempool</a>
+      <span aria-hidden="true">/</span>
+      <span>Pending</span>
+    </nav>
+    <aside class="explorer__banner">
+      <p><strong>Pending</strong> — in the mempool, not yet in a block. Refresh after a miner seals.</p>
+    </aside>
+    <section class="explorer__panel">
+      <header class="explorer__panel-head">
+        <h2>${escapeHtml(s.type)}</h2>
+        <p><code title="${escapeHtml(String(loc.tx_id || id))}">${escapeHtml(shortHash(loc.tx_id || id, 14))}</code></p>
+      </header>
+      <p class="explorer__tx-summary">${linkifyTxPrimary(tx, s.primary)}
+        ${s.amount !== "—" ? ` · <strong>${escapeHtml(s.amount)}</strong> GULD` : ""}</p>
+      <dl class="explorer-kv-grid">${kvRows}</dl>
+    </section>
+  `;
 }
 
 /**
@@ -410,7 +574,7 @@ function blocksTable(rows) {
  */
 function txsTable(items) {
   if (!items.length) {
-    return `<p class="explorer__empty">No transactions in the recent window.</p>`;
+    return `<p class="explorer__empty">No confirmed transactions in the recent window.</p>`;
   }
   const body = items
     .map(({ height, index, tx }) => {

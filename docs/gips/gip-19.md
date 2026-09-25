@@ -114,8 +114,11 @@ Manual Refresh remains for snapshot re-sync; SSE is the default live path.
 ### Phase 1 — Stream + explorer mempool (this intent)
 
 - [ ] Spec 12: document SSE route + event set + mempool GET
+- [x] Spec 12: `GET /api/v1/chain/mempool` + `guld_getMempool` snapshot
 - [ ] `guld-node`: emit events on insert / remove / new head; serve snapshot
+- [x] `guld-node`: serve mempool snapshot (polling)
 - [ ] PWA `EventSource` client helper (shared `src/js/lib/…`)
+- [x] Explorer mempool view wired to snapshot (home panel + `#/mempool` + `#/tx/pending/<id>`)
 - [ ] Explorer mempool view wired to SSE + snapshot fallback
 - [ ] Rate limits / max subscribers per IP documented for operators
 

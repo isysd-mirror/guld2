@@ -205,6 +205,16 @@
   min-width: 0;
 }
 
+.explorer__panel--mempool {
+  margin-bottom: 1.5rem;
+}
+
+.explorer__panel--mempool .explorer__panel-head a {
+  color: inherit;
+  text-decoration: underline;
+  text-underline-offset: 0.15em;
+}
+
 .explorer__panel-head {
   display: flex;
   flex-wrap: wrap;
@@ -311,6 +321,11 @@
   background: color-mix(in srgb, var(--guld-primary) 12%, transparent);
   color: var(--guld-navy);
   white-space: nowrap;
+}
+
+.tx-pill--pending {
+  background: color-mix(in srgb, #c45c26 18%, transparent);
+  color: #8a3a12;
 }
 
 .explorer-inline-link {

@@ -41,7 +41,7 @@ Living feature matrix: **§3**.
 | **Login / settings** | `/login/`, `/settings/` | Unlock keyring; API base; OTC desk prefs; contacts |
 | **Gateway** | `/gateway/` | Optional paid registrar desk (spec 16) |
 | **Claim** | `/claim/` | `ClaimLegacy` for 1.0 holders |
-| **Explorer** | `/explorer/` | Blocks, txs, accounts (hash routes) |
+| **Explorer** | `/explorer/` | Blocks, confirmed txs, **mempool**, accounts (hash routes) |
 | **Docs / specs / whitepaper** | `/docs/`, `/specs/`, `/whitepaper/` | Markdown browsers |
 | **Software** | `/software/` | Package catalog + clone URLs |
 | **Browser extension** | `src/guld-extension/` | Same key; dapp site-login |
@@ -112,7 +112,8 @@ Status: **shipped** | **partial** | **missing** | **out of UI** (node/miner/ops 
 | Block by height | `guld_getBlockByNumber` | `#/block/<h>` | **shipped** |
 | Block by hash | `guld_getBlockByHash` | Deep link / search | **partial** (RPC shipped; explorer UI next) |
 | Tx by height:index | Block body | `#/tx/<h>/<i>` | **shipped** |
-| Tx by id | `guld_getTransaction` | Explorer search | **partial** (RPC shipped; explorer UI next) |
+| Tx by id | `guld_getTransaction` | Explorer search + `#/tx/pending/<id>` | **shipped** |
+| Mempool snapshot | `GET /chain/mempool` / `guld_getMempool` | Explorer home + `#/mempool` | **shipped** (SSE live stream later — GIP-19) |
 | Mempool fee hints / weight | `guld_getMempoolFeeHints`, `guld_estimateWeight` | Send fee defaults | **partial** (RPC shipped; fee UI next) |
 | Rules hash / schedule | `guld_getGuldRulesHash`, `guld_getRulesSchedule` | Ops / about (optional) | **later** |
 | Peer count / node info | `guld_peerCount`, `guld_nodeInfo` | Optional status chip | **partial** |
@@ -144,6 +145,7 @@ Logical ops: [`12-rpc.md`](12-rpc.md). Prefer HTTP where a route exists.
 | Paid desk | `GET /registrar`, gateway orders | — | Spec 16; out of consensus |
 | Testnet faucet | `GET/POST /faucet…` | — | Drip + free register; testnet only |
 | Explorer blocks | — (today) | `guld_getBlockByNumber` | MAY add HTTP later |
+| Explorer mempool | `GET /chain/mempool` | `guld_getMempool` | Pending txs until mined |
 | Explorer account | — or HTTP | `guld_getAccount` + activity | |
 | CAS (tools) | — | `guld_putObject` / `guld_getObject` | Not default wallet chrome |
 | Pubkey reverse lookup | — | `guld_findAccountsByPubkey` | Cosign invite / recovery |
@@ -210,11 +212,13 @@ Sponsored friend path remains available from Register and Settings (“Sponsor a
 
 | Route | Source | Shows |
 |-------|--------|--------|
-| `#/` | tip + recent blocks/txs | home |
+| `#/` | tip + recent blocks/txs + **mempool strip** | home |
+| `#/mempool` | `guld_getMempool` | full pending list |
+| `#/tx/pending/<id>` | `guld_getTransaction` (mempool) | pending tx detail |
 | `#/block/<height>` | `guld_getBlockByNumber` | header, miner, tx list |
 | `#/tx/<height>/<index>` | block body | type, amounts, names, memo, cosign count |
 | `#/account/<name>` | account + activity | balance, **kind**, **keys**, **threshold**, expiry, activity |
-| Search box | parse query | name → account; digits → block; `h:i` / `h/i` → tx |
+| Search box | parse query | name → account; digits → block; `h:i` / `h/i` → tx; `0x…` → mined or pending tx / block |
 
 Wherever a username, block height, or `height:index` locator is shown, link to the matching route. Prefix browse requires `guld_searchAccounts` — not Phase 1 of explorer.
 
