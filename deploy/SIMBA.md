@@ -81,8 +81,22 @@ Do **not** pass `--import-ledger` on Simba — the manifest is already in artifa
 
 | Host | Checkout | Datadir | Notes |
 |------|----------|---------|-------|
-| **guld.io** | `/home/guld/guld` | `/home/guld/guld-data/simba` | systemd user `guld` |
-| **dev laptop** | `/home/isysd/Projects/guld` | `./.guld-data/simba` | you |
+| **guld.io (this host)** | `/home/isysd/Projects/guld2` | `./.guld-data/simba` | **isysd user unit** [`guld-node-simba.user.service`](guld-node-simba.user.service) → `~/.config/systemd/user/guld-node-simba.service`; HTTP `:8088` (nginx) |
+| **guld.io (prod user)** | `/home/guld/guld` | `/home/guld/guld-data/simba` | system unit [`guld-node-simba.service`](guld-node-simba.service) |
+| **dev laptop** | checkout path | `./.guld-data/simba` | validating peer; optional `--miner` |
+
+### Enable Simba on this host (isysd)
+
+```bash
+cd /home/isysd/Projects/guld2
+cargo build -p guld-node
+install -m 0644 deploy/guld-node-simba.user.service ~/.config/systemd/user/guld-node-simba.service
+systemctl --user daemon-reload
+systemctl --user disable --now guld-node.service   # --dev playground; frees ports
+systemctl --user enable --now guld-node-simba.service
+# P2P (once):
+#   sudo ufw allow 4001/tcp comment 'guld-node simba p2p'
+```
 
 ## 1. Bootstrap on guld.io (first)
 

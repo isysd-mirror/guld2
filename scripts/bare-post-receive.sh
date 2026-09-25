@@ -98,14 +98,15 @@ fi
 export XDG_RUNTIME_DIR="${XDG_RUNTIME_DIR:-/run/user/$(id -u)}"
 export DBUS_SESSION_BUS_ADDRESS="${DBUS_SESSION_BUS_ADDRESS:-unix:path=${XDG_RUNTIME_DIR}/bus}"
 
-if systemctl --user try-restart guld-node.service; then
-  log "restarted guld-node.service"
+if systemctl --user try-restart guld-node-simba.service; then
+  log "restarted guld-node-simba.service"
 else
-  log "systemctl --user try-restart guld-node.service failed (is linger/session up?)"
+  log "systemctl --user try-restart guld-node-simba.service failed (is linger/session up?)"
 fi
 
-if systemctl --user list-unit-files guld-node-simba.service &>/dev/null; then
-  systemctl --user try-restart guld-node-simba.service 2>/dev/null || true
+# Legacy --dev unit (if still enabled on this host).
+if systemctl --user is-enabled guld-node.service &>/dev/null; then
+  systemctl --user try-restart guld-node.service 2>/dev/null || true
 fi
 
 exit 0

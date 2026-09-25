@@ -1,0 +1,37 @@
+# User unit — Simba testnet on this bootstrap host (isysd / Projects/guld2).
+# Install:
+#   install -m 0644 deploy/guld-node-simba.user.service ~/.config/systemd/user/guld-node-simba.service
+#   systemctl --user daemon-reload
+#   systemctl --user disable --now guld-node.service   # frees :8545 / :8088 from --dev
+#   systemctl --user enable --now guld-node-simba.service
+#
+# Optional: GULD_FAUCET_KEY in .env (never commit). P2P: sudo ufw allow 4001/tcp
+# System-wide User=guld template: deploy/guld-node-simba.service
+
+[Unit]
+Description=Guld node — Simba testnet (isysd Projects/guld2) chain_id 2
+Documentation=file:///home/isysd/Projects/guld2/deploy/SIMBA.md
+After=network.target
+
+[Service]
+Type=simple
+WorkingDirectory=/home/isysd/Projects/guld2
+EnvironmentFile=-/home/isysd/Projects/guld2/.env
+# --network simba applies data/networks/simba.json (chain_id 2, p2p 0.0.0.0:4001, auto_mine=false).
+# HTTP stays on :8088 so existing nginx proxy_pass keeps working (SIMBA.md system unit uses :8080).
+ExecStart=/home/isysd/Projects/guld2/target/debug/guld-node \
+  --network simba \
+  --datadir ./.guld-data/simba \
+  --rpc 0.0.0.0:8545 \
+  --http 127.0.0.1:8088 \
+  --http-static . \
+  --keys-pgp archives/keys-pgp \
+  --miner isysd \
+  --faucet-name isysd \
+  --registrar-payment-link default
+Restart=on-failure
+RestartSec=3
+LimitNOFILE=65535
+
+[Install]
+WantedBy=default.target

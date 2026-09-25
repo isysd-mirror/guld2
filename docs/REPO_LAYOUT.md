@@ -153,7 +153,7 @@ On this bootstrap host, each `repos/*.git` can run a shared hook that, on push t
 
 1. `git update-server-info` (dumb HTTP)
 2. Fast-forward the matching worktree (`guld2/` or `src/<name>/`) to that tip (skips if dirty)
-3. **Umbrella (`repos/guld.git`) only:** `submodule update`, `cargo build -p guld-node`, then `systemctl --user try-restart guld-node.service`
+3. **Umbrella (`repos/guld.git`) only:** `submodule update`, `cargo build -p guld-node`, then `systemctl --user try-restart guld-node-simba.service`
 
 Leaf package pushes sync their worktrees but do **not** rebuild or restart the node (avoids a restart storm). Push the umbrella last.
 
