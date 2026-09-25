@@ -144,6 +144,8 @@ Optional: after first start, put the peer id into [`data/p2p-bootnodes.json`](..
 
 Peers that check out the same repo already share `data/genesis/simba/`. Empty datadir + `--network simba` rebuilds the same height-0. After that, **P2P block sync** pulls the tip — no full-datadir tarball required for catch-up.
 
+**Mempool is in-memory** (not persisted). After restart a peer re-fetches pending txs from connected peers via `GetMempool` on Hello (guld-p2p ≥ this tree). Until guld.io runs that build, reconnecting laptops may show an empty mempool until new txs are submitted.
+
 (Legacy note: copying `blocks/0.json` + state from guld.io still works if you already forked an older genesis; prefer resetting to artifact genesis.)
 
 ## 3. Laptop peer (live, not `--dev`)
