@@ -42,7 +42,7 @@ cargo run -p guld-node -- \
   --repos sync \
   --dev \
   --keys-pgp archives/keys-pgp \
-  --import-ledger archives/ledger-guld/ledger-guld/guld-ledger-all.dat \
+  --import-ledger archives/guld-ledger-all.dat \
   --miner isysd
 
 # Desktop wallet (optional)
@@ -64,7 +64,7 @@ Legacy accounts JSON for the explorer:
 
 ```bash
 cargo run -p guld-legacy --bin guld-legacy-export -- \
-  --ledger archives/ledger-guld/ledger-guld/guld-ledger-all.dat \
+  --ledger archives/guld-ledger-all.dat \
   --keys-pgp archives/keys-pgp \
   --out data/legacy-accounts.json
 ```

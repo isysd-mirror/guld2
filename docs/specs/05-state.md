@@ -28,8 +28,8 @@ Each account leaf MUST include **`nonce`** (monotonic `u64`) and **`master_hash`
 fn apply_block(state: &mut State, block: &Block) -> Result<NewRoots, Error> {
   // 1. verify header links + PoW (consensus crate)
   // 2. for tx in block.txs: validate + apply
-  // 3. apply coinbase: miner_reward = subsidy(height) + sum(inclusion_fees)
-  // 4. registration protocol fee already removed from payer during Register*
+  // 3. schedule Σ registration_fee into 8-block vest from this height
+  // 4. apply coinbase: subsidy(height) + sum(inclusion_fees) + vested_at(height)
   // 5. compute state_root, tx_root, receipt_root
 }
 ```
@@ -63,7 +63,7 @@ Genesis MUST:
 
 1. Create account `guld` with initial `master_hash` pointing at genesis protocol tree.  
 2. Apply the 1.0 import manifest ([`15-ledger-import.md`](15-ledger-import.md)): every positive member `name:Assets` as a **legacy-locked** balance; **omit** ERC20 protocol buckets; pin `import_manifest_hash`. Supply **x ≈ 959,947.20 GULD** (working figure).  
-3. Set `chain_id`, initial weight params, fee params, subsidy schedule digest (**100%→4%/20y**, 10-min blocks), **10** decimal places.
+3. Set `chain_id`, initial weight params, fee params, subsidy schedule digest (**(2/3)^(y−1)** floored at **4%**, 10-min blocks), **10** decimal places.
 
 Spend from imported names is disabled until `ClaimLegacy`.
 

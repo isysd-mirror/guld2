@@ -27,13 +27,18 @@ Extend the canonical manifest (today: `rules/manifest.v1.json`) with activation 
 GuldRulesManifest {
   version: u32,                    // bundle format version
   activation_height: u64,          // first height that MUST use this digest in headers
+                                    // omit / 0 for genesis (field skipped in canonical JSON)
   // … existing fee / schema / proof-kind fields …
-  previous_rules_hash: Hash32,     // optional link for explorers
+  previous_rules_hash: Hash32,     // optional link; prior digest active until H−1
   upgrade_class: "soft" | "hard",  // advisory for operators; see §4
 }
 ```
 
 `guld_rules_hash = tagged_hash("guld/rules_bundle/v1", canonical_manifest_bytes)`.
+
+**Schedule:** nodes build `RulesSchedule` from the tip manifest: if `previous_rules_hash` is set, entries are `(0, previous)` and `(activation_height, tip_digest)`; otherwise a single entry at `activation_height` (usually 0). Headers at height `h` MUST carry `schedule.hash_at(h)`. Hello MAY accept any digest present in the local schedule (dual-hash awareness during the publish→activate window).
+
+RPC: `guld_getGuldRulesHash` returns the digest for the **current tip height**; `guld_getRulesSchedule` lists schedule entries.
 
 ## 4. Soft vs hard
 

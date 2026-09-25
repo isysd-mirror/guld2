@@ -27,7 +27,7 @@ Each subaccount is a first-class on-chain account (own keys, nonce, balance, `ma
 | Fees | **Fixed** (see below); no year schedule / supply leg for registration |
 | Close | Later (not v1) |
 
-### Fixed registration fees (→ miner)
+### Fixed registration fees (→ miners, 8-block vest)
 
 | Kind | Fee |
 |------|-----|
@@ -70,4 +70,4 @@ Parent pays `F_sub + endowment + inclusion_fee`; dual-sig (parent spend + new `k
 - [x] Specs updated (02 / 03 / 07 / 16 + whitepaper §8.7)
 - [x] Node applies `RegisterSubaccount`; Transfer to/from `parent.label` works
 - [x] Live-cap enforced; fee paid to miner
-- [ ] Wallet can create a sub and move funds parent ↔ sub
+- [x] Wallet can create a sub and move funds parent ↔ sub

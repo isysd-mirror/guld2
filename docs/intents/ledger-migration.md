@@ -39,7 +39,7 @@ Optional later: bridges to external tokens for settlement, after the native ledg
 | Positive holders | ≈ 2,217 |
 | Max decimal places in amounts | **10** → freeze 2.0 decimals at 10 |
 | Block time | **10 minutes** |
-| Inflation | geometric **100% → 4%** over 20 years, then **4%** |
+| Inflation | `max(0.04, (2/3)^(y-1))` — year 1 **100%**, then two-thirds decay to **4%** |
 
 ## Open research questions
 

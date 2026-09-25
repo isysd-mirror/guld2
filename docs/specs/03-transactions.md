@@ -81,7 +81,7 @@ RegisterUsername {
 - Verify `payer_signature` under payer spend key over `guld/register/v1` (intent fields MUST match).  
 - `payer.balance >= F_user(L) + endowment + inclusion_fee` where `L = label_letter_count(name)` ([`07-fees-and-tokenomics.md`](07-fees-and-tokenomics.md) §3.1).  
 - Intent `registration_fee` in sponsored flow MUST equal `F_user(L)` at apply height.  
-- Deduct protocol fee (miner); transfer `endowment`; pay `inclusion_fee` to coinbase; create account; increment payer nonce.
+- Deduct protocol fee (vested to miners over 8 blocks); transfer `endowment`; pay `inclusion_fee` to coinbase; create account; increment payer nonce.
 - `name` MUST NOT contain `.` (subaccounts use `RegisterSubaccount`).
 
 ### 3.2 `RegisterGroup`
@@ -89,7 +89,7 @@ RegisterUsername {
 Same as username, plus:
 
 - `keys.len() = n >= 1`  
-- `L = label_letter_count(name)`; protocol fee `F_group(L, n) = F_user(L) × (2 + n)` GULD (→ miner)  
+- `L = label_letter_count(name)`; protocol fee `F_group(L, n) = F_user(L) × (2 + n)` GULD (→ miners, 8-block vest)  
 - `kind = group`  
 - `name` MUST NOT contain `.`  
 - Balance check: `payer.balance >= F_group(L, n) + endowment + inclusion_fee`
@@ -155,9 +155,9 @@ SettleRegistration { name: Name }
 
 **Effects:**
 
-- If `balance >= F_*(kind, name)`: debit renewal fee → miner (`F_user(L)` for individuals/groups at settle; `F_sub` for subaccounts);  
+- If `balance >= F_*(kind, name)`: debit renewal fee → vesting queue (`F_user(L)` for individuals/groups at settle; `F_sub` for subaccounts);  
   `expires_at_height = max(height, expires_at_height) + BLOCKS_PER_YEAR`; `nonce++`.  
-- Else: leftover balance → miner; **delete** account; if root, cascade-delete live subs (their balances → miner). Name becomes registrable again.
+- Else: leftover balance → vesting queue; **delete** account; if root, cascade-delete live subs (their balances → vesting queue). Name becomes registrable again.
 
 ### 3.4 `UpdateMaster`
 
@@ -223,7 +223,7 @@ For each tx, `guld-state` + `guld-crypto` MUST:
 2. Compute weight; check `inclusion_fee` vs relay policy (mempool)  
 3. Verify auth  
 4. Apply state transition or reject  
-5. For `Register*`, deduct protocol fee (miner coinbase)  
+5. For `Register*`, deduct protocol fee (vested miner coinbase)  
 
 ## 5. Component API
 

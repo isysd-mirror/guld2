@@ -4,7 +4,7 @@
 **Whitepaper:** §3.3, §8.6  
 **Related:** [`02-identity-and-accounts.md`](02-identity-and-accounts.md), [`03-transactions.md`](03-transactions.md), [`05-state.md`](05-state.md), [`07-fees-and-tokenomics.md`](07-fees-and-tokenomics.md)  
 **Archive SoT:**
-- Balances: `archives/ledger-guld/` (per-user `*.dat` journals; concatenated working copy `guld-ledger-all.dat`)
+- Balances: `archives/ledger-guld/` (per-user `*.dat` journals; concatenated working copy `archives/guld-ledger-all.dat`)
 - PGP binding set: `archives/keys-pgp/<name>/<FINGERPRINT>.asc` (TigoCTM / 1.0 public keys)
 
 ## 1. Intent

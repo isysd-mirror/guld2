@@ -37,8 +37,10 @@ A block is valid if:
 3. Timestamps within drift bounds (**TBD**).  
 4. All txs valid and apply cleanly.  
 5. Roots match post-state.  
-6. Coinbase amount = `subsidy(height) + inclusion_fees`.  
+6. Coinbase amount = `subsidy(height) + inclusion_fees + vested_registration_fees(height)`.  
 7. `guld_rules_hash` matches the rule bundle active at this height ([`17-protocol-upgrades.md`](17-protocol-upgrades.md)).
+
+Registration/settle protocol fees vest over **8** blocks ([`07-fees-and-tokenomics.md`](07-fees-and-tokenomics.md) §3).
 
 ## 2a. Rules hash and upgrades
 
@@ -52,7 +54,7 @@ At height `h`, the only valid header digest is the rule bundle whose `activation
 
 See [`07-fees-and-tokenomics.md`](07-fees-and-tokenomics.md). Function `subsidy(height) -> Amount` MUST be pure and consensus-critical.
 
-**Locked draft timing:** `TARGET_BLOCK_INTERVAL = 600` s (10 minutes); `BLOCKS_PER_YEAR = 52_560`. Inflation `i(y)` geometric **100% → 4%** over 20 years, then **4%** (whitepaper §8.6).
+**Locked draft timing:** `TARGET_BLOCK_INTERVAL = 600` s (10 minutes); `BLOCKS_PER_YEAR = 52_560`. Inflation `i(y) = max(0.04, (2/3)^(y-1))` — year 1 **100%**, then two-thirds decay to a **4%** floor (whitepaper §8.6).
 
 ## 5. Component API — `guld-consensus`
 

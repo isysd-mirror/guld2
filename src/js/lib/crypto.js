@@ -99,6 +99,64 @@ function withMemo(parts, memoBytes) {
   return concat(...parts, u16Be(memoBytes.length), memoBytes);
 }
 
+/** Subaccount key consent (`guld/register_sub/intent/v1`). */
+export async function registerSubIntentMessage(
+  fullName,
+  keysHex,
+  threshold,
+  initialMasterHex,
+  endowmentQuanta,
+  regFeeQuanta,
+  feeQuanta,
+  memoBytes,
+) {
+  const payload = withMemo(
+    [
+      new TextEncoder().encode(fullName),
+      new Uint8Array([0]),
+      u16Be(threshold),
+      fromHex(initialMasterHex),
+      u128Be(endowmentQuanta),
+      u128Be(regFeeQuanta),
+      u128Be(feeQuanta),
+      ...keysHex.map((h) => fromHex(h)),
+    ],
+    memoBytes,
+  );
+  return taggedHash("guld/register_sub/intent/v1", payload);
+}
+
+/** Parent spend for subaccount (`guld/register_sub/v1`). */
+export async function registerSubMessage(
+  parentAccountIdHex,
+  parentNonce,
+  fullName,
+  keysHex,
+  threshold,
+  initialMasterHex,
+  endowmentQuanta,
+  regFeeQuanta,
+  feeQuanta,
+  memoBytes,
+) {
+  const payload = withMemo(
+    [
+      fromHex(parentAccountIdHex),
+      u64Be(parentNonce),
+      new TextEncoder().encode(fullName),
+      new Uint8Array([0]),
+      u16Be(threshold),
+      fromHex(initialMasterHex),
+      u128Be(endowmentQuanta),
+      u128Be(regFeeQuanta),
+      u128Be(feeQuanta),
+      ...keysHex.map((h) => fromHex(h)),
+    ],
+    memoBytes,
+  );
+  return taggedHash("guld/register_sub/v1", payload);
+}
+
 /** Transfer spend message (`guld/transfer/v1`). */
 export async function transferMessage(
   accountIdHex,

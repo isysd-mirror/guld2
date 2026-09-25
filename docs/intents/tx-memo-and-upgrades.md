@@ -1,6 +1,6 @@
 # Intent: Tx memo + protocol upgrade activation
 
-Status: accepted · memo implemented (activation_height still follow-up)  
+Status: accepted · memo + activation_height implemented  
 **Related:** [`../specs/03-transactions.md`](../specs/03-transactions.md), [`../specs/17-protocol-upgrades.md`](../specs/17-protocol-upgrades.md), [`../specs/07-fees-and-tokenomics.md`](../specs/07-fees-and-tokenomics.md)
 
 ## Goal
@@ -29,7 +29,7 @@ See [`17-protocol-upgrades.md`](../specs/17-protocol-upgrades.md): `activation_h
 
 - [x] Rust: optional `memo` on `Tx` variants + message digests + weight  
 - [x] Wallet / claim / registrar: pass-through memo UI  
-- [ ] Rule manifest: `activation_height` field + node dual-hash awareness  
+- [x] Rule manifest: `activation_height` field + node dual-hash awareness  
 - [x] Spec index / whitepaper cross-links (this intent)
 
 ## Non-goals

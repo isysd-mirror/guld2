@@ -9,6 +9,8 @@ import {
   rpcCall,
   shortHash,
   summarizeTx,
+  shortHash,
+  summarizeActivity,
 } from "./lib/rpc.js";
 
 const PAGE_SIZE = 20;
@@ -43,7 +45,7 @@ refreshBtn?.addEventListener("click", () => {
 window.addEventListener("hashchange", () => route());
 
 /**
- * @returns {{ view: "home" } | { view: "block", height: number }}
+ * @returns {{ view: "home" } | { view: "block", height: number } | { view: "account", name: string }}
  */
 function parseRoute() {
   const raw = (location.hash || "#/").replace(/^#/, "") || "/";
@@ -52,7 +54,45 @@ function parseRoute() {
     const height = Number(parts[1]);
     if (Number.isFinite(height) && height >= 0) return { view: "block", height };
   }
+  if (parts[0] === "account" && parts[1]) {
+    return { view: "account", name: decodeURIComponent(parts[1]).toLowerCase() };
+  }
   return { view: "home" };
+}
+
+/** @param {string} name */
+function accountHref(name) {
+  return `#/account/${encodeURIComponent(String(name || "").toLowerCase())}`;
+}
+
+/** @param {string} name */
+function nameLink(name) {
+  const n = String(name || "").trim();
+  if (!n || n === "—") return escapeHtml(n || "—");
+  return `<a href="${accountHref(n)}"><code>${escapeHtml(n)}</code></a>`;
+}
+
+/**
+ * Link known name fields inside a summarizeTx primary string.
+ * @param {Record<string, unknown>} tx
+ * @param {string} primary
+ */
+function linkifyTxPrimary(tx, primary) {
+  const type = String(tx.type || "");
+  if (type === "transfer") {
+    return `${nameLink(/** @type {string} */ (tx.from))} → ${nameLink(/** @type {string} */ (tx.to))}`;
+  }
+  if (type === "register_username" || type === "register_group") {
+    return `${nameLink(/** @type {string} */ (tx.payer))} → ${nameLink(/** @type {string} */ (tx.name))}`;
+  }
+  if (type === "register_subaccount") {
+    const full = `${tx.parent}.${tx.label}`;
+    return nameLink(full);
+  }
+  if (type === "claim_legacy" || type === "update_master" || type === "rotate_keys") {
+    return nameLink(/** @type {string} */ (tx.name));
+  }
+  return escapeHtml(primary);
 }
 
 async function route() {
@@ -63,6 +103,8 @@ async function route() {
   try {
     if (r.view === "block") {
       await renderBlock(r.height);
+    } else if (r.view === "account") {
+      await renderAccount(r.name);
     } else {
       await renderHome();
     }
@@ -134,6 +176,15 @@ async function renderHome() {
   const older = to > 0;
 
   hostEl.innerHTML = `
+    <div class="explorer__lookup">
+      <form data-explorer-lookup>
+        <label>
+          Look up name
+          <input name="name" type="text" spellcheck="false" autocomplete="off" placeholder="alice" required />
+        </label>
+        <button type="submit" class="btn btn--outline">Open</button>
+      </form>
+    </div>
     <div class="explorer__grid">
       <section class="explorer__panel">
         <header class="explorer__panel-head">
@@ -157,6 +208,16 @@ async function renderHome() {
       <a href="/explorer/legacy/">legacy details</a>.
     </p>
   `;
+
+  hostEl.querySelector("[data-explorer-lookup]")?.addEventListener("submit", (ev) => {
+    ev.preventDefault();
+    const fd = new FormData(/** @type {HTMLFormElement} */ (ev.target));
+    const name = String(fd.get("name") || "")
+      .trim()
+      .toLowerCase();
+    if (!name) return;
+    location.hash = `#/account/${encodeURIComponent(name)}`;
+  });
 }
 
 /**
@@ -178,7 +239,7 @@ function blocksTable(rows) {
       return `<tr>
         <td class="num"><a href="#/block/${height}">${height}</a>${legacy}</td>
         <td>${escapeHtml(formatTime(h.timestamp))}</td>
-        <td><code>${escapeHtml(h.miner || "—")}</code></td>
+        <td>${nameLink(h.miner || "—")}</td>
         <td class="num">${txCount}</td>
         <td class="num">${escapeHtml(fees)}</td>
       </tr>`;
@@ -205,7 +266,7 @@ function txsTable(items) {
       return `<tr>
         <td class="num"><a href="#/block/${height}">${height}</a>:${index}</td>
         <td><span class="tx-pill">${escapeHtml(s.type)}</span></td>
-        <td>${escapeHtml(s.primary)}</td>
+        <td>${linkifyTxPrimary(tx, s.primary)}</td>
         <td class="num">${escapeHtml(s.amount)}</td>
       </tr>`;
     })
@@ -252,6 +313,9 @@ async function renderBlock(height) {
 
   const dl = fields
     .map(([k, v, trunc]) => {
+      if (k === "Miner") {
+        return `<div class="explorer-kv"><dt>${escapeHtml(k)}</dt><dd>${nameLink(v)}</dd></div>`;
+      }
       const shown = trunc ? shortHash(v, 14) : v;
       return `<div class="explorer-kv"><dt>${escapeHtml(k)}</dt><dd><code title="${escapeHtml(v)}">${escapeHtml(shown)}</code></dd></div>`;
     })
@@ -265,7 +329,7 @@ async function renderBlock(height) {
           return `<tr>
             <td class="num">${index}</td>
             <td><span class="tx-pill">${escapeHtml(s.type)}</span></td>
-            <td>${escapeHtml(s.primary)}</td>
+            <td>${linkifyTxPrimary(tx, s.primary)}</td>
             <td class="num">${escapeHtml(s.amount)}</td>
             <td class="num">${escapeHtml(fee)}</td>
           </tr>`;
@@ -310,6 +374,108 @@ async function renderBlock(height) {
               <tbody>${txRows}</tbody>
             </table></div>`
           : `<p class="explorer__empty">${isGenesis ? "Genesis has no body txs — see legacy import details for account balances." : "Empty block."}</p>`
+      }
+    </section>
+  `;
+}
+
+/** @param {string} name */
+async function renderAccount(name) {
+  const info = await rpcCall(rpcUrl, "guld_nodeInfo", []);
+  tipHeight = Number(info.height || 0);
+
+  let account = null;
+  try {
+    account = await rpcCall(rpcUrl, "guld_getAccount", [name]);
+  } catch (err) {
+    // null / missing handled below
+    console.warn("getAccount", err);
+  }
+
+  if (!(hostEl instanceof HTMLElement)) return;
+
+  if (!account) {
+    setStatus("ok", `Height ${tipHeight.toLocaleString()} · name not found`);
+    hostEl.innerHTML = `
+      <nav class="explorer__crumb">
+        <a href="#/">Explorer</a>
+        <span aria-hidden="true">/</span>
+        <span>${escapeHtml(name)}</span>
+      </nav>
+      <div class="explorer__empty">
+        <p>No account named <code>${escapeHtml(name)}</code> on this chain.</p>
+        <p><a href="#/">← Back</a></p>
+      </div>`;
+    return;
+  }
+
+  const balance = await rpcCall(rpcUrl, "guld_getBalance", [name]);
+  const activity = await rpcCall(rpcUrl, "guld_getAccountActivity", [name, 25]);
+  const balanceGuld = quantaToGuld(balance || "0");
+  setStatus("ok", `Height ${tipHeight.toLocaleString()} · ${name}`);
+
+  const keys = Array.isArray(account.keys)
+    ? account.keys.map((k) => `<li><code>${escapeHtml(shortHash(String(k), 12))}</code></li>`).join("")
+    : "";
+  const legacy = account.legacy
+    ? `<div class="explorer-kv"><dt>Legacy</dt><dd><code>${escapeHtml(JSON.stringify(account.legacy))}</code></dd></div>`
+    : account.legacy_locked
+      ? `<div class="explorer-kv"><dt>Legacy</dt><dd>locked</dd></div>`
+      : "";
+  const expires =
+    account.expires_at_height != null && String(account.expires_at_height) !== "18446744073709551615"
+      ? `<div class="explorer-kv"><dt>Expires at height</dt><dd class="num">${escapeHtml(String(account.expires_at_height))}</dd></div>`
+      : "";
+
+  const items = Array.isArray(activity) ? activity : [];
+  const actRows = items.length
+    ? items
+        .map((row) => {
+          const s = summarizeActivity(/** @type {Record<string, unknown>} */ (row));
+          const when = row.height != null ? `h${row.height}` : formatTime(row.timestamp);
+          return `<tr>
+            <td><span class="tx-pill">${escapeHtml(s.type)}</span></td>
+            <td>${escapeHtml(s.primary)}</td>
+            <td class="num">${escapeHtml(s.amount)}</td>
+            <td class="num">${escapeHtml(String(when))}</td>
+          </tr>`;
+        })
+        .join("")
+    : "";
+
+  hostEl.innerHTML = `
+    <nav class="explorer__crumb">
+      <a href="#/">Explorer</a>
+      <span aria-hidden="true">/</span>
+      <span>${escapeHtml(name)}</span>
+    </nav>
+    <section class="explorer__panel">
+      <header class="explorer__panel-head">
+        <h2>${escapeHtml(name)}</h2>
+        <p>${escapeHtml(String(account.kind || "account"))}</p>
+      </header>
+      <p class="explorer__balance"><strong>${escapeHtml(balanceGuld)}</strong> GULD</p>
+      <dl class="explorer-kv-grid">
+        <div class="explorer-kv"><dt>Threshold</dt><dd class="num">${escapeHtml(String(account.threshold ?? "—"))}</dd></div>
+        <div class="explorer-kv"><dt>Nonce</dt><dd class="num">${escapeHtml(String(account.nonce ?? "—"))}</dd></div>
+        <div class="explorer-kv"><dt>Account id</dt><dd><code title="${escapeHtml(String(account.account_id || ""))}">${escapeHtml(shortHash(String(account.account_id || "—"), 14))}</code></dd></div>
+        <div class="explorer-kv"><dt>Master hash</dt><dd><code title="${escapeHtml(String(account.master_hash || ""))}">${escapeHtml(shortHash(String(account.master_hash || "—"), 14))}</code></dd></div>
+        ${expires}
+        ${legacy}
+        ${account.parent ? `<div class="explorer-kv"><dt>Parent</dt><dd>${nameLink(String(account.parent))}</dd></div>` : ""}
+      </dl>
+      ${keys ? `<h3 class="explorer__subhead">Keys</h3><ul class="explorer__keys">${keys}</ul>` : ""}
+      <p class="explorer__foot-note"><a href="/wallet/#/account/${encodeURIComponent(name)}">Open in wallet</a></p>
+    </section>
+    <section class="explorer__panel">
+      <header class="explorer__panel-head"><h2>Recent activity</h2></header>
+      ${
+        actRows
+          ? `<div class="explorer__table-wrap"><table class="explorer-table">
+              <thead><tr><th>Type</th><th>Detail</th><th class="num">Amount</th><th class="num">When</th></tr></thead>
+              <tbody>${actRows}</tbody>
+            </table></div>`
+          : `<p class="explorer__empty">No activity yet.</p>`
       }
     </section>
   `;

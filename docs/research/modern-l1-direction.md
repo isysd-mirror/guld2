@@ -58,9 +58,9 @@ username  (registered; paid F_user(L) or F_group(L, n))
 - Advancing the account = `UpdateMaster` with **threshold cosignatures** and a weight-priced miner fee.
 - Leaf/CAS bytes are opaque; encryption (if any) is **leaf owner choice** — not a consensus primitive. **AES-256** is reserved for **wallet key encryption at rest** in reference clients.
 
-**Registration fees:** letter-based **`F_user(L)`**; **`F_group(L, n) = F_user(L) × (2 + n)`** because signer count drives proof complexity. **`F_*` go to the block miner** (anti-spam lottery). Inclusion fees remain weight-priced to miners.
+**Registration fees:** letter-based **`F_user(L)`**; **`F_group(L, n) = F_user(L) × (2 + n)`** because signer count drives proof complexity. **`F_*` vest to miners over 8 blocks** (anti-spam lottery without same-block self-deal). Inclusion fees remain weight-priced to miners.
 
-**Supply:** genesis pre-mine **x ≈ 9.60×10⁵ GULD** from 1.0 member `*:Assets` (**ERC20 omitted**); **10** decimals; balances locked until **key upgrade**. Block time **10 minutes**. Issuance: geometric inflation **100% → 4%** over **20** years, then **4%** forever. See whitepaper §8.6 and [`../specs/07-fees-and-tokenomics.md`](../specs/07-fees-and-tokenomics.md).
+**Supply:** genesis pre-mine **x ≈ 9.60×10⁵ GULD** from 1.0 member `*:Assets` (**ERC20 omitted**); **10** decimals; balances locked until **key upgrade**. Block time **10 minutes**. Issuance: `i(y) = max(0.04, (2/3)^(y-1))` (year 1 **100%**, cools fast, **4%** from year 9). See whitepaper §8.6 and [`../specs/07-fees-and-tokenomics.md`](../specs/07-fees-and-tokenomics.md).
 
 **Reserved `guld`:** network-owned account; leaves hold node/core/libs/clients/rules. Every full node **must fully clone** the current `guld` home. The open-source git tree at `guld.io/repos/guld.git` is operator-maintained software — not a consensus clone obligation. See whitepaper §3.5.
 

@@ -124,7 +124,7 @@ Only on **first** empty datadir create (before height advances):
 ```bash
 # add to ExecStart / laptop command — once at genesis
 --keys-pgp archives/keys-pgp \
---import-ledger archives/ledger-guld/ledger-guld/guld-ledger-all.dat
+--import-ledger archives/guld-ledger-all.dat
 ```
 
 If the datadir already exists, those flags are ignored for import (height ≠ 0).

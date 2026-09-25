@@ -1,7 +1,40 @@
-.explorer {
-  padding: clamp(1.5rem, 4vw, 2.5rem);
-  max-width: 72rem;
-  margin: 0 auto;
+.explorer__lookup {
+  margin: 0 0 1.25rem;
+}
+
+.explorer__lookup form {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.75rem;
+  align-items: flex-end;
+}
+
+.explorer__lookup label {
+  display: flex;
+  flex-direction: column;
+  gap: 0.25rem;
+  font-size: 0.85rem;
+}
+
+.explorer__lookup input {
+  min-width: 12rem;
+  padding: 0.4rem 0.55rem;
+}
+
+.explorer__balance {
+  font-size: 1.35rem;
+  margin: 0 0 1rem;
+}
+
+.explorer__subhead {
+  margin: 1rem 0 0.35rem;
+  font-size: 0.95rem;
+}
+
+.explorer__keys {
+  margin: 0;
+  padding-left: 1.2rem;
+  font-size: 0.85rem;
 }
 
 .explorer__head h1 {

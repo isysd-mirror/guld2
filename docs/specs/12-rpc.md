@@ -66,7 +66,8 @@ See [`../intents/bootstrap-gateway-registrar.md`](../intents/bootstrap-gateway-r
 | `guld_getBlockByNumber` | `[height, fullTxs]` | Block object |
 | `guld_getBlockByHash` | `[hash, fullTxs]` | Block object |
 | `guld_syncing` | [] | `false` \| sync status |
-| `guld_getGuldRulesHash` | [] | `Hash` active rules |
+| `guld_getGuldRulesHash` | [] | `Hash` rules digest active at tip height |
+| `guld_getRulesSchedule` | [] | `{ entries: [{ activation_height, guld_rules_hash }] }` |
 | `guld_ready` | [] | bool |
 
 ### Accounts / state

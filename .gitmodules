@@ -35,3 +35,9 @@
 [submodule "guld-p2p"]
 	path = src/guld-p2p
 	url = https://guld.io/repos/guld-p2p.git
+[submodule "archives/ledger-guld"]
+	path = archives/ledger-guld
+	url = https://github.com/guldcoin/ledger-guld.git
+[submodule "archives/keys-pgp"]
+	path = archives/keys-pgp
+	url = https://github.com/guldcoin/keys-pgp.git

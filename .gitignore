@@ -1,5 +1,7 @@
-# Archives (local shelves — never commit)
-archives/
+# Generated ledger import artifacts (not upstream)
+archives/guld-ledger-all.dat
+archives/guld-account-status.txt
+
 experiment-Q1-2026
 legacy-guld
 github-mirror

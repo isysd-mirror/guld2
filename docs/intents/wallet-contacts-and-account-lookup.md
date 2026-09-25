@@ -58,11 +58,11 @@ Everyday send stays **name-to-name**. QR remains for one-time handshakes (sponso
 ## Acceptance (Phase 1)
 
 - [ ] Spec 14 documents contacts, recent recipients, explorer account route
-- [ ] Explorer renders live account page for exact name via RPC
-- [ ] Wallet Send shows dropdown: favorites → recent → type name
-- [ ] Aliases display in Send UI; chain name used for tx
-- [ ] Contacts + recent persist in keyring; survive restart
-- [ ] Successful send appends/updates recent list
+- [x] Explorer renders live account page for exact name via RPC
+- [x] Wallet Send shows dropdown: favorites → recent → type name
+- [x] Aliases display in Send UI; chain name used for tx
+- [x] Contacts + recent persist in keyring; survive restart
+- [x] Successful send appends/updates recent list
 
 ## Acceptance (Phase 2)
 

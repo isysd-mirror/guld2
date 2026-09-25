@@ -2,6 +2,17 @@
 
 ## [Unreleased]
 
+### Added
+
+- `archives/ledger-guld` and `archives/keys-pgp` as git submodules from `github.com/guldcoin/`
+- Registration-fee vesting over 8 blocks; height-activated `RulesSchedule` / `activation_height`
+- Explorer account lookup (`#/account/<name>`); wallet subaccount create UI
+
+### Changed
+
+- Inflation `i(y) = max(0.04, (2/3)^(y-1))` (cooler early years; 4% from year 9)
+- Flattened archive import paths (`archives/guld-ledger-all.dat`)
+
 ### Removed
 
 - `guld-api` submodule, catalog entries, and `deploy/guld-api.service` — HTTP surface is `guld-node --http` only

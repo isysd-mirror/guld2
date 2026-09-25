@@ -4,7 +4,12 @@ import { getLocalIdentity, LOGIN_HREF, REGISTER_HREF } from "./lib/auth.js";
 import { listSendSuggestions, recordSend, saveContact } from "./lib/contacts.js";
 import {
   cosignMessage,
+  DEFAULT_MASTER_HASH,
   fromHex,
+  pubkeyHex,
+  randomPrivateKey,
+  registerSubIntentMessage,
+  registerSubMessage,
   rotateKeysIntentMessage,
   rotateKeysMessage,
   sign,
@@ -212,6 +217,20 @@ async function route() {
               <button type="submit" class="btn btn--outline">Submit RotateKeys</button>
             </form>
           </details>
+          ${
+            kind === "individual"
+              ? `<details style="margin-top:0.75rem">
+            <summary>Create subaccount</summary>
+            <form class="wallet__form" data-register-sub-form>
+              <label>Label (e.g. mobile) <input name="label" type="text" spellcheck="false" pattern="[a-z0-9]+(-[a-z0-9]+)*" required placeholder="mobile" /></label>
+              <label>Endowment (GULD) <input name="endowment" type="text" inputmode="decimal" value="0.1" /></label>
+              <label>Inclusion fee (GULD) <input name="fee" type="text" value="0.0000000001" /></label>
+              <p class="wallet__meta">Creates <code>${escapeHtml(r.name)}.&lt;label&gt;</code> with a new local key (F_sub ≈ 0.1 GULD).</p>
+              <button type="submit" class="btn btn--outline">Register subaccount</button>
+            </form>
+          </details>`
+              : ""
+          }
           <details style="margin-top:0.75rem">
             <summary>Export private key</summary>
             ${renderExportKeySection(r.name, { id: `wallet-export-${r.name}` })}
@@ -370,6 +389,78 @@ async function route() {
         }
         setStatus("RotateKeys submitted — local key updated", "ok");
         route();
+      } catch (err) {
+        setStatus(/** @type {Error} */ (err).message, "error");
+      }
+    });
+
+    hostEl.querySelector("[data-register-sub-form]")?.addEventListener("submit", async (ev) => {
+      ev.preventDefault();
+      const fd = new FormData(/** @type {HTMLFormElement} */ (ev.target));
+      const label = String(fd.get("label") || "")
+        .trim()
+        .toLowerCase();
+      if (!/^[a-z0-9]+(-[a-z0-9]+)*$/.test(label)) {
+        setStatus("Invalid label (use lowercase letters, digits, hyphens)", "error");
+        return;
+      }
+      const fullName = `${r.name}.${label}`;
+      const endowmentQ = guldToQuanta(String(fd.get("endowment") || "0"));
+      const feeQ = guldToQuanta(String(fd.get("fee") || "0"));
+      const privHex = keyring.getPriv(r.name);
+      if (!privHex) return setStatus("Unlock keyring first", "error");
+      setStatus("Registering subaccount…", "pending");
+      try {
+        const feeEst = await apiGet(
+          apiBase,
+          `/chain/fees/registration?name=${encodeURIComponent(fullName)}&kind=subaccount&nKeys=1`,
+        );
+        const regFeeQ = String(feeEst.fee ?? feeEst.quanta ?? "0");
+        const subPriv = await randomPrivateKey();
+        const subPub = await pubkeyHex(subPriv);
+        const intent = await registerSubIntentMessage(
+          fullName,
+          [subPub],
+          1,
+          DEFAULT_MASTER_HASH,
+          endowmentQ,
+          regFeeQ,
+          feeQ,
+        );
+        const subSig = await sign(intent, subPriv);
+        const parentMsg = await registerSubMessage(
+          account.account_id,
+          Number(account.nonce),
+          fullName,
+          [subPub],
+          1,
+          DEFAULT_MASTER_HASH,
+          endowmentQ,
+          regFeeQ,
+          feeQ,
+        );
+        const parentSig = await sign(parentMsg, fromHex(privHex));
+        await apiPost(apiBase, "/chain/transactions", {
+          type: "register_subaccount",
+          parent: r.name,
+          label,
+          keys: [subPub],
+          threshold: 1,
+          initial_master_hash: DEFAULT_MASTER_HASH,
+          endowment: endowmentQ,
+          parent_signature: toHex(parentSig),
+          sub_signature: toHex(subSig),
+          inclusion_fee: feeQ,
+        });
+        if (keyring.isUnlocked()) {
+          await keyring.upsertAccount({
+            name: fullName,
+            privHex: toHex(subPriv),
+            pubHex: subPub,
+          });
+        }
+        setStatus(`Subaccount ${fullName} submitted`, "ok");
+        location.hash = `#/account/${encodeURIComponent(fullName)}`;
       } catch (err) {
         setStatus(/** @type {Error} */ (err).message, "error");
       }

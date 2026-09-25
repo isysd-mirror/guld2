@@ -2,7 +2,7 @@
 
 Guld 2.0 is a **hard fork** of Guld 1.0 software and ledger. These notes capture why, without re-importing 1.0 FS or OS-integration designs.
 
-Historical ledger dump: [`archives/ledger-guld/`](../archives/ledger-guld/) (per-user dirs of signed `*.dat` + `*.dat.asc`, ledger-cli journal format). Import rules and working totals (**x ≈ 9.60×10⁵ GULD**, ERC20 omitted, 10 decimals, key-upgrade unlock; inflation 100%→4%/20y @ 10-min blocks): [`specs/15-ledger-import.md`](specs/15-ledger-import.md), [`specs/07-fees-and-tokenomics.md`](specs/07-fees-and-tokenomics.md), whitepaper §8.6.
+Historical ledger dump: [`archives/ledger-guld/`](../archives/ledger-guld/) (per-user dirs of signed `*.dat` + `*.dat.asc`, ledger-cli journal format). Import rules and working totals (**x ≈ 9.60×10⁵ GULD**, ERC20 omitted, 10 decimals, key-upgrade unlock; inflation `(2/3)^(y−1)` floored at 4% @ 10-min blocks): [`specs/15-ledger-import.md`](specs/15-ledger-import.md), [`specs/07-fees-and-tokenomics.md`](specs/07-fees-and-tokenomics.md), whitepaper §8.6.
 
 ## 1. Ledger format and handler
 

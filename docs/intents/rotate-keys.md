@@ -38,4 +38,4 @@ RotateKeys {
 
 - [x] Intent accepted (no-resale framing)
 - [x] Spec + apply implemented
-- [ ] Wallet UX for own key rotation
+- [x] Wallet UX for own key rotation

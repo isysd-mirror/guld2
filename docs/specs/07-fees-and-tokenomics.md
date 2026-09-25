@@ -29,15 +29,15 @@ Relay floor: `fee_rate_min` (**TBD**). Paid to block miner via coinbase accounti
 
 Optional `memo` bytes ([`03-transactions.md`](03-transactions.md) §2.1) increase `size_bytes(canonical_tx)` like any other field — there is no free metadata channel.
 
-## 3. Registration protocol fees (→ miner)
+## 3. Registration protocol fees (→ miners, 8-block vest)
 
-Registration fees MUST be paid to the **block miner** who includes the transaction (same coinbase path as inclusion fees). They MUST NOT be burned or spread across future blocks.
+Registration / settle protocol fees MUST be paid to **miners** via coinbase accounting. They MUST NOT be burned. They MUST be **spread** over **`REGISTRATION_FEE_VEST_BLOCKS = 8`** consecutive blocks starting at the inclusion height (integer split; remainder to earliest heights). Inclusion (weight) fees remain one-shot to the including miner.
 
-**Lottery:** whoever mines the block that includes a registration receives the full protocol fee in addition to block subsidy and inclusion fees.
+**Lottery:** including a registration schedules the fee across eight heights; recovering the full protocol fee requires winning all eight. Intent: [`../intents/registration-fee-vesting.md`](../intents/registration-fee-vesting.md).
 
 ### 3.1 Registration fees — **per year**
 
-Fees buy **`REGISTRATION_PERIOD = BLOCKS_PER_YEAR` (52_560)** blocks of control ([`../intents/name-expiry.md`](../intents/name-expiry.md)). At period end, miners include `SettleRegistration`: auto-debit `F_*` or release the name (leftover dust `< F_*` → miner).
+Fees buy **`REGISTRATION_PERIOD = BLOCKS_PER_YEAR` (52_560)** blocks of control ([`../intents/name-expiry.md`](../intents/name-expiry.md)). At period end, miners include `SettleRegistration`: auto-debit `F_*` or release the name (leftover dust `< F_*` → vesting queue).
 
 #### Individual root names — letter-based `F_user(L)`
 
@@ -92,7 +92,7 @@ Examples: 1-letter 1-of-1 group = **3_000 GULD**/yr; long-name 5-key group = **7
 - **Scarcity pricing:** 1–3 letter root names are premium; ordinary long names stay ~**1 GULD**/year.
 - **Anti-spam:** meaningful cost to squat short global labels.
 - **Cheaper subs:** subaccounts stay **0.1 GULD**/year under an already-registered parent.
-- **Miner incentive:** registrations are valuable to include (protocol fee + inclusion fee).
+- **Miner incentive:** registrations still pay the includer the first vest share plus inclusion fee; remaining shares reward subsequent block winners.
 
 ### 3.3 RPC
 
@@ -109,7 +109,7 @@ Examples: 1-letter 1-of-1 group = **3_000 GULD**/yr; long-name 5-key group = **7
 }
 ```
 
-`fee` is paid to the block miner (not burned). Deprecated alias: `guld_estimateRegistrationBurn`. For individuals and groups, **`name`** is required so the node can compute `L` and `F_user(L)` (groups: `F_group(L, n)`). `kind`: `"individual"` (default), `"group"`, or `"subaccount"`.
+`fee` is paid to miners over 8 blocks (not burned). Deprecated alias: `guld_estimateRegistrationBurn`. For individuals and groups, **`name`** is required so the node can compute `L` and `F_user(L)` (groups: `F_group(L, n)`). `kind`: `"individual"` (default), `"group"`, or `"subaccount"`.
 
 ## 4. Block weight limit
 
@@ -133,8 +133,7 @@ Decimals: **10** (mandatory for exact 1.0 import).
 Year index `y = floor((height - 1) / BLOCKS_PER_YEAR) + 1` (y = 1 at first mined block).
 
 ```text
-i(y) = 0.04 ** ((y - 1) / 19)     // y = 1..20  (100% → 4% geometric)
-i(y) = 0.04                        // y >= 21
+i(y) = max(0.04, (2/3) ** (y - 1))   // y ≥ 1: 100%, ~66.7%, ~44.4%, … then 4% from year 9
 ```
 
 ### 6.2 Subsidy
@@ -150,7 +149,7 @@ subsidy(height) = annual_issuance(y) / BLOCKS_PER_YEAR
 
 `subsidy(height)` MUST be a pure consensus function of `height` and genesis `x`. Full year-by-year table and graphs: whitepaper §8.6.
 
-Gross supply path: year-1 supply **2×**; year-20 supply ≈ **147.5×**; thereafter **+4%/yr**. Peak per-block subsidy ≈ **199 GULD** around years 11–12.
+Gross supply path: year-1 supply **2×**; year-20 supply ≈ **15.6×**; thereafter **+4%/yr**. Peak per-block subsidy ≈ **27 GULD** around year 3.
 
 ## 7. Component API
 
@@ -161,6 +160,7 @@ fn f_user_at(height: u64, name: &Name, params: &EconomyParams) -> Amount;  // le
 fn f_sub_at(height: u64, params: &EconomyParams) -> Amount;   // fixed 0.1 GULD
 fn f_group_at(height: u64, name: &Name, n: u16, params: &EconomyParams) -> Amount; // F_user(L) × (2 + n)
 fn subsidy(height: u64, params: &EconomyParams) -> Amount;
+fn vest_registration_fee_shares(fee: u128) -> Vec<u128>;  // REGISTRATION_FEE_VEST_BLOCKS = 8
 ```
 
 ## 8. Open parameters

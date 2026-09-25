@@ -1,6 +1,6 @@
 # Intent: Software browser (document, display, serve git)
 
-Status: accepted  
+Status: accepted · MVP done (catalog + README + clone URLs + tree/blob view)  
 **Related:** [`../REPO_LAYOUT.md`](../REPO_LAYOUT.md), [`../HOSTING.md`](../HOSTING.md), [`../PACKAGES.md`](../PACKAGES.md), [`repo-layout.md`](repo-layout.md)
 
 ## Goal

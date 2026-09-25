@@ -16,7 +16,7 @@ Turn the whitepaper into **implementable specs**: clear components, wire/logical
 
 - [ ] Freeze wire codec (BARE/protobuf/…) in `01`  
 - [ ] Freeze registration funding model in `03`  
-- [x] Freeze PoW + subsidy function shape in `06`/`07` (10-min blocks; geometric 100%→4%/20y)  
+- [x] Freeze PoW + subsidy function shape in `06`/`07` (10-min blocks; `(2/3)^(y−1)` floored at 4%)  
 - [ ] Prototype `guld-types` + `guld-crypto` against `01`/`04`  
 - [x] Flatten implementation under `src/` matching `00`  
 - [x] Extension + provider scaffold (moved out of protocol repo; spec 14 is wallet + webapp only)  

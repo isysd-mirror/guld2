@@ -3048,6 +3048,7 @@ name = "guld-p2p"
 version = "0.1.0"
 dependencies = [
  "futures",
+ "guld-cas",
  "guld-crypto",
  "guld-types",
  "hex",

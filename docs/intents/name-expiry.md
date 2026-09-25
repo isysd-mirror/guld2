@@ -16,14 +16,14 @@ Registration fees (`F_user(L)` / `F_sub` / `F_group(L, n)`) buy **one year of na
 | Expiry mode | **Pay-or-release** via permissionless `SettleRegistration` |
 | Soft lapse | **Removed** |
 | Who settles | Miners in block formation (paid `F_*` or leftover dust) |
-| Funded settle | Debit `F_*` → miner; `expires_at += REGISTRATION_PERIOD` |
-| Unfunded settle | Leftover balance (`< F_*`) → miner; account **deleted**; name free |
+| Funded settle | Debit `F_*` → vesting queue (8 blocks); `expires_at += REGISTRATION_PERIOD` |
+| Unfunded settle | Leftover balance (`< F_*`) → vesting queue; account **deleted**; name free |
 | Early prepay | No `RenewRegistration` — keep wallet funded before expiry |
 | Resale | **Not supported** — `RotateKeys` is own key hygiene only |
 | Lost keys | Eventually unfunded settle ⇒ name free |
 | Legacy 1.0 | Claim open indefinitely; settle **skips** legacy-locked. After claim: normal 1y period |
 | Legacy claim | PGP binding ⇒ permissionless `pgp_cleartext_v1`; no PGP ⇒ only `isysd_attestation_v1` |
-| Subaccounts | Parent release **cascades** delete of live subs (balances → miner) |
+| Subaccounts | Parent release **cascades** delete of live subs (balances → vesting queue) |
 
 ## Period math
 
