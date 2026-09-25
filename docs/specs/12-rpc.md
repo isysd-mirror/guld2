@@ -201,6 +201,20 @@ Remote TLS authenticates the **server name** to the client. It does not replace 
 ## 9. Open parameters
 
 - OpenAPI document for `/api/v1`  
-- SSE / WebSocket for `newHeads`  
 - Off-consensus indexer when in-process `guld_searchAccounts` is too slow  
 - Deprecation timeline for JSON-RPC adapter  
+
+## 10. Live events (SSE)
+
+`GET /api/v1/chain/events` (`Accept: text/event-stream`) — GIP-19.
+
+| `event:` | Payload | When |
+|----------|---------|------|
+| `hello` | `{ tip_height, chain_id?, network?, mode? }` | On connect |
+| `newHeads` | `{ height, hash, timestamp, tx_count, miner, difficulty }` | Block accepted |
+| `mempoolAdded` | Mempool row (same fields as `GET /api/v1/chain/mempool` item) | Successful insert |
+| `mempoolRemoved` | `{ id, reason }` (`included` \| `evicted` \| …) | Dropped from mempool |
+
+Keepalive: SSE comment/`ping` about every 20s (proxy-friendly). Soft cap **64** concurrent subscribers per process (`503` when full). Also mounted on the JSON-RPC listen address so explorers pointed at `:8545` can stream.
+
+Snapshot (pull / fallback): `GET /api/v1/chain/mempool?limit=` and `guld_getMempool`.

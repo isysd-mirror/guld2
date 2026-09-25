@@ -146,6 +146,10 @@
   color: #8a3b12;
 }
 
+.explorer__panel--mempool [data-live-mempool-count] {
+  font-variant-numeric: tabular-nums;
+}
+
 .explorer__status-row {
   display: flex;
   flex-wrap: wrap;

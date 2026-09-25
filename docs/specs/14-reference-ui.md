@@ -113,7 +113,8 @@ Status: **shipped** | **partial** | **missing** | **out of UI** (node/miner/ops 
 | Block by hash | `guld_getBlockByHash` | Deep link / search | **partial** (RPC shipped; explorer UI next) |
 | Tx by height:index | Block body | `#/tx/<h>/<i>` | **shipped** |
 | Tx by id | `guld_getTransaction` | Explorer search + `#/tx/pending/<id>` | **shipped** |
-| Mempool snapshot | `GET /chain/mempool` / `guld_getMempool` | Explorer home + `#/mempool` | **shipped** (SSE live stream later — GIP-19) |
+| Mempool snapshot | `GET /chain/mempool` / `guld_getMempool` | Explorer home + `#/mempool` | **shipped** |
+| Live tip + mempool | `GET /chain/events` (SSE) | Explorer home + `#/mempool` | **shipped** (GIP-19) |
 | Mempool fee hints / weight | `guld_getMempoolFeeHints`, `guld_estimateWeight` | Send fee defaults | **partial** (RPC shipped; fee UI next) |
 | Rules hash / schedule | `guld_getGuldRulesHash`, `guld_getRulesSchedule` | Ops / about (optional) | **later** |
 | Peer count / node info | `guld_peerCount`, `guld_nodeInfo` | Optional status chip | **partial** |

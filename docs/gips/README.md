@@ -35,7 +35,7 @@ Small bugs and polish: use [`../tasks/`](../tasks/) instead. Specs remain normat
 | [16](gip-16.md) | Tx memo + protocol upgrade activation | Final | Standards | Core |
 | [17](gip-17.md) | UI full coverage | Accepted | Standards | Interface |
 | [18](gip-18.md) | Consumer integration | Draft | Informational | — |
-| [19](gip-19.md) | Mempool visualizer | Draft | Standards | Interface |
+| [19](gip-19.md) | Mempool visualizer | Accepted | Standards | Interface |
 | [20](gip-20.md) | Wallet contacts and account lookup | Draft | Standards | Application |
 | [21](gip-21.md) | guld.io in guld leaf + miner governance | Draft | Standards | Core |
 

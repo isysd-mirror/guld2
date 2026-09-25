@@ -142,6 +142,11 @@ export class GuldDocView extends HTMLElement {
 
     /** @type {Array<{ href: string, title: string, blurb: string }>} */
     const featured = [
+      {
+        href: docsViewerHref("essays/one-peer-whole-stack.md"),
+        title: "One peer, whole stack",
+        blurb: "Node + site + git + wallet + explorer",
+      },
       { href: docsViewerHref("HOSTING.md"), title: "Hosting", blurb: "Node-first peers, remotes, nginx" },
       { href: docsViewerHref("REPO_LAYOUT.md"), title: "Repo layout", blurb: "Umbrella, submodules, bares" },
       { href: docsViewerHref("PACKAGES.md"), title: "Packages", blurb: "Crate and package catalog notes" },

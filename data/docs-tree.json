@@ -9,6 +9,19 @@
   ],
   "tree": [
     {
+      "name": "essays",
+      "children": [
+        {
+          "name": "one-peer-whole-stack.md",
+          "path": "essays/one-peer-whole-stack.md"
+        },
+        {
+          "name": "README.md",
+          "path": "essays/README.md"
+        }
+      ]
+    },
+    {
       "name": "gips",
       "children": [
         {

@@ -4,7 +4,7 @@ title: Mempool visualizer
 description: Live mempool and tip view in the PWA via SSE from guld-node.
 author: Guld contributors
 discussions-to: ./README.md
-status: Draft
+status: Accepted
 type: Standards
 category: Interface
 created: 2026-09-25
@@ -113,14 +113,14 @@ Manual Refresh remains for snapshot re-sync; SSE is the default live path.
 
 ### Phase 1 — Stream + explorer mempool (this intent)
 
-- [ ] Spec 12: document SSE route + event set + mempool GET
+- [x] Spec 12: document SSE route + event set + mempool GET
 - [x] Spec 12: `GET /api/v1/chain/mempool` + `guld_getMempool` snapshot
-- [ ] `guld-node`: emit events on insert / remove / new head; serve snapshot
+- [x] `guld-node`: emit events on insert / remove / new head; serve snapshot
 - [x] `guld-node`: serve mempool snapshot (polling)
-- [ ] PWA `EventSource` client helper (shared `src/js/lib/…`)
+- [x] PWA `EventSource` client helper (shared `src/js/lib/chain-events.js`)
 - [x] Explorer mempool view wired to snapshot (home panel + `#/mempool` + `#/tx/pending/<id>`)
-- [ ] Explorer mempool view wired to SSE + snapshot fallback
-- [ ] Rate limits / max subscribers per IP documented for operators
+- [x] Explorer mempool view wired to SSE + snapshot fallback
+- [x] Rate limits / max subscribers per IP documented for operators (soft cap 64 / process; `503` when full)
 
 ### Phase 2 — Wallet awareness (optional)
 
@@ -143,12 +143,12 @@ Manual Refresh remains for snapshot re-sync; SSE is the default live path.
 
 ## Acceptance (Phase 1)
 
-- [ ] Spec documents `GET /api/v1/chain/mempool` and `GET /api/v1/chain/events` (SSE)
-- [ ] Submitting a tx via wallet or RPC makes a new row appear in explorer without Refresh
-- [ ] Mining / inclusion removes the row and advances tip via `newHeads`
-- [ ] Killing the stream falls back to polling snapshot without a blank page
-- [ ] Works against `guld-node --http` (+ `--http-static .`) with the locked PWA stack
-- [ ] CSP / `connect-src` allow the configured node origin (same rules as today’s RPC)
+- [x] Spec documents `GET /api/v1/chain/mempool` and `GET /api/v1/chain/events` (SSE)
+- [x] Submitting a tx via wallet or RPC makes a new row appear in explorer without Refresh
+- [x] Mining / inclusion removes the row and advances tip via `newHeads`
+- [x] Killing the stream falls back to polling snapshot without a blank page
+- [x] Works against `guld-node --http` (+ `--http-static .`) with the locked PWA stack
+- [x] CSP / `connect-src` allow the configured node origin (same rules as today’s RPC)
 
 ## Open parameters
 

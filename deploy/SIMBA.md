@@ -50,6 +50,8 @@ The faucet account must exist on-chain with spendable balance (Simba `isysd` aft
 
 Faucet txs are **mempool-queued** then sealed in the **background** when `--miner` is set (Simba keeps `auto_mine: false` so ordinary traffic is not auto-sealed). Initial PoW bits are **1** (see `data/networks/simba.json`; difficulty **0** is genesis-only and cannot seal height ≥ 1). Difficulty retargets from observed block times. With `--mine-cpu-percent 1`, early blocks are cheap — the UI polls until the name/balance appears. The peer **must** run with `--miner <faucet-account>` or faucet grants stay pending forever.
 
+Explorer live updates: `GET /api/v1/chain/events` (SSE, GIP-19) on both `--http` and `--rpc` listeners; soft cap 64 subscribers.
+
 
 Empty `--network simba` datadirs load height-0 from `data/genesis/simba/`:
 

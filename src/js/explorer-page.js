@@ -1,4 +1,5 @@
 import "./chrome.js";
+import { startChainLive } from "./lib/chain-events.js";
 import {
   defaultRpcUrl,
   escapeHtml,
@@ -25,6 +26,14 @@ let rpcUrl = resolveRpcUrl();
 let tipHeight = 0;
 /** @type {Map<number, object>} */
 const blockCache = new Map();
+/** @type {(() => void) | null} */
+let stopLive = null;
+/** @type {Map<string, object>} */
+let liveMempool = new Map();
+/** @type {"streaming"|"reconnecting"|"polling"|"offline"|""} */
+let liveTransport = "";
+/** @type {ReturnType<typeof setTimeout> | null} */
+let homeBlocksTimer = null;
 
 if (rpcInput instanceof HTMLInputElement) {
   rpcInput.value = rpcUrl;
@@ -42,6 +51,156 @@ refreshBtn?.addEventListener("click", () => {
 });
 
 window.addEventListener("hashchange", () => route());
+
+function haltLive() {
+  if (stopLive) {
+    stopLive();
+    stopLive = null;
+  }
+  if (homeBlocksTimer != null) {
+    clearTimeout(homeBlocksTimer);
+    homeBlocksTimer = null;
+  }
+  liveTransport = "";
+}
+
+/** @param {string | undefined} id */
+function normTxId(id) {
+  const s = String(id || "").toLowerCase();
+  return s.startsWith("0x") ? s : s ? `0x${s}` : "";
+}
+
+function transportLabel() {
+  switch (liveTransport) {
+    case "streaming":
+      return " · live";
+    case "reconnecting":
+      return " · reconnecting";
+    case "polling":
+      return " · polling";
+    default:
+      return "";
+  }
+}
+
+function paintLiveMempool(limit) {
+  const slot = hostEl?.querySelector("[data-live-mempool]");
+  if (!(slot instanceof HTMLElement)) return;
+  const items = [...liveMempool.values()]
+    .sort((a, b) => Number(b.fee_rate || 0) - Number(a.fee_rate || 0))
+    .slice(0, limit);
+  const empty =
+    limit <= 12
+      ? "Mempool empty — no unconfirmed transactions."
+      : "Mempool empty.";
+  slot.innerHTML = mempoolTable(items, { empty });
+  const countEl = hostEl?.querySelector("[data-live-mempool-count]");
+  if (countEl instanceof HTMLElement) {
+    const n = liveMempool.size;
+    countEl.textContent = n === 1 ? "1 pending" : `${n} pending`;
+  }
+}
+
+/**
+ * @param {"home"|"mempool"} view
+ */
+function attachLive(view) {
+  haltLive();
+  const limit = view === "home" ? 12 : 100;
+  stopLive = startChainLive(rpcUrl, {
+    onTransport(t) {
+      liveTransport = t;
+      refreshStatusLine(view);
+    },
+    onHello(data) {
+      if (data?.tip_height != null) tipHeight = Number(data.tip_height);
+      refreshStatusLine(view);
+    },
+    onNewHeads(data) {
+      if (data?.height != null) tipHeight = Number(data.height);
+      blockCache.clear();
+      refreshStatusLine(view);
+      if (view === "home") {
+        if (homeBlocksTimer != null) clearTimeout(homeBlocksTimer);
+        homeBlocksTimer = setTimeout(() => {
+          homeBlocksTimer = null;
+          refreshHomeBlocks().catch((err) => console.warn("live blocks", err));
+        }, 400);
+      }
+    },
+    onMempoolAdded(row) {
+      const id = normTxId(row?.id);
+      if (!id) return;
+      liveMempool.set(id, row);
+      paintLiveMempool(limit);
+      refreshStatusLine(view);
+    },
+    onMempoolRemoved(data) {
+      const id = normTxId(data?.id);
+      if (!id) return;
+      liveMempool.delete(id);
+      paintLiveMempool(limit);
+      refreshStatusLine(view);
+    },
+    async onPollSnapshot() {
+      const info = await rpcCall(rpcUrl, "guld_nodeInfo", []);
+      tipHeight = Number(info.height || tipHeight);
+      const pool = await rpcCall(rpcUrl, "guld_getMempool", [limit]);
+      liveMempool = new Map();
+      for (const row of pool.txs || []) {
+        const id = normTxId(row.id);
+        if (id) liveMempool.set(id, row);
+      }
+      paintLiveMempool(limit);
+      refreshStatusLine(view);
+      if (view === "home") await refreshHomeBlocks();
+    },
+  });
+}
+
+/** @param {"home"|"mempool"} view */
+function refreshStatusLine(view) {
+  const n = liveMempool.size;
+  if (view === "mempool") {
+    setStatus(
+      "ok",
+      `Height ${tipHeight.toLocaleString()} · mempool ${n}${transportLabel()}`,
+    );
+  } else {
+    setStatus(
+      "ok",
+      `Height ${tipHeight.toLocaleString()} · ${n} pending${transportLabel()}`,
+    );
+  }
+}
+
+async function refreshHomeBlocks() {
+  if (!(hostEl instanceof HTMLElement)) return;
+  if (parseRoute().view !== "home") return;
+  const from = tipHeight;
+  const to = Math.max(0, tipHeight - PAGE_SIZE + 1);
+  const rows = await fetchBlockRange(from, to);
+  /** @type {{ height: number, index: number, tx: Record<string, unknown> }[]} */
+  const recentTxs = [];
+  for (const { height, block } of rows) {
+    const txs = Array.isArray(block.txs) ? block.txs : [];
+    txs.forEach((tx, index) => {
+      if (recentTxs.length < PAGE_SIZE) recentTxs.push({ height, index, tx });
+    });
+    if (recentTxs.length >= PAGE_SIZE) break;
+  }
+  const blocksSlot = hostEl.querySelector("[data-live-blocks]");
+  const txsSlot = hostEl.querySelector("[data-live-confirmed-txs]");
+  if (blocksSlot instanceof HTMLElement) {
+    const older = to > 0;
+    blocksSlot.innerHTML = `${blocksTable(rows)}${
+      older ? `<p class="explorer__more">${blockLink(to - 1, `Older block #${to - 1}`)}</p>` : ""
+    }`;
+  }
+  if (txsSlot instanceof HTMLElement) {
+    txsSlot.innerHTML = txsTable(recentTxs);
+  }
+}
 
 /**
  * @returns {
@@ -220,6 +379,7 @@ async function navigateLookup(query) {
 }
 
 async function route() {
+  haltLive();
   const r = parseRoute();
   if (hostEl instanceof HTMLElement) {
     hostEl.innerHTML = `<p class="doc-status">Loading…</p>`;
@@ -240,6 +400,7 @@ async function route() {
     }
   } catch (err) {
     console.warn("explorer:", err);
+    haltLive();
     setStatus("offline", String(/** @type {Error} */ (err).message || err));
     if (hostEl instanceof HTMLElement) {
       hostEl.innerHTML = `
@@ -346,10 +507,6 @@ async function renderHome() {
   const info = await rpcCall(rpcUrl, "guld_nodeInfo", []);
   tipHeight = Number(info.height || 0);
   const pending = Number(info.txPoolPending ?? 0);
-  setStatus(
-    "ok",
-    `Height ${tipHeight.toLocaleString()} · ${pending} pending · miner ${info.miner || "—"} · chain ${info.chainId ?? "—"}`,
-  );
 
   const from = tipHeight;
   const to = Math.max(0, tipHeight - PAGE_SIZE + 1);
@@ -372,24 +529,29 @@ async function renderHome() {
     console.warn("mempool snapshot", err);
   }
   const pendingTxs = Array.isArray(mempool.txs) ? mempool.txs : [];
+  liveMempool = new Map();
+  for (const row of pendingTxs) {
+    const id = normTxId(row.id);
+    if (id) liveMempool.set(id, row);
+  }
 
   if (!(hostEl instanceof HTMLElement)) return;
 
   const older = to > 0;
   const pendingLabel =
-    Number(mempool.count ?? pending) === 1
-      ? "1 pending"
-      : `${Number(mempool.count ?? pending)} pending`;
+    liveMempool.size === 1 ? "1 pending" : `${liveMempool.size} pending`;
 
   hostEl.innerHTML = `
     ${lookupFormHtml()}
     <section class="explorer__panel explorer__panel--mempool">
       <header class="explorer__panel-head">
         <h2>Mempool</h2>
-        <p>${escapeHtml(pendingLabel)} · waiting for the next block
+        <p><span data-live-mempool-count>${escapeHtml(pendingLabel)}</span> · waiting for the next block
           · <a href="#/mempool">Open full list</a></p>
       </header>
+      <div data-live-mempool>
       ${mempoolTable(pendingTxs, { empty: "Mempool empty — no unconfirmed transactions." })}
+      </div>
     </section>
     <div class="explorer__grid">
       <section class="explorer__panel">
@@ -397,15 +559,19 @@ async function renderHome() {
           <h2>Blocks</h2>
           <p>Newest ${rows.length} of tip</p>
         </header>
+        <div data-live-blocks>
         ${blocksTable(rows)}
         ${older ? `<p class="explorer__more">${blockLink(to - 1, `Older block #${to - 1}`)}</p>` : ""}
+        </div>
       </section>
       <section class="explorer__panel">
         <header class="explorer__panel-head">
           <h2>Confirmed transactions</h2>
           <p>From recent blocks</p>
         </header>
+        <div data-live-confirmed-txs>
         ${txsTable(recentTxs)}
+        </div>
       </section>
     </div>
     <p class="explorer__foot-note">
@@ -415,20 +581,22 @@ async function renderHome() {
     </p>
   `;
   bindLookupForm();
+  refreshStatusLine("home");
+  attachLive("home");
 }
 
 async function renderMempool() {
   const info = await rpcCall(rpcUrl, "guld_nodeInfo", []);
   tipHeight = Number(info.height || 0);
   const pool = await rpcCall(rpcUrl, "guld_getMempool", [100]);
-  const count = Number(pool.count ?? 0);
   const weightUsed = pool.weight_used ?? "0";
   const weightLimit = pool.weight_limit ?? "—";
   const txs = Array.isArray(pool.txs) ? pool.txs : [];
-  setStatus(
-    "ok",
-    `Height ${tipHeight.toLocaleString()} · mempool ${count} · weight ${weightUsed} / ${weightLimit}`,
-  );
+  liveMempool = new Map();
+  for (const row of txs) {
+    const id = normTxId(row.id);
+    if (id) liveMempool.set(id, row);
+  }
 
   if (!(hostEl instanceof HTMLElement)) return;
   hostEl.innerHTML = `
@@ -440,13 +608,17 @@ async function renderMempool() {
     <section class="explorer__panel">
       <header class="explorer__panel-head">
         <h2>Mempool</h2>
-        <p>${count} pending · weight ${escapeHtml(String(weightUsed))} / ${escapeHtml(String(weightLimit))}
+        <p><span data-live-mempool-count>${liveMempool.size} pending</span> · weight ${escapeHtml(String(weightUsed))} / ${escapeHtml(String(weightLimit))}
           ${pool.truncated ? " · truncated" : ""}</p>
       </header>
-      <p class="explorer__meta">Unconfirmed txs sit here until a miner seals a block (testnet PoW can take ~1 minute).</p>
+      <p class="explorer__meta">Unconfirmed txs stream live via SSE (GIP-19). Fallback polls the snapshot if the stream drops.</p>
+      <div data-live-mempool>
       ${mempoolTable(txs, { empty: "Mempool empty." })}
+      </div>
     </section>
   `;
+  refreshStatusLine("mempool");
+  attachLive("mempool");
 }
 
 /**
