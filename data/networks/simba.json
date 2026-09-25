@@ -2,11 +2,11 @@
   "name": "simba",
   "mode": "testnet",
   "chain_id": 2,
-  "difficulty": 16,
+  "difficulty": 0,
   "p2p_listen": "0.0.0.0:4001",
   "auto_mine": false,
   "bootnodes": [
     "/dns4/guld.io/tcp/4001"
   ],
-  "comment": "Guld 2.0 public testnet. Always available alongside mainnet. Faucet on when GULD_FAUCET_KEY or datadir/keys/<faucet>.sk is set. See deploy/SIMBA.md."
+  "comment": "Guld 2.0 public testnet. Initial PoW bits 0 — retarget climbs from observed block times (use --mine-cpu-percent 1 on shared hosts). Faucet on when GULD_FAUCET_KEY or datadir/keys/<faucet>.sk is set. See deploy/SIMBA.md."
 }
