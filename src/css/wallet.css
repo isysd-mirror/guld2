@@ -127,6 +127,16 @@
   margin: 0.25rem 0;
 }
 
+.wallet__meta[data-state="ok"] {
+  opacity: 1;
+  color: var(--guld-navy);
+}
+
+.wallet__meta[data-state="error"] {
+  opacity: 1;
+  color: #8b1e1e;
+}
+
 .wallet__activity h2 {
   font-size: 1rem;
   margin: 0 0 0.65rem;

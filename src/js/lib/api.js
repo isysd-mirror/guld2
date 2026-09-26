@@ -184,6 +184,15 @@ export async function apiDelete(base, path, opts = {}) {
   }
 }
 
+/**
+ * @param {string} base
+ * @param {string} name
+ */
+export async function accountExists(base, name) {
+  const body = await apiGet(base, `/chain/accounts/${encodeURIComponent(name)}/exists`);
+  return body.exists === true;
+}
+
 /** @param {string} base */
 export async function faucetInfo(base) {
   return apiGet(base, "/faucet");

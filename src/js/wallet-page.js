@@ -1,5 +1,13 @@
 import "./chrome.js";
-import { apiGet, apiPost, faucetDrip, faucetInfo, persistApiBase, resolveApiBase } from "./lib/api.js";
+import {
+  accountExists,
+  apiGet,
+  apiPost,
+  faucetDrip,
+  faucetInfo,
+  persistApiBase,
+  resolveApiBase,
+} from "./lib/api.js";
 import { getLocalIdentity, LOGIN_HREF, REGISTER_HREF } from "./lib/auth.js";
 import {
   buildCosignRequest,
@@ -259,6 +267,7 @@ async function route() {
               <input name="to" type="text" list="send-suggestions" spellcheck="false" required placeholder="bob" autocomplete="off" />
               <datalist id="send-suggestions">${opts}</datalist>
             </label>
+            <p class="wallet__meta" data-send-to-hint aria-live="polite"></p>
             <label>Amount (GULD) <input name="amount" type="text" inputmode="decimal" required placeholder="1" /></label>
             <label>Inclusion fee (GULD) <input name="fee" type="text" inputmode="decimal" value="0.000001" /></label>
             <label>Memo (optional) <input name="memo" type="text" maxlength="64" placeholder="order id / invoice" /></label>
@@ -456,9 +465,12 @@ async function route() {
       }
     });
 
+    bindSendRecipientCheck(hostEl.querySelector("[data-send-form]"));
+
     hostEl.querySelector("[data-send-form]")?.addEventListener("submit", async (ev) => {
       ev.preventDefault();
-      const fd = new FormData(/** @type {HTMLFormElement} */ (ev.target));
+      const form = /** @type {HTMLFormElement} */ (ev.target);
+      const fd = new FormData(form);
       const to = String(fd.get("to") || "")
         .trim()
         .toLowerCase();
@@ -477,6 +489,20 @@ async function route() {
       }
       if (threshold !== 1) {
         setStatus("Threshold > 1 cannot Transfer yet", "error");
+        return;
+      }
+      if (!to) {
+        setStatus("Enter a recipient name", "error");
+        return;
+      }
+      setStatus("Checking recipient…", "pending");
+      try {
+        if (!(await accountExists(apiBase, to))) {
+          setStatus(`“${to}” is not registered — transfers require a registered name`, "error");
+          return;
+        }
+      } catch (err) {
+        setStatus(/** @type {Error} */ (err).message, "error");
         return;
       }
       setStatus("Sending…", "pending");
@@ -873,6 +899,58 @@ async function route() {
  *   newPubHex?: string,
  * }} opts
  */
+/** @param {HTMLFormElement | null | undefined} form */
+function bindSendRecipientCheck(form) {
+  if (!(form instanceof HTMLFormElement)) return;
+  const toInput = form.querySelector('[name="to"]');
+  const hintEl = form.querySelector("[data-send-to-hint]");
+  const submitBtn = form.querySelector('[type="submit"]');
+  if (!(toInput instanceof HTMLInputElement)) return;
+
+  /** @param {boolean | null} registered null = unknown */
+  function setHint(registered) {
+    if (!(hintEl instanceof HTMLElement)) return;
+    if (registered === null) {
+      hintEl.textContent = "";
+      hintEl.removeAttribute("data-state");
+      if (submitBtn instanceof HTMLButtonElement) submitBtn.disabled = false;
+      return;
+    }
+    if (registered) {
+      hintEl.textContent = "Registered on-chain";
+      hintEl.dataset.state = "ok";
+      if (submitBtn instanceof HTMLButtonElement) submitBtn.disabled = false;
+    } else {
+      hintEl.textContent = "Not registered — register this name before sending";
+      hintEl.dataset.state = "error";
+      if (submitBtn instanceof HTMLButtonElement) submitBtn.disabled = true;
+    }
+  }
+
+  /** @type {ReturnType<typeof setTimeout> | undefined} */
+  let debounce;
+  toInput.addEventListener("input", () => {
+    clearTimeout(debounce);
+    const name = toInput.value.trim().toLowerCase();
+    if (!name) {
+      setHint(null);
+      return;
+    }
+    setHint(null);
+    debounce = setTimeout(async () => {
+      try {
+        setHint(await accountExists(apiBase, name));
+      } catch (err) {
+        if (hintEl instanceof HTMLElement) {
+          hintEl.textContent = /** @type {Error} */ (err).message;
+          hintEl.dataset.state = "error";
+        }
+        if (submitBtn instanceof HTMLButtonElement) submitBtn.disabled = false;
+      }
+    }, 400);
+  });
+}
+
 function mountCosignWorkstation(mount, opts) {
   /** @type {import("./lib/cosign.js").CosignRequest | null} */
   let req = opts.seedRequest || null;
