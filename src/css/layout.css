@@ -529,6 +529,40 @@ guld-footer {
   background: var(--guld-mist);
 }
 
+.landing-comparison .doc-prose {
+  max-width: none;
+}
+
+.landing-comparison .doc-table-wrap,
+.landing-comparison table {
+  font-size: 0.82rem;
+}
+
+.landing-comparison .doc-status {
+  margin: 0.5rem 0;
+}
+
+.faq-list {
+  margin: 1.25rem 0 0;
+  max-width: 42rem;
+}
+
+.faq-list__item {
+  margin-bottom: 1.25rem;
+}
+
+.faq-list dt {
+  font-weight: 600;
+  color: var(--guld-navy);
+  margin-bottom: 0.35rem;
+}
+
+.faq-list dd {
+  margin: 0;
+  opacity: 0.9;
+  line-height: 1.5;
+}
+
 .section pre,
 .install-cmd {
   max-width: min(100%, 48rem);

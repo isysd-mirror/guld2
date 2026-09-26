@@ -1,7 +1,7 @@
 # Guld 2.0 Whitepaper
 
-**Version:** 0.19  
-**Date:** 2026-09-24  
+**Version:** 0.22  
+**Date:** 2026-09-26  
 **Token:** GULD (native)  
 **Specifications:** [`../specs/README.md`](../specs/README.md) · **Glossary:** [§14](#14-glossary)
 
@@ -27,13 +27,17 @@ Ethereum proved programmable settlement and fee markets. Bitcoin proved open Syb
 - “Multisig” and governance are applications, not the native tip model.
 - Putting social process on a general VM forces every validator to re-execute politics—or forces that politics into custodial apps.
 
-Guld 1.0 explored identity, git, and weighted observation. Solving network consensus **inside** git and PGP proved too bloated for global scale (emails and UIDs as metadata, weak first-class cosign, mega-repo growth).
+**Guld 1.0** was identity-first — registered names, ledger-cli accounting, git-backed leaves, and **identity- and contribution-weighted proof of stake** among stakers. Over time **consensus among stakers broke down** and **trust in the network diminished**. Operational complexity (git + PGP + weighted votes as the global bus; emails and UIDs as metadata; weak first-class cosign at L0) made it hard for new operators to run full nodes with confidence. Hard fork and 1.0 continuity: [`../FAQ.md`](../FAQ.md).
+
+### 1.1a Why PoW for 2.0
+
+2.0 keeps the identity-first product (names, groups, threshold tips, leaves) but moves **header consensus** to open **PoW** — the most stable, conservative, widely audited Sybil model. The goal is straightforward finality for new users and operators: scarce block space backed by work, not a stake quorum that had lost agreement. Bonded roles and account-level cosign may still exist; they do **not** elect chain tips (§7.3).
 
 ### 1.2 Thesis
 
 **Address by name. Commit by hash. Authorize by proof. Pay a tx fee. Leave leaf law to the leaf — including dapps with no ceiling. Witness other chains the same way.**
 
-Guld is an **L0 witness hub**: identities and foreign networks share one namespace; settlement of fast paths and personal chains is “just another hash tip.” It is a hard fork of the 1.0 software and ledger: preserve historical balances and rules where possible; do not preserve blockchain-in-git or FUSE as the product model.
+Guld 2.0 is an **L0 witness hub**: identities and foreign networks share one namespace; settlement of fast paths and personal chains is “just another hash tip.” Preserve historical 1.0 balances where possible; do not carry forward blockchain-in-git or FUSE as the 2.0 product model.
 
 ### 1.3 Design bar
 
@@ -60,6 +64,46 @@ This is the product journey the reference stack optimizes for:
 7. **Browse the ecosystem** — visit many **Guld dapps** on many domains with **one key, one passphrase habit, one name** — no per-site hex wallets.
 
 Steps 6–7 are **ecosystem UX** (extension and dapp conventions). They are not required for consensus validation; they are required for the intended everyday experience. Friend-only sponsorship and “build from git, never visit guld.io” remain fully valid.
+
+### 1.5 Ecosystem comparison (draft)
+
+Comparative sketch for positioning — not a feature checklist or investment advice. **Cosmos Hub** stands in for the widely deployed **IBC interoperability hub** (Polkadot relay and Avalanche subnets follow similar L0 patterns). Guld 2.0 beta on Simba uses interim double-SHA256 PoW; DAG-PoW and foreign-chain proof kinds remain draft ([`../specs/13-foreign-chains.md`](../specs/13-foreign-chains.md)). Hard fork / 1.0 continuity: [`../FAQ.md`](../FAQ.md).
+
+| Dimension | Guld 2.0 | Guld 1.0 | Bitcoin | Ethereum | Solana | Cosmos Hub |
+|-----------|----------|----------|---------|----------|--------|------------|
+| **Relationship** | Hard fork from 1.0 snapshot | Original 1.0 chain (continues) | Independent L1 | Independent L1 | Independent L1 | Independent L0 hub |
+| **Primary role** | L0 witness hub: names, tips, balances | Identity-first chain: names, ledger, git leaves | L1 digital money | L1 programmable settlement | L1 high-throughput chain | L0 interconnect hub (IBC) |
+| **Consensus** | Open PoW (DAG-PoW planned) | Identity/contribution-weighted **PoS** (staker agreement degraded) | Nakamoto PoW | Gasper PoS | Tower BFT PoS | Tendermint BFT PoS |
+| **Block time (target)** | ~10 minutes | Irregular / policy-driven | ~10 minutes | ~12 s (slots) | ~400 ms | ~7 seconds |
+| **Header / state hash** | SHA-256 commitments | Git object SHA-1; ledger hashes | Double SHA-256 | Keccak-256 (Merkle Patricia) | SHA-256 | SHA-256 (Tendermint) |
+| **Account keys** | Ed25519 (PQ migration path) | OpenPGP + mixed legacy | secp256k1 (ECDSA) | secp256k1 (+ smart wallets) | Ed25519 | secp256k1 (amino-encoded) |
+| **Addressing** | Registered **usernames** (global namespace) | Usernames in namespace | UTXO outputs (addresses) | 20-byte account addresses | Ed25519 pubkeys | Bech32 account addresses |
+| **Smart contracts (L0)** | **None** — fixed tx vocabulary only | No L0 VM; leaf tooling | Bitcoin Script (limited) | EVM (+ account abstraction) | SVM (BPF programs) | **None on Hub** — CosmWasm on zones |
+| **Execution model** | Parse schema → verify proofs → built-in state delta | Ledger postings + weighted staker tips + git leaves | UTXO + script | General VM re-execution | Parallel accounts + programs | App logic on connected chains |
+| **Fee model** | Bitcoin-style **weight** (GULD per vB) + registration protocol fees | Registration fees + ledger conventions | sat/vB weight market | Gas (EIP-1559 base + tip) | Compute units + priority fee | Gas per connected chain |
+| **Cross-chain** | Foreign chain **names** + witnessed tips (SPV/light proofs); not an auto token bridge | Namespace could reference other systems | Apps (Lightning, L2); not native L0 | Bridges, rollups, L2s | Wormhole / etc. | **IBC** native between zones |
+| **Identity model** | **First-class** names, groups, threshold cosign | **First-class** names; PGP/git identity layers | Pseudonymous keys | Keys + optional ENS (app layer) | Pseudonymous keys | Keys; ICS-23 proofs between chains |
+| **Validator / node burden** | Keys, tips, balances, enumerated proof verify | Ledger + git/PGP + staker-weight votes | UTXO set + headers | Full state + EVM | Accounts + programs + ledger | Hub consensus + light clients for IBC |
+| **Consensus state growth** | O(registered names); payments update balances in place | Ledger + git history on chain | O(UTXO outputs); dust persists | O(accounts + contract storage) | O(accounts + program data) | Hub state + IBC light clients |
+| **Typical L0 tx shape** | Fixed schema (~264 vB `Transfer`; cosign scales linearly) | Variable (git/PGP/staker votes) | Variable I/O + script; can be very large | Variable calldata + EVM steps | Fixed-ish but program-heavy | Zone-dependent (not Hub-native) |
+
+**Guld 2.0 thesis in one row:** address by **name**, commit by **hash**, authorize by **proof** — leaves and dapps stay unbounded; the chain witnesses heads rather than re-running leaf politics.
+
+Source also published at [`../fragments/chain-comparison.md`](../fragments/chain-comparison.md) and on the [landing page](/#compare).
+
+### 1.6 Incumbent L1 pathologies (and Guld’s response)
+
+Beyond the identity gap (§1.1), several **operational scaling patterns** on widely deployed L1s motivate a witness-first, fixed-tx design:
+
+| Pathology | Bitcoin-like UTXO L1 | General VM L1 (EVM / SVM) | Guld 2.0 response |
+|-----------|----------------------|----------------------------|-------------------|
+| **Activity-driven state bloat** | Every payment can create new **UTXOs** (change, dust). Full nodes must retain the entire UTXO set (on the order of **10⁸ outputs**). **Dust** outputs often cost more to spend than they hold, yet linger in the set for years. | Account and contract **storage trie** grows with deployed apps; validators re-execute semantics on replay. | Consensus state grows with **registered names** (and subs), not with payment count. `Transfer` updates balances **in place** — no output fragmentation ([§9.1](#91-state-growth-keys--hashes)). |
+| **Unbounded transaction shape** | Input/output count, witness bytes, inscriptions — txs can grow very large within block limits (e.g. consolidating hundreds of dust UTXOs). | Calldata, nested calls, logs — high variance under a gas cap. | **Fixed tx vocabulary** ([§6](#6-transaction-types-network-surface)); optional **64-byte** memo; bulk data and app logic in **leaves** ([§4](#4-leaves-witnessing-and-cowitnessing)). Worst-case L0 size scales **linearly** with cosigner count and is **weight-priced**. |
+| **Process and content on L0** | Money-first; identity and governance are app-layer. | Multisig, DAO votes, and social rules are contracts every validator re-runs. | Threshold cosign and name→keys are **native**; leaf politics stay off L0. Tips are **hashes**; CAS bytes are optional per operator ([§9.4](#94-data-availability)). |
+
+**UTXO clutter** is the canonical UTXO-L1 example: state tracks **outputs**, so high payment volume and dust accumulation burden every full node even when most outputs are economically worthless. Guld’s account model avoids that fragmentation — value lives in a **balance per name**; a payment does not mint permanent new consensus rows. Namespace spam is gated by **registration protocol fees** (`F_user`, `F_group`, `F_sub` — §8.7) rather than free output creation inside unrelated transactions.
+
+This does **not** claim higher **L1 throughput** than Bitcoin (same weight cap and ~10-minute target — §8.3). The win is **cleaner state hygiene** and **more useful work per on-chain byte** when applications batch activity in leaves (one `UpdateMaster` tip vs many L0 payments or contract calls).
 
 ---
 
@@ -740,6 +784,8 @@ Normative detail: [`../specs/07-fees-and-tokenomics.md`](../specs/07-fees-and-to
 ## 9. Scalability analysis
 
 ### 9.1 State growth (keys + hashes)
+
+On UTXO L1s, consensus state often scales with **transaction outputs**: each payment may add change and dust UTXOs that full nodes must index until spent. On general VM L1s, state scales with **accounts plus contract storage**. Guld separates these concerns: **payments do not expand the namespace**; only registration (and subaccount creation under a parent) adds rows. A `Transfer` touches existing accounts; value is a scalar balance, not a growing set of coin objects (contrast §1.6).
 
 Validators store per account roughly: 1 key (32 B) + ~10 SHA-256 fields (320 B) + meta, with LSM/SMT overhead (~2.5–4×).
 

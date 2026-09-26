@@ -345,6 +345,10 @@
       "path": "SOFTWARE_FLOW.md"
     },
     {
+      "name": "FAQ.md",
+      "path": "FAQ.md"
+    },
+    {
       "name": "UPGRADE_FROM_1.md",
       "path": "UPGRADE_FROM_1.md"
     }

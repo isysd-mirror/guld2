@@ -2,7 +2,7 @@
 
 **Status:** draft  
 **SoT hierarchy:** [**whitepaper**](../whitepaper/guld-2.0-draft.md) (wins all disputes) → **these specs** (normative detail) → implementation  
-**Whitepaper:** v0.19 — [`../whitepaper/guld-2.0-draft.md`](../whitepaper/guld-2.0-draft.md) (includes [§14 glossary](../whitepaper/guld-2.0-draft.md#14-glossary))  
+**Whitepaper:** v0.22 — [`../whitepaper/guld-2.0-draft.md`](../whitepaper/guld-2.0-draft.md) (includes [§14 glossary](../whitepaper/guld-2.0-draft.md#14-glossary))  
 **Research backdrop:** [`../research/modern-l1-direction.md`](../research/modern-l1-direction.md)
 
 ## Reading order

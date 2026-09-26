@@ -9,7 +9,7 @@
 
 ## 1. Intent
 
-Guld 2.0 **MUST** respect every positive Guld 1.0 member `Assets` balance. Coins are imported at genesis as a disclosed pre-mine and become spendable only after the holder completes a **key upgrade** that ports the name from legacy (PGP / 1.0 binding) to 2.0 account keys.
+Guld 2.0 **MUST** respect every positive Guld 1.0 member `Assets` balance in the snapshot (hard fork — see [FAQ.md](../FAQ.md)). Coins are imported at genesis as a disclosed pre-mine and become spendable on 2.0 only after the holder completes a **key upgrade** that ports the name from legacy (PGP / 1.0 binding) to 2.0 account keys.
 
 ## 2. Snapshot definition
 
@@ -29,7 +29,7 @@ Guld 2.0 **MUST** respect every positive Guld 1.0 member `Assets` balance. Coins
 | Positive member holders | **≈ 2,217** |
 | Negative `Assets` names (anomaly) | **≈ 15** (sum ≈ **−1,028**); import **0**, list in manifest appendix |
 
-**Explicitly omitted from import:** `guld:Assets:ERC20` and any other ERC20 / foreign-mirror protocol buckets (legacy experiment; not part of circulating 2.0 pre-mine).
+**Explicitly omitted from import:** `guld:Assets:ERC20` and any other ERC20 / foreign-mirror protocol buckets (barely used on 1.0; not part of circulating 2.0 pre-mine).
 
 Genesis MUST embed `import_manifest_hash = SHA-256(canonical_manifest)` so operators can re-verify.
 

@@ -1,6 +1,10 @@
 # Guld 2.0 — upgrade drivers (from 1.0)
 
-Guld 2.0 is a **hard fork** of Guld 1.0 software and ledger. These notes capture why, without re-importing 1.0 FS or OS-integration designs.
+Guld 2.0 is a **hard fork** of Guld 1.0 software and ledger. These notes capture why 2.0 exists and what it changes, without re-importing 1.0 FS or OS-integration designs. **1.0 coins still work on 1.0** — see [FAQ.md](FAQ.md).
+
+## 0. Guld 1.0 consensus (context)
+
+Guld 1.0 was **identity- and contribution-weighted proof of stake**: registered names, ledger-cli accounting, git-backed leaves, and staker-weighted agreement over tips. Ultimately **consensus among stakers broke down** and **trust in the network diminished**. Guld 2.0 keeps the identity-first shape but moves **header consensus** to open **PoW** — the most stable, conservative, widely understood model — so new users and operators can trust tip finality without relying on a degraded stake quorum.
 
 Historical ledger dump: [`archives/ledger-guld/`](../archives/ledger-guld/) (per-user dirs of signed `*.dat` + `*.dat.asc`, ledger-cli journal format). Import rules and working totals (**x ≈ 9.60×10⁵ GULD**, ERC20 omitted, 10 decimals, key-upgrade unlock; inflation `(2/3)^(y−1)` floored at 4% @ 10-min blocks): [`specs/15-ledger-import.md`](specs/15-ledger-import.md), [`specs/07-fees-and-tokenomics.md`](specs/07-fees-and-tokenomics.md), whitepaper §8.6.
 
@@ -36,7 +40,7 @@ Goals:
 
 SoT research: [`research/modern-l1-direction.md`](research/modern-l1-direction.md). GIP: [`gips/gip-14.md`](gips/gip-14.md).
 
-### Explicitly rejected from 1.0-era experiments
+### Explicitly rejected from 1.0-era design paths (for 2.0)
 
 - Stuffing a whole blockchain **into git** (impractical size/history)
 - Low-level OS integration as the primary path (**FUSE**, deep SSH gating, etc.): too complex and too slow for operators
