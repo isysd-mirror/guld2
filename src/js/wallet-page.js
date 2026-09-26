@@ -80,6 +80,9 @@ function flashStatus(html, state = "ok", selector = "[data-send-form]") {
 window.addEventListener("hashchange", () => route());
 document.addEventListener(AUTH_EVENT, () => route());
 
+/** Ignore stale async route() results when a newer navigation starts. */
+let routeGen = 0;
+
 /**
  * @returns {{ view: "gate" } | { view: "account", name: string }}
  */
@@ -257,6 +260,7 @@ async function waitForKeyRotation(name, wantPub, opts = {}) {
 }
 
 async function route() {
+  const gen = ++routeGen;
   const r = parseRoute();
   if (!(hostEl instanceof HTMLElement)) return;
 
@@ -290,10 +294,12 @@ async function route() {
       apiGet(apiBase, "/chain/status"),
       apiGet(apiBase, `/chain/accounts/${encodeURIComponent(r.name)}`),
     ]);
+    if (gen !== routeGen) return;
     const activity = await apiGet(
       apiBase,
       `/chain/accounts/${encodeURIComponent(r.name)}/activity?limit=25`,
     );
+    if (gen !== routeGen) return;
 
     setStatus(`Height ${st.height ?? "—"}`);
     const account = acct.account || {};
@@ -491,6 +497,7 @@ async function route() {
         </details>`;
     }
 
+    if (gen !== routeGen) return;
     hostEl.innerHTML = `
       <article class="wallet__card wallet__card--summary">
         <div class="wallet__name-row">
@@ -532,7 +539,7 @@ async function route() {
         .then((info) => {
           if (!info?.ready) return;
           dripSlot.innerHTML = `
-            <p class="wallet__note"><strong>Testnet faucet</strong> — request ${escapeHtml(String(info.dripGuld ?? 10))} GULD (cooldown applies; inclusion may take ~1 min of PoW).</p>
+            <p class="wallet__note"><strong>Testnet faucet</strong> — request ${escapeHtml(String(info.dripGuld ?? 10))} GULD (cooldown applies; next block ~10 min).</p>
             <button type="button" class="btn btn--outline" data-request-drip>Request faucet drip</button>
             ${statusSlotHtml()}
           `;
@@ -1090,6 +1097,7 @@ async function route() {
       }
     });
   } catch (err) {
+    if (gen !== routeGen) return;
     setStatus(/** @type {Error} */ (err).message, "error");
     hostEl.innerHTML = `<p class="wallet__empty">${escapeHtml(/** @type {Error} */ (err).message)}</p>`;
   }

@@ -9,6 +9,17 @@
 
 .site-main {
   flex: 1 0 auto;
+  min-width: 0;
+}
+
+/* Wallet/register/login share .wallet on <main> — keep column width stable while JS remounts. */
+.site-main.wallet {
+  align-self: center;
+  width: min(100%, 40rem);
+}
+
+.site-main.wallet.wallet--wide {
+  width: min(100%, 48rem);
 }
 
 .skip-link {

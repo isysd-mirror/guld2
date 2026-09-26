@@ -22,11 +22,15 @@ export function getActiveName() {
  * @param {string | null | undefined} name
  */
 export function setActiveName(name) {
+  const next =
+    !name || !String(name).trim() ? null : String(name).trim().toLowerCase();
+  const prev = getActiveName();
+  if (next === prev) return;
   try {
-    if (!name || !String(name).trim()) {
+    if (!next) {
       localStorage.removeItem(ACTIVE_NAME_KEY);
     } else {
-      localStorage.setItem(ACTIVE_NAME_KEY, String(name).trim().toLowerCase());
+      localStorage.setItem(ACTIVE_NAME_KEY, next);
     }
   } catch {
     /* ignore quota / private mode */
