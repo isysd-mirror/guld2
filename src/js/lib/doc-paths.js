@@ -27,12 +27,23 @@ export function isAllowedDocFetch(src) {
   return isSafeDocsRelPath(path.slice("/docs/".length));
 }
 
+/** Relative path to the Guld 2.0 whitepaper in the docs tree. */
+export const WHITEPAPER_DOC = "whitepaper/guld-2.0-draft.md";
+
 /**
  * Viewer href for a path under /docs/.
  * @param {string} relPath e.g. HOSTING.md or specs/00-overview.md
  */
 export function docsViewerHref(relPath) {
   return `/docs/?doc=${encodeURIComponent(relPath.replace(/^\/+/, ""))}`;
+}
+
+/**
+ * Docs viewer href for the whitepaper (optional `#fragment`).
+ * @param {string} [hash] e.g. `#15-ecosystem-comparison-draft`
+ */
+export function whitepaperDocHref(hash = "") {
+  return docsViewerHref(WHITEPAPER_DOC) + hash;
 }
 
 /**
@@ -85,7 +96,7 @@ export function resolveMarkdownLink(href, fromFetch = "/docs/") {
  */
 export function curatedDocHref(fetchPath) {
   if (/\/docs\/whitepaper\//.test(fetchPath) || /guld-2\.0-draft\.md$/i.test(fetchPath)) {
-    return "/whitepaper/";
+    return whitepaperDocHref();
   }
   const spec = fetchPath.match(/\/docs\/specs\/([^/]+)\.md$/i);
   if (spec) {

@@ -1,3 +1,5 @@
+import { whitepaperDocHref } from "./doc-paths.js";
+
 /** @typedef {{ href: string, label: string }} NavItem */
 
 /** Primary product — header only (static items; auth/gateway injected at runtime). */
@@ -10,7 +12,7 @@ export const HEADER_NAV = [
 export const FOOTER_NAV = [
   { href: "/#install", label: "Install" },
   { href: "/claim/", label: "Legacy claim" },
-  { href: "/whitepaper/", label: "Whitepaper" },
+  { href: whitepaperDocHref(), label: "Whitepaper" },
   { href: "/specs/", label: "Specs" },
   { href: "/help/", label: "Help" },
   { href: "/software/", label: "Software" },

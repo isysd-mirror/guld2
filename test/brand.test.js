@@ -37,7 +37,6 @@ test("pages share guld-header and guld-footer chrome", () => {
     "help/paymento/index.html",
     "explorer/index.html",
     "explorer/legacy/index.html",
-    "whitepaper/index.html",
     "specs/index.html",
     "docs/index.html",
   ]) {
@@ -62,7 +61,11 @@ test("header nav is product; docs live in footer", () => {
   );
   assert.equal(FOOTER_NAV.find((i) => i.label === "Install")?.href, "/#install");
   assert.equal(FOOTER_NAV.find((i) => i.label === "Docs")?.href, "/docs/");
-  assert.ok(!FOOTER_NAV.some((i) => /\.md$/i.test(i.href)));
+  assert.equal(
+    FOOTER_NAV.find((i) => i.label === "Whitepaper")?.href,
+    "/docs/?doc=whitepaper%2Fguld-2.0-draft.md",
+  );
+  assert.ok(!FOOTER_NAV.some((i) => /^\/docs\/[^?]+\.md$/i.test(i.href)));
   assert.ok(!HEADER_NAV.some((i) => /whitepaper|specs/i.test(i.label)));
 });
 
@@ -91,12 +94,12 @@ test("isNavActive and normalizePath", () => {
   assert.equal(initialsForName("isysd"), "IS");
 });
 
-test("whitepaper page and synced markdown exist", () => {
+test("whitepaper redirects to docs viewer", () => {
   assert.ok(existsSync(join(root, "whitepaper/index.html")));
   assert.ok(existsSync(join(root, "docs/whitepaper/guld-2.0-draft.md")));
   const html = readFileSync(join(root, "whitepaper/index.html"), "utf8");
-  assert.match(html, /data-doc-host/);
-  assert.match(html, /whitepaper-page\.js/);
+  assert.match(html, /\/docs\/\?doc=whitepaper%2Fguld-2\.0-draft\.md/);
+  assert.doesNotMatch(html, /whitepaper-page\.js/);
 });
 
 test("specs index lists drafts", () => {

@@ -1,6 +1,6 @@
 # Guld 2.0 Whitepaper
 
-**Version:** 0.22  
+**Version:** 0.23  
 **Date:** 2026-09-26  
 **Token:** GULD (native)  
 **Specifications:** [`../specs/README.md`](../specs/README.md) · **Glossary:** [§14](#14-glossary)
@@ -97,9 +97,9 @@ Beyond the identity gap (§1.1), several **operational scaling patterns** on wid
 
 | Pathology | Bitcoin-like UTXO L1 | General VM L1 (EVM / SVM) | Guld 2.0 response |
 |-----------|----------------------|----------------------------|-------------------|
-| **Activity-driven state bloat** | Every payment can create new **UTXOs** (change, dust). Full nodes must retain the entire UTXO set (on the order of **10⁸ outputs**). **Dust** outputs often cost more to spend than they hold, yet linger in the set for years. | Account and contract **storage trie** grows with deployed apps; validators re-execute semantics on replay. | Consensus state grows with **registered names** (and subs), not with payment count. `Transfer` updates balances **in place** — no output fragmentation ([§9.1](#91-state-growth-keys--hashes)). |
+| **Activity-driven state bloat** | Every payment can create new **UTXOs** (change, dust). Full nodes must retain the entire UTXO set (on the order of **10⁸ outputs**). **Dust** outputs often cost more to spend than they hold, yet linger in the set for years. | Account and contract **storage trie** grows with deployed apps; validators re-execute semantics on replay. | Consensus state grows with **registered names** (and subs), not with payment count. `Transfer` updates balances **in place** — no output fragmentation ([§9.1](#9-1-state-growth-keys-hashes)). |
 | **Unbounded transaction shape** | Input/output count, witness bytes, inscriptions — txs can grow very large within block limits (e.g. consolidating hundreds of dust UTXOs). | Calldata, nested calls, logs — high variance under a gas cap. | **Fixed tx vocabulary** ([§6](#6-transaction-types-network-surface)); optional **64-byte** memo; bulk data and app logic in **leaves** ([§4](#4-leaves-witnessing-and-cowitnessing)). Worst-case L0 size scales **linearly** with cosigner count and is **weight-priced**. |
-| **Process and content on L0** | Money-first; identity and governance are app-layer. | Multisig, DAO votes, and social rules are contracts every validator re-runs. | Threshold cosign and name→keys are **native**; leaf politics stay off L0. Tips are **hashes**; CAS bytes are optional per operator ([§9.4](#94-data-availability)). |
+| **Process and content on L0** | Money-first; identity and governance are app-layer. | Multisig, DAO votes, and social rules are contracts every validator re-runs. | Threshold cosign and name→keys are **native**; leaf politics stay off L0. Tips are **hashes**; CAS bytes are optional per operator ([§9.4](#9-4-data-availability)). |
 
 **UTXO clutter** is the canonical UTXO-L1 example: state tracks **outputs**, so high payment volume and dust accumulation burden every full node even when most outputs are economically worthless. Guld’s account model avoids that fragmentation — value lives in a **balance per name**; a payment does not mint permanent new consensus rows. Namespace spam is gated by **registration protocol fees** (`F_user`, `F_group`, `F_sub` — §8.7) rather than free output creation inside unrelated transactions.
 
@@ -901,14 +901,58 @@ Scalability of **content** is orthogonal: tips scale with accounts; blobs scale 
 
 ## 12. Roadmap
 
-1. Freeze account schema + `threshold_cosign_v1` + weight fee policy + **10 decimals**  
-2. Rust validator MVP: state DB, fixed txs, headers, single-lane PoW — **in progress**  
-3. Pin genesis import manifest from `ledger-guld`; ship `ClaimLegacy` key upgrade — **partial**  
-4. **Node client surfaces** (HTTP API + JSON-RPC only) + static reference wallet (**repo root**) — **read path shipped**; register/send next  
-5. Sponsored registration UX (friend + optional paid desk on bootstrap host)  
-6. Leaf SDKs + leaf host in full node; optional git remotes  
-7. P2P mesh (spec 09); indexers; leaf-host retention tooling  
-8. DAG-PoW / parallelism; PQ migration  
+Status snapshot (**2026-09**). Live **tx × API × UI** matrix: [`../specs/14-reference-ui.md`](../specs/14-reference-ui.md). GIP index: [`../gips/README.md`](../gips/README.md).
+
+### 12.1 Shipped — Simba public testnet
+
+**Simba** (`chain_id` 2, bootstrap [guld.io](https://guld.io/)) runs the Rust L0 stack end-to-end:
+
+| Layer | Today |
+|-------|--------|
+| **Consensus** | Single-lane PoW (interim double-SHA256; retarget ~600 s); fixed tx vocabulary; weight fees + registration protocol fees (8-block vest) |
+| **State** | fjall KV — accounts, balances, tips, names; **10** decimal GULD |
+| **Genesis** | Committed artifacts ([`../data/genesis/simba/`](../data/genesis/simba/)); keyless `guld` shell; `isysd` genesis-claim; 1.0 balances **legacy-locked** until `ClaimLegacy` |
+| **P2P** ([GIP-15](../gips/gip-15.md)) | libp2p Hello, tx gossip, block/header sync, CAS objects, ban scoring — **no chain reorg yet** (competing forks need reset or HTTP catch-up) |
+| **Node** | `guld-node`: JSON-RPC + HTTP `/api/v1`; continuous miner with `--miner`; testnet faucet |
+| **Reference UI** | PWA wallet (register individual/group/sub, send, cosign workstation, claim), explorer (blocks, txs, mempool SSE), docs browser, software catalog, optional Paymento registrar ([GIP-8](../gips/gip-8.md)) |
+
+Implemented GIPs include **5–13, 15–17, 19** (PWA, docs, software browser, registrar, fee/name rules, P2P, memo/upgrades, UI matrix, mempool UI). Operator runbook: [`../deploy/SIMBA.md`](../deploy/SIMBA.md).
+
+### 12.2 Honest gaps (specs vs software)
+
+| Area | Still open | SoT |
+|------|------------|-----|
+| **Wallet** | Group `Transfer` (threshold > 1); contacts / typeahead polish | spec 14 §3.1; [GIP-20](../gips/gip-20.md) draft |
+| **Explorer** | Block-by-hash search UI; fee-hint UX on send | spec 14 §3.3 |
+| **Sync** | Longest-chain **reorg**; fork-safe P2P height index | specs 06, 09 |
+| **1.0 → 2.0** | Mainnet import manifest audit + published pin | [GIP-14](../gips/gip-14.md) draft, spec 15 |
+| **Extension** | Browser extension site-login | spec 14 §3.4, [GIP-5](../gips/gip-5.md) |
+| **Foreign chains** | Reserved names + SPV/light proof kinds | spec 13 draft |
+| **Leaf host** | Dedicated materialization crate / ops path | spec 11 |
+| **Mainnet** | Locked genesis + `data/networks/main.json` | stub today |
+
+Account schema, `threshold_cosign_v1`, weight table, and **10 decimals** are **largely frozen** in specs — formal height-activated bundles per [spec 17](../specs/17-protocol-upgrades.md) remain for mainnet.
+
+### 12.3 Near term (testnet hardening)
+
+1. **Sync hygiene** — reorg on heavier work; harden P2P against fork pollution; Simba HTTP catch-up for stuck peers.  
+2. **Wallet UX** — send guards, contacts/recents, group transfer via cosign path ([tasks](../tasks/README.md)).  
+3. **Human-first site copy** — landing and docs aligned with §1.4 (wallet-first, not operator jargon).  
+4. **Peer QA** — multi-node Simba soaks; document fork recovery.
+
+### 12.4 Before mainnet
+
+1. Audit 1.0 import manifest + genesis ceremony ([GIP-14](../gips/gip-14.md)).  
+2. Lock mainnet genesis; disable faucet; production miner / nginx ops.  
+3. Security pass: registrar webhooks, P2P DoS limits, registration vesting edge cases.
+
+### 12.5 Later
+
+1. **DAG-PoW** / multi-parent headers (research; Simba stays single-lane until activated).  
+2. **Foreign-chain witnesses** (spec 13) and settlement dapps as leaves.  
+3. **`guld` leaf** hosting of reference site bytes + miner-governed gateway roster ([GIP-21](../gips/gip-21.md) draft).  
+4. Leaf SDK polish, optional git remotes, off-consensus indexers.  
+5. Post-quantum signature migration.
 
 ---
 

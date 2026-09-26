@@ -231,10 +231,62 @@ guld-md-doc {
   margin-top: 0;
 }
 
+.doc-frontmatter {
+  margin-bottom: 2rem;
+  padding: 1.15rem 1.35rem;
+  border: 1px solid color-mix(in srgb, var(--guld-ink) 14%, transparent);
+  border-radius: 0.65rem;
+  background: color-mix(in srgb, var(--guld-mist) 55%, transparent);
+}
+
+.doc-frontmatter h1 {
+  margin: 0 0 0.5rem;
+  font-size: clamp(1.5rem, 3.5vw, 2rem);
+  letter-spacing: -0.02em;
+  border: none;
+  padding: 0;
+}
+
+.doc-frontmatter__desc {
+  margin: 0 0 1rem;
+  max-width: 42rem;
+  line-height: 1.5;
+  opacity: 0.88;
+}
+
+.doc-frontmatter__meta {
+  display: grid;
+  grid-template-columns: minmax(5.5rem, auto) 1fr;
+  gap: 0.4rem 1.25rem;
+  margin: 0;
+  font-size: 0.92rem;
+}
+
+.doc-frontmatter__meta dt {
+  margin: 0;
+  font-weight: 600;
+  color: var(--guld-navy);
+}
+
+.doc-frontmatter__meta dd {
+  margin: 0;
+  opacity: 0.92;
+}
+
+.doc-prose__body > *:first-child {
+  margin-top: 0;
+}
+
 .doc-prose h1 {
   font-size: clamp(1.85rem, 4vw, 2.6rem);
   margin: 0 0 0.75rem;
   letter-spacing: -0.02em;
+}
+
+.doc-prose h2,
+.doc-prose h3,
+.doc-prose h4 {
+  scroll-margin-top: 5rem;
 }
 
 .doc-prose h2 {
