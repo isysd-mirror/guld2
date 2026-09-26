@@ -135,10 +135,17 @@
   opacity: 0.85;
 }
 
-.wallet__actions + .wallet__panel-status,
-.wallet__form .wallet__panel-status {
-  margin-top: 0.75rem;
-  margin-bottom: 0;
+.wallet__activity-item--unconfirmed strong {
+  color: var(--guld-navy);
+}
+
+.wallet__conf--unconfirmed {
+  font-weight: 600;
+  color: var(--guld-navy);
+}
+
+.wallet__conf {
+  white-space: nowrap;
 }
 
 .wallet__panel-title {

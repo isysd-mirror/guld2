@@ -112,7 +112,7 @@ Status: **shipped** | **partial** | **missing** | **out of UI** (node/miner/ops 
 | Block by height | `guld_getBlockByNumber` | `#/block/<h>` | **shipped** |
 | Block by hash | `guld_getBlockByHash` | Deep link / search | **partial** (RPC shipped; explorer UI next) |
 | Tx by height:index | Block body | `#/tx/<h>/<i>` | **shipped** |
-| Tx by id | `guld_getTransaction` | Explorer search + `#/tx/pending/<id>` | **shipped** |
+| Tx by id | `guld_getTransaction` | Explorer search + `#/tx/unconfirmed/<id>` | **shipped** |
 | Mempool snapshot | `GET /chain/mempool` / `guld_getMempool` | Explorer home + `#/mempool` | **shipped** |
 | Live tip + mempool | `GET /chain/events` (SSE) | Explorer home + `#/mempool` | **shipped** (GIP-19) |
 | Mempool fee hints / weight | `guld_getMempoolFeeHints`, `guld_estimateWeight` | Send fee defaults | **partial** (RPC shipped; fee UI next) |
@@ -214,12 +214,12 @@ Sponsored friend path remains available from Register and Settings (“Sponsor a
 | Route | Source | Shows |
 |-------|--------|--------|
 | `#/` | tip + recent blocks/txs + **mempool strip** | home |
-| `#/mempool` | `guld_getMempool` | full pending list |
-| `#/tx/pending/<id>` | `guld_getTransaction` (mempool) | pending tx detail |
+| `#/mempool` | `guld_getMempool` | full unconfirmed list |
+| `#/tx/unconfirmed/<id>` | `guld_getTransaction` (mempool) | unconfirmed tx detail (`#/tx/pending/<id>` alias) |
 | `#/block/<height>` | `guld_getBlockByNumber` | header, miner, tx list |
 | `#/tx/<height>/<index>` | block body | type, amounts, names, memo, cosign count |
 | `#/account/<name>` | account + activity | balance, **kind**, **keys**, **threshold**, expiry, activity |
-| Search box | parse query | name → account; digits → block; `h:i` / `h/i` → tx; `0x…` → mined or pending tx / block |
+| Search box | parse query | name → account; digits → block; `h:i` / `h/i` → tx; `0x…` → mined or unconfirmed tx / block |
 
 Wherever a username, block height, or `height:index` locator is shown, link to the matching route. Prefix browse requires `guld_searchAccounts` — not Phase 1 of explorer.
 

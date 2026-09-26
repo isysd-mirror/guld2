@@ -226,13 +226,13 @@ function waitExplorerHtml(opts = {}) {
   const txid = opts.txid || state.pendingTxId;
   const orderId = opts.orderId || state.orderId;
   const lines = [
-    `<li><a href="/explorer/#/mempool">Mempool</a> — pending txs waiting for the next block</li>`,
+    `<li><a href="/explorer/#/mempool">Mempool</a> — unconfirmed txs waiting for the next block</li>`,
   ];
   if (txid && txid !== "ok") {
     const href = explorerPendingTxHref(txid);
     const short = String(txid).length > 18 ? `${String(txid).slice(0, 18)}…` : String(txid);
     lines.push(
-      `<li><a href="${href}">Your pending tx</a> <code>${escapeHtml(short)}</code></li>`,
+      `<li><a href="${href}">Your unconfirmed tx</a> <code>${escapeHtml(short)}</code></li>`,
     );
   }
   lines.push(
@@ -602,10 +602,10 @@ function renderStepConfirm() {
             renderWaitStep({
               mode: "faucet",
               txid,
-              title: "Faucet queued your registration",
-              detail: "Watching the mempool and tip for inclusion.",
+              title: "Faucet broadcast your registration",
+              detail: "Watching the mempool until the registration gets its first confirmation.",
             });
-            say(`Queued · waiting for a ~${BLOCK_INTERVAL_MIN} min block…`, "pending");
+            say(`Unconfirmed · waiting for a ~${BLOCK_INTERVAL_MIN} min block…`, "pending");
             await pollNameOnly();
           } catch (err) {
             say(/** @type {Error} */ (err).message, "error");
@@ -738,7 +738,7 @@ function renderStep3(checkout, desk) {
       mode: "order",
       orderId: state.orderId,
       title: "Waiting for payment and registration",
-      detail: "Watch the order status below. After the registrar signs, the tx sits in the mempool until the next block.",
+      detail: "Watch the order status below. After the registrar signs, the tx is unconfirmed in the mempool until the next block.",
     });
     say("Waiting for payment confirmation…", "pending");
     void pollUntilRegistered();
@@ -790,7 +790,7 @@ async function pollNameOnly() {
       /* keep polling */
     }
     if (detail) {
-      detail.textContent = `Still pending… check ${i + 1} · blocks ~${BLOCK_INTERVAL_MIN} min apart`;
+      detail.textContent = `Still unconfirmed… check ${i + 1} · blocks ~${BLOCK_INTERVAL_MIN} min apart`;
     }
     await new Promise((r) => setTimeout(r, 4000));
   }

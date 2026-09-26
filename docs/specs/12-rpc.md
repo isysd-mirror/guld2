@@ -102,9 +102,10 @@ Mainnet peers MUST leave these disabled. Ops: [`../../deploy/SIMBA.md`](../../de
 | `guld_accountExists` | `[name]` | bool |
 | `guld_getAccountActivity` | `[name, limit]` | `ActivityItem[]` |
 
-`ActivityItem`: `{ height, block_hash, kind, direction?, amount?, fee?, counterparty?, tx_id?, tx_index? }`.
-`tx_index` is the body index in that block (omitted for coinbase).
-| `guld_searchAccounts` | `[prefix, limit]` | `[AccountSummary]` |
+`ActivityItem`: `{ height?, block_hash?, kind, direction?, amount?, fee?, counterparty?, tx_id?, tx_index?, confirmations, pending? }`.
+- Confirmed txs include `height` / `block_hash` / `tx_index` (except coinbase) and `confirmations = tip − height + 1`.
+- Unconfirmed (mempool) txs omit height/block fields, set `confirmations: 0` and `pending: true`, and are listed first.
+`tx_index` is the body index in that block (omitted for coinbase and unconfirmed).| `guld_searchAccounts` | `[prefix, limit]` | `[AccountSummary]` |
 
 `guld_searchAccounts`: case-sensitive prefix match on registered names; `limit` default 20, max 100. Large deployments SHOULD use an off-consensus indexer.
 

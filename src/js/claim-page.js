@@ -392,9 +392,9 @@ function renderForm() {
       const txHref = explorerPendingTxHref(result?.tx_id);
       showToast({
         title: "Claim submitted",
-        body: "Open Wallet to send GULD, or view the pending tx in the explorer.",
+        body: "Open Wallet to send GULD, or view the unconfirmed tx in the explorer.",
         href: result?.tx_id && result.tx_id !== "ok" ? txHref : "/wallet/",
-        hrefLabel: result?.tx_id && result.tx_id !== "ok" ? "View pending tx" : "Open wallet",
+        hrefLabel: result?.tx_id && result.tx_id !== "ok" ? "View unconfirmed tx" : "Open wallet",
       });
       ui.alreadyClaimed = true;
       ui.formEnabled = false;

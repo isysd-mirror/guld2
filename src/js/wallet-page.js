@@ -45,10 +45,13 @@ import {
   guldToQuanta,
   quantaToGuld,
   summarizeActivity,
+  activityConfirmations,
+  activityIsUnconfirmed,
 } from "./lib/rpc.js";
 import { parseRegistrationRequest, sponsorRegistration } from "./lib/sponsor.js";
 import {
   extractTxId,
+  explorerPendingTxHref,
   formatTxSubmittedHtml,
   statusSlotHtml,
 } from "./lib/tx-feedback.js";
@@ -249,7 +252,7 @@ async function waitForKeyRotation(name, wantPub, opts = {}) {
     await new Promise((r) => setTimeout(r, delayMs));
   }
   throw new Error(
-    "RotateKeys submitted but not confirmed yet — keep the new private key safe and refresh after the next block.",
+    "RotateKeys submitted but still unconfirmed — keep the new private key safe and refresh after the next block.",
   );
 }
 
@@ -298,22 +301,41 @@ async function route() {
     const kind = account.kind || "—";
     const threshold = Number(account.threshold ?? 1);
     const chainId = Number(st.chainId ?? 1);
+    const tipHeight = Number(st.height ?? 0);
 
     const rows = (activity.items || []).map((row) => {
       const sum = summarizeActivity(row);
       const h = row.height != null ? String(row.height) : "";
       const idx = row.tx_index;
-      let when = escapeHtml(formatTime(row.timestamp ?? row.time ?? row.block_time));
-      if (h && idx != null && Number.isFinite(Number(idx))) {
-        when = `<a href="/explorer/#/tx/${h}/${idx}">h${escapeHtml(h)}:${escapeHtml(String(idx))}</a>`;
-      } else if (h) {
-        when = `<a href="/explorer/#/block/${h}">h${escapeHtml(h)}</a>`;
+      const unconfirmed = activityIsUnconfirmed(row);
+      const conf = activityConfirmations(row, tipHeight);
+      let when = "";
+      if (unconfirmed) {
+        const href = explorerPendingTxHref(row.tx_id);
+        when = `<a href="${href}" class="wallet__conf wallet__conf--unconfirmed">Unconfirmed</a>`;
+      } else {
+        const confLabel =
+          conf != null
+            ? `<span class="wallet__conf">${conf === 1 ? "1 confirmation" : `${conf} confirmations`}</span>`
+            : "";
+        if (h && idx != null && Number.isFinite(Number(idx))) {
+          when = `<a href="/explorer/#/tx/${h}/${idx}">h${escapeHtml(h)}:${escapeHtml(String(idx))}</a>${
+            confLabel ? ` · ${confLabel}` : ""
+          }`;
+        } else if (h) {
+          when = `<a href="/explorer/#/block/${h}">h${escapeHtml(h)}</a>${
+            confLabel ? ` · ${confLabel}` : ""
+          }`;
+        } else {
+          when = confLabel || escapeHtml(formatTime(row.timestamp ?? row.time ?? row.block_time));
+        }
       }
       const primary =
         row.counterparty
           ? `<a href="/explorer/#/account/${encodeURIComponent(String(row.counterparty).toLowerCase())}">${escapeHtml(sum.primary)}</a>`
           : escapeHtml(sum.primary);
-      return `<li><strong>${escapeHtml(sum.type)}</strong> ${primary} · ${escapeHtml(sum.amount)} GULD <span class="wallet__meta">${when}</span></li>`;
+      const liClass = unconfirmed ? ` class="wallet__activity-item wallet__activity-item--unconfirmed"` : "";
+      return `<li${liClass}><strong>${escapeHtml(sum.type)}</strong> ${primary} · ${escapeHtml(sum.amount)} GULD <span class="wallet__meta">${when}</span></li>`;
     });
 
     const unlocked = keyring.hasLocalKey(r.name);
@@ -524,7 +546,7 @@ async function route() {
               const out = await faucetDrip(apiBase, r.name);
               say(
                 formatTxSubmittedHtml(
-                  `Faucet queued ${out?.amountGuld ?? 10} GULD — waiting for block…`,
+                  `Faucet sent ${out?.amountGuld ?? 10} GULD — unconfirmed…`,
                   out,
                 ),
                 "pending",
@@ -568,7 +590,7 @@ async function route() {
                 }
               }
               flashStatus(
-                formatTxSubmittedHtml("Drip still pending — refresh the wallet shortly", out),
+                formatTxSubmittedHtml("Drip still unconfirmed — refresh the wallet shortly", out),
                 "pending",
                 "[data-send-form]",
               );
@@ -909,7 +931,7 @@ async function route() {
             });
           }
           say(
-            formatTxSubmittedHtml("RotateKeys queued — waiting for inclusion…", out),
+            formatTxSubmittedHtml("RotateKeys broadcast — unconfirmed…", out),
             "pending",
             form,
             { html: true },
@@ -1318,7 +1340,7 @@ function mountCosignWorkstation(mount, opts) {
             pubHex: opts.newPubHex,
           });
           say(
-            formatTxSubmittedHtml("RotateKeys queued — waiting for inclusion…", out),
+            formatTxSubmittedHtml("RotateKeys broadcast — unconfirmed…", out),
             "pending",
             { html: true },
           );

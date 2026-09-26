@@ -12,7 +12,7 @@ export function explorerPendingTxHref(txid) {
   const raw = String(txid || "").trim();
   if (!raw || raw === "ok") return "/explorer/#/mempool";
   const hex = raw.startsWith("0x") || raw.startsWith("0X") ? raw : `0x${raw}`;
-  return `/explorer/#/tx/pending/${encodeURIComponent(hex.toLowerCase())}`;
+  return `/explorer/#/tx/unconfirmed/${encodeURIComponent(hex.toLowerCase())}`;
 }
 
 /**
@@ -42,7 +42,7 @@ export function formatTxSubmittedHtml(label, result) {
   if (!id || id === "ok") return escapeHtml(label);
   const href = explorerPendingTxHref(id);
   const short = id.length > 20 ? `${id.slice(0, 18)}…` : id;
-  return `${escapeHtml(label)} · <a href="${href}">${escapeHtml(short)}</a>`;
+  return `${escapeHtml(label)} · <a href="${href}">${escapeHtml(short)}</a> (unconfirmed)`;
 }
 
 /** Inline status line for forms (place after submit actions). */

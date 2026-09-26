@@ -118,7 +118,7 @@ Manual Refresh remains for snapshot re-sync; SSE is the default live path.
 - [x] `guld-node`: emit events on insert / remove / new head; serve snapshot
 - [x] `guld-node`: serve mempool snapshot (polling)
 - [x] PWA `EventSource` client helper (shared `src/js/lib/chain-events.js`)
-- [x] Explorer mempool view wired to snapshot (home panel + `#/mempool` + `#/tx/pending/<id>`)
+- [x] Explorer mempool view wired to snapshot (home panel + `#/mempool` + `#/tx/unconfirmed/<id>`)
 - [x] Explorer mempool view wired to SSE + snapshot fallback
 - [x] Rate limits / max subscribers per IP documented for operators (soft cap 64 / process; `503` when full)
 

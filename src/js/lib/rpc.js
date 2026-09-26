@@ -228,3 +228,32 @@ export function summarizeActivity(item) {
       return { type: kind, primary: cp || "—", amount };
   }
 }
+
+/**
+ * Bitcoin-style confirmation count for an activity row.
+ * @param {Record<string, unknown>} row
+ * @param {number} [tipHeight]
+ * @returns {number | null}
+ */
+export function activityConfirmations(row, tipHeight) {
+  if (!row || typeof row !== "object") return null;
+  if (row.pending === true) return 0;
+  if (typeof row.confirmations === "number" && Number.isFinite(row.confirmations)) {
+    return /** @type {number} */ (row.confirmations);
+  }
+  const h = Number(row.height);
+  const tip = Number(tipHeight);
+  if (Number.isFinite(h) && Number.isFinite(tip) && tip >= h) {
+    return tip - h + 1;
+  }
+  if (row.height == null || row.height === "") return 0;
+  return null;
+}
+
+/** @param {Record<string, unknown>} row */
+export function activityIsUnconfirmed(row) {
+  if (!row || typeof row !== "object") return false;
+  if (row.pending === true) return true;
+  if (row.height == null || row.height === "") return true;
+  return false;
+}

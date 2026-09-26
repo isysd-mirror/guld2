@@ -11,6 +11,8 @@ import {
   shortHash,
   summarizeTx,
   summarizeActivity,
+  activityConfirmations,
+  activityIsUnconfirmed,
 } from "./lib/rpc.js";
 
 const PAGE_SIZE = 20;
@@ -97,7 +99,7 @@ function paintLiveMempool(limit) {
   const countEl = hostEl?.querySelector("[data-live-mempool-count]");
   if (countEl instanceof HTMLElement) {
     const n = liveMempool.size;
-    countEl.textContent = n === 1 ? "1 pending" : `${n} pending`;
+    countEl.textContent = n === 1 ? "1 unconfirmed" : `${n} unconfirmed`;
   }
 }
 
@@ -169,7 +171,7 @@ function refreshStatusLine(view) {
   } else {
     setStatus(
       "ok",
-      `Height ${tipHeight.toLocaleString()} · ${n} pending${transportLabel()}`,
+      `Height ${tipHeight.toLocaleString()} · ${n} unconfirmed${transportLabel()}`,
     );
   }
 }
@@ -222,7 +224,11 @@ function parseRoute() {
     const height = Number(parts[1]);
     if (Number.isFinite(height) && height >= 0) return { view: "block", height };
   }
-  if (parts[0] === "tx" && parts[1] === "pending" && parts[2]) {
+  if (
+    parts[0] === "tx" &&
+    (parts[1] === "unconfirmed" || parts[1] === "pending") &&
+    parts[2]
+  ) {
     const id = parts[2].startsWith("0x") ? parts[2].toLowerCase() : `0x${parts[2].toLowerCase()}`;
     return { view: "pendingTx", id };
   }
@@ -277,7 +283,7 @@ function txLink(height, index, label) {
 /** @param {string} id */
 function pendingTxHref(id) {
   const hex = String(id || "").startsWith("0x") ? String(id) : `0x${id}`;
-  return `#/tx/pending/${encodeURIComponent(hex)}`;
+  return `#/tx/unconfirmed/${encodeURIComponent(hex)}`;
 }
 
 /** @param {string} id @param {string} [label] */
@@ -380,6 +386,11 @@ async function navigateLookup(query) {
 
 async function route() {
   haltLive();
+  // Prefer Bitcoin-style path; keep `#/tx/pending/…` as a one-shot alias.
+  if (/#\/tx\/pending\//i.test(location.hash)) {
+    location.hash = location.hash.replace(/\/tx\/pending\//i, "/tx/unconfirmed/");
+    return;
+  }
   const r = parseRoute();
   if (hostEl instanceof HTMLElement) {
     hostEl.innerHTML = `<p class="doc-status">Loading…</p>`;
@@ -539,14 +550,14 @@ async function renderHome() {
 
   const older = to > 0;
   const pendingLabel =
-    liveMempool.size === 1 ? "1 pending" : `${liveMempool.size} pending`;
+    liveMempool.size === 1 ? "1 unconfirmed" : `${liveMempool.size} unconfirmed`;
 
   hostEl.innerHTML = `
     ${lookupFormHtml()}
     <section class="explorer__panel explorer__panel--mempool">
       <header class="explorer__panel-head">
         <h2>Mempool</h2>
-        <p><span data-live-mempool-count>${escapeHtml(pendingLabel)}</span> · waiting for the next block
+        <p><span data-live-mempool-count>${escapeHtml(pendingLabel)}</span> · 0 confirmations · waiting for the next block
           · <a href="#/mempool">Open full list</a></p>
       </header>
       <div data-live-mempool>
@@ -608,7 +619,7 @@ async function renderMempool() {
     <section class="explorer__panel">
       <header class="explorer__panel-head">
         <h2>Mempool</h2>
-        <p><span data-live-mempool-count>${liveMempool.size} pending</span> · weight ${escapeHtml(String(weightUsed))} / ${escapeHtml(String(weightLimit))}
+        <p><span data-live-mempool-count>${liveMempool.size === 1 ? "1 unconfirmed" : `${liveMempool.size} unconfirmed`}</span> · weight ${escapeHtml(String(weightUsed))} / ${escapeHtml(String(weightLimit))}
           ${pool.truncated ? " · truncated" : ""}</p>
       </header>
       <p class="explorer__meta">Unconfirmed txs stream live via SSE (GIP-19). Fallback polls the snapshot if the stream drops.</p>
@@ -627,7 +638,7 @@ async function renderMempool() {
  */
 function mempoolTable(items, opts = {}) {
   if (!items.length) {
-    return `<p class="explorer__empty">${escapeHtml(opts.empty || "No pending transactions.")}</p>`;
+    return `<p class="explorer__empty">${escapeHtml(opts.empty || "No unconfirmed transactions.")}</p>`;
   }
   const body = items
     .map((row) => {
@@ -677,7 +688,7 @@ async function renderPendingTx(id) {
 
   const tx = /** @type {Record<string, unknown>} */ (loc.tx || {});
   const s = summarizeTx(tx);
-  setStatus("ok", `Height ${tipHeight.toLocaleString()} · pending ${shortHash(id, 10)}`);
+  setStatus("ok", `Height ${tipHeight.toLocaleString()} · unconfirmed ${shortHash(id, 10)}`);
 
   const kvRows = txDetailRows(tx)
     .map(([label, html]) => {
@@ -691,10 +702,10 @@ async function renderPendingTx(id) {
       <span aria-hidden="true">/</span>
       <a href="#/mempool">Mempool</a>
       <span aria-hidden="true">/</span>
-      <span>Pending</span>
+      <span>Unconfirmed</span>
     </nav>
     <aside class="explorer__banner">
-      <p><strong>Pending</strong> — in the mempool, not yet in a block. Refresh after a miner seals.</p>
+      <p><strong>Unconfirmed</strong> — in the mempool (0 confirmations). Refresh after the next block.</p>
     </aside>
     <section class="explorer__panel">
       <header class="explorer__panel-head">
@@ -703,7 +714,10 @@ async function renderPendingTx(id) {
       </header>
       <p class="explorer__tx-summary">${linkifyTxPrimary(tx, s.primary)}
         ${s.amount !== "—" ? ` · <strong>${escapeHtml(s.amount)}</strong> GULD` : ""}</p>
-      <dl class="explorer-kv-grid">${kvRows}</dl>
+      <dl class="explorer-kv-grid">
+        <div class="explorer-kv"><dt>Confirmations</dt><dd class="num">0</dd></div>
+        ${kvRows}
+      </dl>
     </section>
   `;
 }
@@ -906,7 +920,9 @@ async function renderTx(height, index) {
 
   const s = summarizeTx(tx);
   const header = block.header || {};
-  setStatus("ok", `Height ${tipHeight.toLocaleString()} · tx ${height}:${index}`);
+  const conf = tipHeight >= Number(height) ? tipHeight - Number(height) + 1 : 0;
+  const confLabel = conf === 1 ? "1 confirmation" : `${conf} confirmations`;
+  setStatus("ok", `Height ${tipHeight.toLocaleString()} · tx ${height}:${index} · ${confLabel}`);
 
   const kvRows = txDetailRows(tx)
     .map(([label, html]) => {
@@ -937,11 +953,14 @@ async function renderTx(height, index) {
     <section class="explorer__panel">
       <header class="explorer__panel-head">
         <h2>${escapeHtml(s.type)}</h2>
-        <p>${txLink(height, index)} · ${blockLink(height, `block ${height}`)} · ${escapeHtml(formatTime(header.timestamp))}</p>
+        <p>${txLink(height, index)} · ${blockLink(height, `block ${height}`)} · ${escapeHtml(confLabel)} · ${escapeHtml(formatTime(header.timestamp))}</p>
       </header>
       <p class="explorer__tx-summary">${linkifyTxPrimary(tx, s.primary)}
         ${s.amount !== "—" ? ` · <strong>${escapeHtml(s.amount)}</strong> GULD` : ""}</p>
-      <dl class="explorer-kv-grid">${kvRows}</dl>
+      <dl class="explorer-kv-grid">
+        <div class="explorer-kv"><dt>Confirmations</dt><dd class="num">${escapeHtml(String(conf))}</dd></div>
+        ${kvRows}
+      </dl>
       ${siblings}
     </section>
   `;
@@ -1083,14 +1102,26 @@ async function renderAccount(name) {
   const actRows = items.length
     ? items
         .map((row) => {
-          const s = summarizeActivity(/** @type {Record<string, unknown>} */ (row));
+          const rec = /** @type {Record<string, unknown>} */ (row);
+          const s = summarizeActivity(rec);
           const h = row.height != null ? String(row.height) : "";
           const idx = row.tx_index;
-          const when = h
-            ? blockLink(h, `h${h}`)
-            : escapeHtml(formatTime(row.timestamp));
+          const unconfirmed = activityIsUnconfirmed(rec);
+          const conf = activityConfirmations(rec, tipHeight);
+          const confCell = unconfirmed
+            ? `<span class="tx-pill tx-pill--pending">Unconfirmed</span>`
+            : conf != null
+              ? `<span class="num">${conf}</span>`
+              : "—";
+          const when = unconfirmed
+            ? "—"
+            : h
+              ? blockLink(h, `h${h}`)
+              : escapeHtml(formatTime(row.timestamp));
           let txCell = "—";
-          if (h && idx != null && Number.isFinite(Number(idx))) {
+          if (unconfirmed && row.tx_id) {
+            txCell = pendingTxLink(String(row.tx_id), shortHash(String(row.tx_id), 8));
+          } else if (h && idx != null && Number.isFinite(Number(idx))) {
             const tip = row.tx_id ? String(row.tx_id) : `${h}:${idx}`;
             txCell = txLink(h, idx, shortHash(tip, 8));
           } else if (h && s.type === "coinbase") {
@@ -1099,10 +1130,11 @@ async function renderAccount(name) {
             txCell = blockLink(h);
           }
           return `<tr>
-            <td><span class="tx-pill">${escapeHtml(s.type)}</span></td>
-            <td>${linkifyActivityPrimary(/** @type {Record<string, unknown>} */ (row), s)}</td>
+            <td><span class="tx-pill${unconfirmed ? " tx-pill--pending" : ""}">${escapeHtml(s.type)}</span></td>
+            <td>${linkifyActivityPrimary(rec, s)}</td>
             <td class="num">${escapeHtml(s.amount)}</td>
             <td class="num">${txCell}</td>
+            <td class="num">${confCell}</td>
             <td class="num">${when}</td>
           </tr>`;
         })
@@ -1138,7 +1170,7 @@ async function renderAccount(name) {
       ${
         actRows
           ? `<div class="explorer__table-wrap"><table class="explorer-table">
-              <thead><tr><th>Type</th><th>Detail</th><th class="num">Amount</th><th class="num">Tx / block</th><th class="num">When</th></tr></thead>
+              <thead><tr><th>Type</th><th>Detail</th><th class="num">Amount</th><th class="num">Tx / block</th><th class="num">Confirmations</th><th class="num">When</th></tr></thead>
               <tbody>${actRows}</tbody>
             </table></div>`
           : `<p class="explorer__empty">No activity yet.</p>`
