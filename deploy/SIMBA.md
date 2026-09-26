@@ -62,10 +62,20 @@ Empty `--network simba` datadirs load height-0 from `data/genesis/simba/`:
 | `isysd` | Genesis-claimed via committed PGP clearsign (attestation authority from block 0) |
 | alice | **Gone** — never created on Simba |
 | `--miner` | **No default.** Required only to seal blocks; omit for validating peers |
+| Tip pin | `pins.json` + `blocks/0.json` — node refuses to start if rebuilt tip drifts |
 
-Ceremony / refresh: see [`data/genesis/simba/README.md`](../data/genesis/simba/README.md). Until `isysd-claim.asc` and a real `isysd_pubkey` are committed, empty Simba datadirs will refuse to start.
+**Genesis tip (pinned):** `0xc4a0171e5afd7ecd425b0ef8a7e57cc737226e4a992aecaa05324257c6adb3f0`  
+Ceremony / refresh: [`data/genesis/simba/README.md`](../data/genesis/simba/README.md).
 
-Do **not** pass `--import-ledger` on Simba — the manifest is already in artifacts.
+Do **not** pass `--import-ledger` or `--dev` on Simba — the manifest and block 0 are already in artifacts.
+
+### Reset policy (G4)
+
+**Simba may reset once before durable beta lock.** Peers should expect at most one breaking regenesis notice before tip hash is treated as frozen.
+
+### Wire codec (task 009)
+
+**Dual wire:** P2P accepts JSON `/guld/tx|block/1.0.0` and BARE `/guld/tx|block/2.0.0`; `TxId` always from BARE. Prefer v2.
 
 ## What works today (P2P phase C)
 

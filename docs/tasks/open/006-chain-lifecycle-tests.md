@@ -63,13 +63,9 @@ Run: `cargo test -p guld-node --test dev_smoke`
 
 ### Phase 4 — Fork / reorg (blocked)
 
-Prerequisites (separate work):
+Prerequisites: [013-chain-reorg-implementation.md](./013-chain-reorg-implementation.md) (state rewind + replay + node wiring).
 
-- State rewind to common ancestor + replay heavier chain.
-- P2P: store competing tips, call `choose_tip`, emit reorg events.
-- Only then: dual-miner fork script, assert account balances after reorg.
-
-Track under GIP / spec 06 gap; do not fake-pass reorg tests against current node.
+Do not fake-pass reorg tests against current node.
 
 ## Done when
 

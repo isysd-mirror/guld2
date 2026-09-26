@@ -39,6 +39,10 @@ Small bugs and polish: use [`../tasks/`](../tasks/) instead. Specs remain normat
 | [20](gip-20.md) | Wallet contacts and account lookup | Draft | Standards | Application |
 | [21](gip-21.md) | guld.io in guld leaf + miner governance | Draft | Standards | Core |
 | [22](gip-22.md) | Deferred miner rewards (ClaimReward) | Accepted | Standards | Core |
+| [23](gip-23.md) | Consensus-enforced difficulty schedule | Draft | Standards | Core |
+| [24](gip-24.md) | Legacy distribution transparency | Draft | Informational | — |
+| [25](gip-25.md) | Diversified ClaimLegacy attestation | Draft | Standards | Core |
+| [26](gip-26.md) | Consensus golden vectors | Draft | Standards | Interface |
 
 ## Migration note
 

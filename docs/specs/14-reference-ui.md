@@ -101,7 +101,7 @@ Status: **shipped** | **partial** | **missing** | **out of UI** (node/miner/ops 
 | Find accounts by pubkey | `guld_findAccountsByPubkey` | Settings / recovery hint | **partial** (RPC shipped; UI missing) |
 | Prefix name search | `guld_searchAccounts` | Explorer / contacts typeahead | **partial** (RPC shipped; UI missing) |
 | Local contacts / recent / favorites | — (local storage) | Send combobox | **partial** |
-| Foreign-chain names (`bitcoin`, …) | Spec 13 | Read-only explorer later | **later** |
+| Cross-chain / bridge dapps (no L0 reserved names — A11) | Spec 13 informative | N/A for Simba wallet | **later** (dapp layer) |
 | Leaf / CAS put-get in wallet | `guld_putObject` / `getObject` | Not required for L0 wallet; leaf host | **later** / ops |
 
 ### 3.3 Chain / explorer / ops

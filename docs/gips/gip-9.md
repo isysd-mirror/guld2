@@ -74,7 +74,7 @@ Legacy-locked imports: after `ClaimLegacy`, normal yearly settle applies at **`F
 
 - Subaccount fee **`F_sub = 0.1 GULD`/year** (flat)  
 - Group **`F_group(L, n) = F_user(L) × (2 + n)` GULD/year** — e.g. 1-letter 1-of-1 = **3_000 GULD**/yr  
-- Name deposits, resale, height-indexed fee ramps
+- Resale, height-indexed fee ramps
 
 ## Open parameters
 

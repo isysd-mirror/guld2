@@ -50,6 +50,7 @@ Each `src/guld-*` directory is a submodule. Its **`origin`** is the bare on disk
 | **umbrella (repo root)** | `repos/guld.git` | `https://guld.io/repos/guld.git` |
 | `src/guld-types` | `repos/guld-types.git` | `https://guld.io/repos/guld-types.git` |
 | `src/guld-crypto` | `repos/guld-crypto.git` | `https://guld.io/repos/guld-crypto.git` |
+| `src/guld-wire` | `repos/guld-wire.git` | `https://guld.io/repos/guld-wire.git` |
 | `src/guld-state` | `repos/guld-state.git` | `https://guld.io/repos/guld-state.git` |
 | `src/guld-consensus` | `repos/guld-consensus.git` | `https://guld.io/repos/guld-consensus.git` |
 | `src/guld-cas` | `repos/guld-cas.git` | `https://guld.io/repos/guld-cas.git` |

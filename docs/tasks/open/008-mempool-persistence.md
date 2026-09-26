@@ -57,10 +57,10 @@ Today `seed_p2p_mempool` re-gossips whatever is already in RAM after P2P connect
 
 ## Done when
 
-- [ ] Datadir-backed mempool store with insert/remove/mine hooks in `guld-node`
-- [ ] Startup reload + re-validation; stale entries removed with debug log
-- [ ] Existing P2P re-gossip runs after reload (`seed_p2p_mempool`)
-- [ ] Unit or integration test: insert tx → restart node (or reload fn) → tx still present
+- [x] Datadir-backed mempool store with insert/remove/mine hooks in `guld-node`
+- [x] Startup reload + re-validation; stale entries removed with debug log
+- [x] Existing P2P re-gossip runs after reload (`seed_p2p_mempool`)
+- [x] Unit or integration test: insert tx → restart node (or reload fn) → tx still present
 - [ ] Document path and behavior in spec 10 (node) §mempool persistence — short paragraph
 - [ ] Task 007 known-gap note: mempool fragility partially addressed (persistence); network size still affects peer relay
 

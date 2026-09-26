@@ -187,7 +187,6 @@ fn vest_registration_fee_shares(fee: u128) -> Vec<u128>;  // REGISTRATION_FEE_VE
 
 ## 8. Open parameters
 
-- Whether name **deposits** exist alongside registration fees (deferred)  
 - Mainnet re-audit of **x** if manifest is regenerated (Simba pin locked — A7; [`15-ledger-import.md`](15-ledger-import.md) §2.1)  
 - `MAX_SUBACCOUNTS` (default **8**) — [`../gips/gip-12.md`](../gips/gip-12.md)
 

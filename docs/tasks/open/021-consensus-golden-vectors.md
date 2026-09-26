@@ -1,0 +1,36 @@
+# Task: Consensus golden vectors (GIP-26)
+
+Status: open
+Priority: normal (raise to **high** before mainnet; after [009](./009-bare-wire-implementation.md))
+GIP: ../gips/gip-26.md
+Spec: ../specs/01-cryptography.md, ../schemas/README.md
+Depends: ./009-bare-wire-implementation.md, ./014-enforce-difficulty-on-import.md
+
+## Problem
+
+No checked-in multi-language fixtures for `TxId`, header hashes, difficulty schedule, or apply transitions. BARE schemas are TBD; JSON hashing is interim. External review: single-client + unstable identities block credibility.
+
+## Goals
+
+1. Land vector directory per [GIP-26](../gips/gip-26.md) (interim `testdata/consensus/` OK until BARE).
+2. Wire Rust CI to fail on drift.
+3. Minimum coverage table in GIP-26 satisfied.
+4. Document regen commands and tool pins.
+5. Stretch: one JS or Python verifier job.
+
+## Non-goals
+
+- Full second node client.
+- Mainnet freeze (separate ceremony).
+
+## Done when
+
+- [ ] Vectors + Rust CI green
+- [ ] GIP-26 → Accepted (Final when non-Rust consumer exists)
+- [ ] Linked from schemas README and task 007 “before mainnet” notes
+
+## Notes
+
+```
+2026-09-26: Opened from external review / GIP-26.
+```

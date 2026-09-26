@@ -2,6 +2,7 @@
 resolver = "2"
 members = [
     "src/guld-types",
+    "src/guld-wire",
     "src/guld-crypto",
     "src/guld-state",
     "src/guld-consensus",

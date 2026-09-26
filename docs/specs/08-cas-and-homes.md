@@ -28,7 +28,7 @@ trait Cas {
   fn has(&self, id: &ObjectId) -> bool;
 
   /// Local retention hint for this node’s disk policy (operator config).
-  /// MUST NOT be confused with consensus pin/slash txs — those do not exist.
+  /// Not a consensus mechanism — tip ≠ data availability.
   fn retain_local(&self, id: &ObjectId) -> Result<(), CasError>;
 
   /// Ensure all objects reachable from root are present (recursive).
@@ -58,7 +58,7 @@ Failure to materialize the rule bundle or rules-hash mismatch ⇒ node MUST NOT 
 
 ## 5. Other accounts — tip ≠ DA
 
-**Locked:** consensus has **no** `PinClaim` / `PinRelease` / bonded slash-for-missing-data.
+**Locked:** consensus has **no** `PinClaim` / `PinRelease` / on-chain data-availability market.
 
 - Validators MUST store account tips (`master_hash`, keys, balances).  
 - Validators MUST NOT be required to store ordinary account home bytes.  

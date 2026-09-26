@@ -33,7 +33,7 @@ Ethereum proved programmable settlement and fee markets. Bitcoin proved open Syb
 
 ### 1.1a Why PoW for 2.0
 
-2.0 keeps the identity-first product (names, groups, threshold tips, leaves) but moves **header consensus** to open **PoW** — the most stable, conservative, widely audited Sybil model. The goal is straightforward finality for new users and operators: scarce block space backed by work, not a stake quorum that had lost agreement. Bonded roles and account-level cosign may still exist; they do **not** elect chain tips (§7.3).
+2.0 keeps the identity-first product (names, groups, threshold tips, leaves) but moves **header consensus** to open **PoW** — the most stable, conservative, widely audited Sybil model. The goal is straightforward finality for new users and operators: scarce block space backed by work, not a stake quorum that had lost agreement. Account-level cosign authorizes tips and spends; it does **not** elect chain tips (§7.3).
 
 ### 1.2 Thesis
 
@@ -46,7 +46,7 @@ Guld 2.0 is an **L0 witness hub** for **registered identities**: settlement of f
 | Goal | Meaning |
 |------|---------|
 | **L0 substrate** | Names + proofs + PoW anchoring under people and groups |
-| Identity-first DeFi | Transfers, bonds, grants, and permissions bind to **usernames / groups** |
+| Identity-first DeFi | Transfers, grants, and permissions bind to **usernames / groups** |
 | Flexible leaves / dapps | **No app ceiling** — leaves run any stack; Guld only witnesses heads |
 | Cross-chain (dapp layer) | **Theoretical** bridge/indexer/exchange patterns — not reserved L0 names ([`../specs/13-foreign-chains.md`](../specs/13-foreign-chains.md) informative) |
 | Network as witness | Verifies **Guld** proofs and records heads — does not re-execute app or foreign VM logic |
@@ -137,18 +137,17 @@ This does **not** claim higher **L1 throughput** than Bitcoin (same block-weight
 | **Master hash** | Single SHA-256 committing to the account’s defined tree + meta |
 | **Content hashes** | SHA-256 (or tree roots) referencing CAS objects |
 
-People say: *pay `alice`*, *bond to `guild/traders`*, *follow tip of `bob`*. Machines settle against the registered mapping and the current master hash.
+People say: *pay `alice`*, *send to `guild/traders`*, *follow tip of `bob`*. Machines settle against the registered mapping and the current master hash.
 
 ### 3.2 Account structure and network-level home
 
 ```
 name
 ├── keys[]              # verification keys
-├── threshold           # cosign policy for tip / spend / recover (roles optional)
+├── threshold           # cosign policy for tip / spend / recover
 ├── nonce
 ├── master_hash         # SHA-256 head of the account home
-├── balance (GULD)
-└── optional bond / remote-hint fields   # bonds = roles/deposits only; no L0 CAS pins
+└── balance (GULD)
 ```
 
 ```
@@ -179,7 +178,7 @@ Registering a name consumes **global namespace** and creates durable validator s
 
 **Length pricing:** count **letters only** in the root label (`x` = 1, `jorge-luise-gonzalez` = 17 → capped). Short names are scarce and expensive; names with **≥ 6 letters** pay the **1 GULD**/year floor (1.0 continuity for ordinary names). Subaccounts stay cheap so one human can hold multiple custody zones without burning another top-level name. Fees buy **DNS-style pay-or-release** control ([`../gips/gip-11.md`](../gips/gip-11.md)); keep the wallet funded or the name is released. Legacy claims stay open (PGP or isysd attestation). No resale market. See §8.7 and [`../specs/07-fees-and-tokenomics.md`](../specs/07-fees-and-tokenomics.md).
 
-**Miner lottery (8-block vest):** `F_user(L)`, `F_group(L, n)`, `F_sub`, and settle renewals/releases are debited in full at apply, then **credited to miners over 8 consecutive blocks** starting at the inclusion height (`REGISTRATION_FEE_VEST_BLOCKS = 8`). The including miner receives only ~1/8 in that block's coinbase; recovering the full fee requires winning all eight. No burn. Inclusion fees stay one-shot to the including miner. Optional **name deposits** may lock separately (returnable/slashable under policy).
+**Miner lottery (8-block vest):** `F_user(L)`, `F_group(L, n)`, `F_sub`, and settle renewals/releases are debited in full at apply, then **credited to miners over 8 consecutive blocks** starting at the inclusion height (`REGISTRATION_FEE_VEST_BLOCKS = 8`). The including miner receives only ~1/8 in that block's coinbase; recovering the full fee requires winning all eight. No burn. Inclusion fees stay one-shot to the including miner.
 
 **Bootstrap (no name yet):** registration requires a **sponsor** with GULD. The future name holder signs a **registration intent** (`guld/register/intent/v1`); the sponsor signs the spend (`guld/register/v1`). Both signatures are required on-chain — see [`../specs/16-sponsored-registration.md`](../specs/16-sponsored-registration.md).
 
@@ -414,7 +413,6 @@ Guld has a **closed vocabulary** — no user-defined opcodes. At a high level:
 | **Money & tips** | Transfer GULD; update `master_hash` with a leaf-consensus proof |
 | **1.0 continuity** | Claim legacy import (key upgrade) |
 | **Miner rewards** | `RewardCommit` + mature `ClaimReward` ([GIP-22](../gips/gip-22.md)) |
-| **Future / optional** | Bond / slash for roles or name deposits — not CAS storage |
 
 Fee-paying txs MAY carry an optional opaque **`memo`** (weight-priced). Every tx pays a **weight-based inclusion fee** to miners. Non-overlapping **conflict sets** may apply in parallel within a block.
 
@@ -451,7 +449,7 @@ Probabilistic depth (Nakamoto / GHOSTDAG-class). Optional later checkpoints are 
 
 ### 7.3 Relation to stake
 
-Bonded GULD may gate name deposits or future attestor roles. **CAS retention is not bonded at L0.** Tip election is **not** PoS; weights live at the **account cosign** layer and optional bonds, not as a replacement for header PoW.
+Tip election is **not** PoS. Account **cosign** (threshold keys on tips and spends) is authorization for that name’s state — not a replacement for header PoW.
 
 ---
 
@@ -465,7 +463,6 @@ The network has a **fixed transaction vocabulary**. There is no user-defined opc
 |-----|-------------|
 | **Transaction fees** | Weight-priced inclusion fees → **miners** |
 | **Registration fees** | `F_user(L)` / `F_group(L, n)` / `F_sub` → **block miner** (§8.7; anti-spam lottery) |
-| **Name deposits** | Optional extra lock on top of registration |
 | **Transfers / DeFi** | Settlements between named identities |
 | **Miner rewards** | Block subsidy (PoW issuance) + inclusion fees + registration fees |
 
@@ -566,7 +563,6 @@ New humans and new named identities continually join. Registration fees fund min
 | Block subsidy | Commit at `h`, mint via `ClaimReward` ~`h+100` | PoW security + distribution ([GIP-22](../gips/gip-22.md)) |
 | Inclusion (weight) fee | User → miner (via commit/claim path) | Pay for block space |
 | Registration `F_*` | User → **miners (8-block vest → commit/claim)** | Anti-spam + lottery without same-block self-deal |
-| Name deposit | Lock / unlock | Optional squat policy |
 
 **Invariant:** no hidden inflation beyond the issuance schedule; **x** and the per-name import manifest are disclosed at genesis; registration fees are consensus-enforced and paid to miners over eight blocks; no imported balance spends until key upgrade.
 
@@ -592,11 +588,11 @@ The full `F_*` debits at apply, then **vests to miners over 8 blocks** ([GIP-10]
 
 ### 8.8 Content retention (leaf, not L0)
 
-**Locked:** there is **no** network-level `PinClaim` / bonded pin / slash-for-missing-data market in consensus.
+**Locked:** there is **no** network-level pin / data-availability market in consensus.
 
 - **All accounts (including `guld`):** the chain stores the tip (`master_hash`) only. Bytes live in CAS / remotes / leaf hosts when someone chooses to fetch them. **Tip ≠ data availability.** Rule params under `guld` are small; protocol **source code** is not an L0 retention obligation.
 - **Who keeps bytes:** self-host, forge mirrors, BitTorrent-class sharing, or **private leaf contracts** (cosign, escrow `Transfer`s, group policy). Parties who care arrange retention off the consensus path.
-- **Why not L0 pins:** slash-for-missing-data needs a hard DA protocol; it bloats fixed-tx surface and fights leaf sovereignty. Optional storage markets MAY appear later as **apps/leaves**, not as required L0 txs.
+- **Why not L0 pins:** enforcing availability on-chain needs a hard DA protocol; it bloats fixed-tx surface and fights leaf sovereignty. Optional storage markets MAY appear later as **apps/leaves**, not as required L0 txs.
 
 ---
 ## 9. Scalability analysis
@@ -688,7 +684,7 @@ Scalability of **content** is orthogonal: tips scale with accounts; blobs scale 
 
 ### 10.7 Content availability (leaf)
 
-- Guld does **not** bond or slash for CAS retention.  
+- Guld does **not** enforce CAS retention at L0.  
 - Tips can outlive missing blobs—**users who care self-host, mirror, or contract in a leaf**.  
 - Altruistic / forge / BitTorrent-class availability is acceptable for public content; private groups use leaf terms.
 
@@ -793,7 +789,6 @@ Terms are defined for this whitepaper. Normative detail lives in [`../specs/READ
 | **Account** | On-chain record for a registered name: keys, threshold, nonce, `master_hash`, GULD balance, and flags. Validators store this; they do not store leaf bytes. |
 | **Account id** | Stable internal identifier (hash of the registration commitment). Used in signed messages and proofs. |
 | **Bootstrap URL** | A convenient HTTP mirror of the reference static wallet or docs (e.g. guld.io). Not a consensus authority. |
-| **Bond / Slash** | *Optional future* stake txs for **roles or name deposits**—not implemented for CAS storage. Distinct from removed “slash for missing blobs.” |
 | **CAS** | **Content-addressed store**: objects keyed by `SHA256(bytes)`. Home trees reference CAS ids; bytes may live on leaf hosts, forges, or P2P—not necessarily on every validator. |
 | **Client surface** | How a wallet or dapp talks to a **node**: **HTTP API** (`/api/v1/…`) or **JSON-RPC** (optionally via a proxy). Distinct from **P2P** (node↔node) and from **dapp↔dapp** transports (HTTPS, IPC, in-process, …) used between leaves. |
 | **Coinbase** | Miner reward in a block: PoW subsidy plus inclusion fees and registration/settle fees collected from included txs. |
@@ -821,11 +816,10 @@ Terms are defined for this whitepaper. Normative detail lives in [`../specs/READ
 | **Light client** | Trusts headers and proofs; does not fully validate or store all state/CAS. |
 | **`master_hash`** | SHA-256 commitment to the account’s defined home tree + frozen meta fields—the on-chain **head**. |
 | **Mempool** | Pending txs awaiting block inclusion; ordered by fee rate under a weight cap. |
-| **Name deposit** | *Optional future* locked GULD tied to a name policy—returnable or slashable under **role** rules, not CAS retention. |
 | **Nonce** | Per-account sequence number. Binds spends and tip updates; prevents replay and merge-at-L0 races. |
 | **ObjectId** | `SHA256(object_bytes)`—CAS address for opaque blob storage. |
 | **P2P mesh** | Primary **peer-to-peer** protocol among full nodes (blocks, txs, CAS gossip). Not the same as HTTP or JSON-RPC client APIs. |
-| **Pin (L0)** | **Not used.** Consensus has no on-chain pin market or slash-for-missing-data. “Pin” elsewhere may mean git submodule SHAs or genesis manifest hashes—operational, not protocol. |
+| **Pin (L0)** | **Not used.** Consensus has no on-chain pin / data-availability market. “Pin” elsewhere may mean git submodule SHAs or genesis manifest hashes—operational, not protocol. |
 | **Proof kind** | Enumerated leaf-consensus verifier (e.g. `threshold_cosign_v1` in v1). Foreign-chain SPV/light kinds are **future upgrade** material. New kinds require protocol upgrade. |
 | **Quanta** | Smallest GULD unit (10⁻¹⁰ GULD). On-chain amounts are integer quanta. |
 | **Registration fee** | Annual `F_user` / `F_group` / `F_sub` paid (or settled) to the **block miner**—purchases namespace control, not storage. |

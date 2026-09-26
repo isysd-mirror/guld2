@@ -3008,6 +3008,7 @@ dependencies = [
  "guld-crypto",
  "guld-state",
  "guld-types",
+ "guld-wire",
  "hex",
  "rand 0.8.8",
  "serde",
@@ -3062,6 +3063,7 @@ dependencies = [
  "guld-p2p",
  "guld-state",
  "guld-types",
+ "guld-wire",
  "hex",
  "hmac",
  "rand 0.8.8",
@@ -3084,7 +3086,9 @@ dependencies = [
  "futures",
  "guld-cas",
  "guld-crypto",
+ "guld-state",
  "guld-types",
+ "guld-wire",
  "hex",
  "libp2p",
  "serde",
@@ -3131,6 +3135,17 @@ dependencies = [
  "guld-types",
  "image",
  "qrcode",
+]
+
+[[package]]
+name = "guld-wire"
+version = "0.1.0"
+dependencies = [
+ "guld-crypto",
+ "guld-state",
+ "guld-types",
+ "hex",
+ "thiserror 2.0.20",
 ]
 
 [[package]]

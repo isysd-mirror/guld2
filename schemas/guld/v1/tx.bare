@@ -1,0 +1,42 @@
+# Guld tx union (wire v1) — see docs/specs/03-transactions.md
+# Encoding: BARE (little-endian scalars, u64 length-prefixed bytes/strings)
+
+type Tx = Transfer | UpdateMaster | RotateKeys | SettleRegistration
+  | RegisterUsername | RegisterGroup | RegisterSubaccount | ClaimLegacy
+  | RewardCommit | ClaimReward
+
+# Shared: version u8 on reward types; Amount = u128; Name/signature = string (utf8 bytes)
+# Memo = optional bytes (0 absent / 1 present + bytes)
+
+type Transfer = {
+  tag: 0,
+  version: u8,          # 1
+  from: string,
+  to: string,
+  amount: u128,
+  signature: string,
+  inclusion_fee: u128,
+  memo: optional bytes,
+}
+
+type RewardCommit = {
+  tag: 8,
+  version: u8,
+  miner: string,
+  beneficiary: string,
+  amount: u128,
+  claim_signature: string,
+}
+
+type ClaimReward = {
+  tag: 9,
+  version: u8,
+  ref_height: u64,
+  ref_hash: bytes,      # 32 bytes raw Hash32
+  beneficiary: string,
+  amount: u128,
+  inclusion_fee: u128,
+  signature: string,
+}
+
+# Remaining tags 1–7 mirror Register/Transfer field order in guld-wire/src/tx.rs

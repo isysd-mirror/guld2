@@ -44,3 +44,6 @@
 [submodule "archives/keys-pgp"]
 	path = archives/keys-pgp
 	url = https://github.com/guldcoin/keys-pgp.git
+[submodule "guld-wire"]
+	path = src/guld-wire
+	url = https://guld.io/repos/guld-wire.git

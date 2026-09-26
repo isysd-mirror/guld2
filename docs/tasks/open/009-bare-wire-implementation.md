@@ -48,27 +48,34 @@ Until this task lands, **A4** stays partial and any genesis lock that assumes st
 
 Simba beta MAY ship on JSON wire **once** with a published reset policy; **durable lock** SHOULD wait for W5–W8 at minimum.
 
-Options (maintainer picks at rollout):
+**Chosen mode: Dual wire** — JSON v1 (`/guld/tx|block/1.0.0`) + BARE v2 (`/guld/tx|block/2.0.0`); hash always from BARE. Inv prefers v2 then falls back to v1 on `OutboundFailure`. Simba may reset once before durable lock.
 
 | Mode | Behavior |
 |------|----------|
 | **Hard cut** | Simba regenesis; old JSON P2P disabled |
-| **Dual wire** | Accept JSON + BARE until height **H** (spec-17 bundle); hash always from BARE |
+| **Dual wire** ✓ | Accept JSON + BARE; hash always from BARE |
 | **Testnet-only** | BARE on dev/Simba first; mainnet never saw JSON wire |
 
 Document the chosen mode in `deploy/SIMBA.md` and task 007 notes when implemented.
 
 ## Done when
 
-- [ ] `.bare` files committed under `schemas/guld/v1/`
-- [ ] `TxId` and block inclusion use BARE bytes in `guld-consensus`
-- [ ] P2P peers exchange BARE txs/blocks (new protocol id)
-- [ ] Golden vectors pass in Rust (+ TS smoke for at least one tx type)
-- [ ] Task 007 **A4** row: spec [x], code [x]
-- [ ] Simba reset or dual-wire plan recorded if this changes `TxId` on an live network
+- [x] `.bare` files committed under `schemas/guld/v1/` (draft `tx.bare`; header/account/block TBD)
+- [x] `TxId` uses BARE bytes in `guld-consensus` via `guld-wire`
+- [x] P2P peers exchange BARE txs/blocks (new protocol id) — dual-wire with JSON v1
+- [x] Golden vectors pass in Rust (`schemas/guld/v1/vectors/transfer-v1.hex`); TS smoke deferred (W9)
+- [x] Task 007 **A4** row: spec [x], code [x]
+- [x] Simba reset or dual-wire plan recorded (dual wire; Simba may reset once before durable lock)
+
+## Remaining / deferred
+
+- W7 datadir still stores JSON blocks (v2 converts on the wire).
+- W9 TS wallet smoke optional/deferred.
+- `account.bare` / `block.bare` schemas still draft.
 
 ## Notes
 
 ```
 2026-09-26: Task opened — A2 locked (BARE); implementation tracked here for A4.
+2026-09-26: Dual-wire P2P landed (guld-p2p v2 + node broadcasts BARE txs). Rollout = Dual wire.
 ```

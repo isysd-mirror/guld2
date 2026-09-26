@@ -309,5 +309,4 @@ trait TxApply {
 
 - Optional intent field restricting allowed sponsor  
 - Multisig spend vs tip role separation  
-- `LegacyOwnershipProof` packet profile — normative v1 ([`15-ledger-import.md`](15-ledger-import.md) §5.1)  
-- Optional `Bond` / role-stake policy (name deposits / attestors)—**not** CAS pins
+- `LegacyOwnershipProof` packet profile — normative v1 ([`15-ledger-import.md`](15-ledger-import.md) §5.1)

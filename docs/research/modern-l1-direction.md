@@ -224,7 +224,7 @@ Cargo integrates cleanly with git: path deps, git URL deps, and crates.io alike 
 ### Others (short)
 
 - **Kaspa-class DAG-PoW** — if staying PoW but wanting higher block parallelism than Nakamoto single-lane.
-- **Celestia-style DA** — later research only; v1 does **not** put pin/slash on L0 (leaf retention + mandatory `guld` clone).
+- **Celestia-style DA** — later research only; v1 does **not** put an on-chain DA market on L0 (leaf retention + mandatory `guld` clone).
 
 ---
 
@@ -251,7 +251,8 @@ Private groups invent their own meaning of “we agreed.” The chain only check
 ### Sketch txs
 
 - `register_username` / `register_group` / `rotate_keys` / `update_master`  
-- `transfer` / grant / optional bond/slash for **roles** (not CAS pins)  
+- `transfer` / grant  
+
 - Genesis: reserved account **`guld`** (not user-registrable); full nodes sync its full home
 
 ### What not to do

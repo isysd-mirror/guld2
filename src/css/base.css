@@ -5,6 +5,8 @@
 }
 
 html {
+  /* Default reading size ≈ browser 125% zoom; rem layout scales with it. */
+  font-size: 125%;
   scroll-behavior: smooth;
   scrollbar-gutter: stable;
 }

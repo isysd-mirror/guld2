@@ -1,10 +1,10 @@
 # Task: Header timestamp validation (A10)
 
-Status: open
+Status: done
 Priority: **high** (Simba beta blocker — task 007)
 GIP:
-Spec: ../specs/06-blocks-and-consensus.md §3
-Parent checklist: ./007-simba-beta-public-readiness.md **A10**
+Spec: ../../specs/06-blocks-and-consensus.md §3
+Parent checklist: ../../open/007-simba-beta-public-readiness.md **A10**
 
 ## Problem
 
@@ -32,10 +32,10 @@ Spec 06 §3 **locks** block timestamp rules (maintainer confirmed 2026-09-26):
 
 ## Done when
 
-- [ ] Invalid future (>2 h) and MTP-violating headers rejected at import
-- [ ] Miner produces valid timestamps by default
-- [ ] Tests in `guld-consensus` (+ one node smoke if cheap)
-- [ ] Task 007 A10 `Code matches` ticked
+- [x] Invalid future (>2 h) and MTP-violating headers rejected at import
+- [x] Miner produces valid timestamps by default
+- [x] Tests in `guld-consensus` (+ one node smoke if cheap)
+- [x] Task 007 A10 `Code matches` ticked
 
 ## Notes
 

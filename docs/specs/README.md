@@ -35,12 +35,44 @@
 **GIP (Accepted):** [GIP-13](../gips/gip-13.md) — key change = username transfer via `RotateKeys`.  
 **GIP (Accepted):** [GIP-14](../gips/gip-14.md) — 1.0 import + `ClaimLegacy`; Simba manifest pin (A7).  
 **GIP (Accepted):** [GIP-22](../gips/gip-22.md) — `RewardCommit` + deferred `ClaimReward` (100-block maturity).  
+**GIP (Draft):** [GIP-23](../gips/gip-23.md) — consensus-enforced difficulty schedule.  
+**GIP (Draft):** [GIP-24](../gips/gip-24.md) — legacy distribution transparency.  
+**GIP (Draft):** [GIP-25](../gips/gip-25.md) — diversified ClaimLegacy attestation.  
+**GIP (Draft):** [GIP-26](../gips/gip-26.md) — consensus golden vectors.  
 **Wire codec (A2):** [BARE](https://baremessages.org/) — [`schemas/`](../../schemas/README.md), [research](../research/wire-codec-comparison.md).  
 **GIP (Draft):** [GIP-20](../gips/gip-20.md) — wallet contacts, explorer account pages, prefix search (later).  
 **Process:** [GIP-1](../gips/gip-1.md) · [GIP index](../gips/README.md).
 
 **Research:** [`../research/jsonrpc-vs-http-api.md`](../research/jsonrpc-vs-http-api.md) — HTTP canonical; P2P vs HTTP reachability.
 **Tasks:** [`../tasks/README.md`](../tasks/README.md) — git-native issue queue (`open/`, `done/`).
+
+## Implementation matrix (Simba v1)
+
+Normative text is largely **locked** for A1–A11 ([task 007](../tasks/open/007-simba-beta-public-readiness.md)); rows below track **reference code** vs **open tasks**. Update when shipping.
+
+| Area | Spec / GIP | Decision | Code | Task |
+|------|------------|----------|------|------|
+| PoW + 2016 retarget | 06 §2 | Locked (A1) | **yes** (seal) | — |
+| Difficulty == schedule on import | 06 §2.4–§3, [GIP-23](../gips/gip-23.md) | Draft | **no** | [014](../tasks/open/014-enforce-difficulty-on-import.md) |
+| Timestamps (MTP + 2 h) | 06 §3 | Locked (A10) | **yes** | [010](../tasks/done/2026-09/010-header-timestamp-validation.md) done |
+| Coinbase maturity 100 | 06 §4, 07 §5 | Locked | **yes** (GIP-22 path) | [011](../tasks/open/011-gip-22-miner-rewards.md) hygiene |
+| GIP-22 RewardCommit / ClaimReward | GIP-22, 03 | Accepted | **yes** (core) | [011](../tasks/open/011-gip-22-miner-rewards.md), [020](../tasks/open/020-remove-credit-miner-footguns.md) |
+| Fork choice + reorg | 06 §2–3, 10 | Required | **yes** (core); tests open | [013](../tasks/open/013-chain-reorg-implementation.md), [019](../tasks/open/019-dual-miner-reorg-integration-test.md) |
+| BARE wire / TxId | 01, 03, GIP-4 | Locked (A2/A4) | **no** | [009](../tasks/open/009-bare-wire-implementation.md) |
+| Golden vectors | [GIP-26](../gips/gip-26.md) | Draft | **no** | [021](../tasks/open/021-consensus-golden-vectors.md) |
+| AccountId preimages | 01, 02 | Locked (A3) | **yes** | — |
+| Letter fees `F_user` / `F_group` | 07, GIP-9 | Final (A8) | **yes** | — |
+| 1.0 import + ClaimLegacy | 15, GIP-14 | Locked (A5–A7) | **yes** | [016](../tasks/open/016-reconcile-genesis-x-vs-manifest.md) (`x` gap) |
+| Distribution disclosure | [GIP-24](../gips/gip-24.md) | Draft | n/a (docs) | [016](../tasks/open/016-reconcile-genesis-x-vs-manifest.md), [018](../tasks/open/018-publish-omitted-buckets-and-negatives.md) |
+| Attestation diversification | [GIP-25](../gips/gip-25.md) | Draft | **no** | (after Review) |
+| Genesis ceremony / block 0 | 15, 05 §6 | G1 done; G2–G4 open | partial | [012](../tasks/open/012-simba-genesis-ceremony.md) |
+| No foreign genesis names | 13, 02 | Locked (A11) | **yes** | — |
+| Mempool snapshot / persist | 12, GIP-19 | Partial spec | partial API | [008](../tasks/open/008-mempool-persistence.md) |
+| HTTP `/api/v1` + wallet UI | 12, 14, GIP-5/17 | Shipped baseline | **yes** | UX tasks 002–005 |
+| Protocol upgrades (height rules) | 17 | Spec draft | partial | bundle with GIP-22 / GIP-23 activation |
+| Docs ↔ code sync | — | — | lagging | [015](../tasks/open/015-reconcile-docs-with-code.md) |
+
+**Draft banner:** lift per spec when the row’s **Code** column is **yes** for Simba-critical paths (not all at once).
 
 ## Normative language
 
