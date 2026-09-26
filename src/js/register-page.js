@@ -14,8 +14,9 @@ import { resolveRegistrationDesk } from "./lib/desk.js";
 import { keyring } from "./lib/keyring.js";
 import { loadNetworkInfo } from "./lib/network.js";
 import { escapeHtml, quantaToGuld } from "./lib/rpc.js";
+import { explorerPendingTxHref, extractTxId } from "./lib/tx-feedback.js";
 
-const statusEl = document.querySelector("[data-register-status]");
+const deskEl = document.querySelector("[data-register-desk]");
 const hostEl = document.querySelector("[data-register-host]");
 const stepsEl = document.querySelector("[data-register-steps]");
 const titleEl = document.querySelector("[data-register-title]");
@@ -24,6 +25,9 @@ const leadEl = document.querySelector("[data-register-lead]");
 const apiBase = resolveApiBase();
 const params = new URLSearchParams(location.search);
 const isGroup = params.get("kind") === "group";
+
+/** Mean block target (seconds) — same as consenus TARGET_BLOCK_INTERVAL. */
+const BLOCK_INTERVAL_MIN = 10;
 
 /** @type {{
  *   step: number,
@@ -37,6 +41,7 @@ const isGroup = params.get("kind") === "group";
  *   paymentUrl: string,
  *   instructions: string,
  *   desk: import("./lib/desk.js").DeskCheckout | null,
+ *   pendingTxId: string,
  * }} */
 let state = {
   step: 1,
@@ -50,16 +55,89 @@ let state = {
   paymentUrl: "",
   instructions: "",
   desk: null,
+  pendingTxId: "",
 };
 
 /**
+ * Desk / peer banner above the form (not form feedback).
  * @param {string} msg
  * @param {"pending"|"ok"|"error"} [kind]
  */
-function setStatus(msg, kind = "pending") {
-  if (!(statusEl instanceof HTMLElement)) return;
-  statusEl.textContent = msg;
-  statusEl.dataset.state = kind;
+function setDeskStatus(msg, kind = "pending") {
+  if (!(deskEl instanceof HTMLElement)) return;
+  deskEl.hidden = !msg;
+  deskEl.textContent = msg;
+  deskEl.dataset.state = kind;
+}
+
+/**
+ * Inline status next to the current step’s submit actions.
+ * @param {string} msg
+ * @param {"pending"|"ok"|"error"} [kind]
+ * @param {{ html?: boolean }} [opts]
+ */
+function say(msg, kind = "pending", opts = {}) {
+  const el = hostEl?.querySelector?.("[data-panel-status]");
+  if (!(el instanceof HTMLElement)) return;
+  if (!msg) {
+    el.hidden = true;
+    el.textContent = "";
+    el.removeAttribute("data-state");
+    return;
+  }
+  el.hidden = false;
+  if (opts.html) el.innerHTML = msg;
+  else el.textContent = msg;
+  el.dataset.state = kind;
+}
+
+/** Markup for a status line placed just above/below submit actions. */
+function statusSlot() {
+  return `<p class="wallet__panel-status" data-panel-status hidden aria-live="polite"></p>`;
+}
+
+/**
+ * @param {HTMLFormElement | null | undefined} form
+ * @param {(form: HTMLFormElement) => Promise<void>} handler
+ */
+function bindBusyForm(form, handler) {
+  if (!(form instanceof HTMLFormElement)) return;
+  form.addEventListener("submit", async (ev) => {
+    ev.preventDefault();
+    const btn = form.querySelector('[type="submit"]');
+    if (btn instanceof HTMLButtonElement && btn.disabled) return;
+    if (btn instanceof HTMLButtonElement) {
+      btn.disabled = true;
+      btn.dataset.busy = "true";
+    }
+    try {
+      await handler(form);
+    } finally {
+      if (btn instanceof HTMLButtonElement) {
+        btn.disabled = false;
+        delete btn.dataset.busy;
+      }
+    }
+  });
+}
+
+/**
+ * @param {HTMLButtonElement | null | undefined} btn
+ * @param {() => Promise<void>} handler
+ */
+function bindBusyClick(btn, handler) {
+  if (!(btn instanceof HTMLButtonElement)) return;
+  btn.addEventListener("click", async () => {
+    if (btn.disabled) return;
+    btn.disabled = true;
+    btn.dataset.busy = "true";
+    try {
+      await handler();
+    } finally {
+      btn.disabled = false;
+      delete btn.dataset.busy;
+    }
+  });
 }
 
 function setStep(n) {
@@ -140,6 +218,65 @@ async function checkAvailability(name) {
   return !body.exists;
 }
 
+/**
+ * @param {{ title?: string, detail?: string, txid?: string, orderId?: string, mode?: "faucet"|"friend"|"order" }} opts
+ */
+function waitExplorerHtml(opts = {}) {
+  const name = state.name;
+  const txid = opts.txid || state.pendingTxId;
+  const orderId = opts.orderId || state.orderId;
+  const lines = [
+    `<li><a href="/explorer/#/mempool">Mempool</a> — pending txs waiting for the next block</li>`,
+  ];
+  if (txid && txid !== "ok") {
+    const href = explorerPendingTxHref(txid);
+    const short = String(txid).length > 18 ? `${String(txid).slice(0, 18)}…` : String(txid);
+    lines.push(
+      `<li><a href="${href}">Your pending tx</a> <code>${escapeHtml(short)}</code></li>`,
+    );
+  }
+  lines.push(
+    `<li><a href="/explorer/#/account/${encodeURIComponent(name)}">Account “${escapeHtml(name)}”</a> — live once the register tx is included</li>`,
+  );
+  lines.push(`<li><a href="/explorer/">Chain tip</a> — current height and recent blocks</li>`);
+  if (orderId) {
+    lines.push(
+      `<li class="wallet__meta">Order <code>${escapeHtml(orderId)}</code></li>`,
+    );
+  }
+  return `
+    <p class="wallet__meta">${escapeHtml(opts.detail || "Waiting for on-chain inclusion.")}</p>
+    <p class="wallet__note">
+      Blocks target about <strong>${BLOCK_INTERVAL_MIN} minutes</strong> apart.
+      After a tx is accepted, expect roughly one interval (sometimes more) before it appears in a block.
+    </p>
+    <p class="wallet__meta" data-wait-detail aria-live="polite">Polling…</p>
+    <ul class="wallet__meta wallet__spacer--sm">${lines.join("")}</ul>
+  `;
+}
+
+/**
+ * @param {{ title?: string, detail?: string, txid?: string, mode?: "faucet"|"friend"|"order" }} opts
+ */
+function renderWaitStep(opts = {}) {
+  setStep(4);
+  if (opts.txid) state.pendingTxId = opts.txid;
+  const title = opts.title || `Waiting for “${state.name}”`;
+  hostEl.innerHTML = `
+    <article class="wallet__card">
+      <p class="wallet__name">${escapeHtml(state.name)}</p>
+      <p class="wallet__meta">${escapeHtml(title)}</p>
+      ${waitExplorerHtml(opts)}
+      <p class="wallet__actions">
+        <a class="btn btn--outline" href="/explorer/#/mempool">Open mempool</a>
+        <a class="btn btn--outline" href="/explorer/#/account/${encodeURIComponent(state.name)}">Open account</a>
+        <a class="btn btn--outline" href="/wallet/#/account/${encodeURIComponent(state.name)}">Open wallet</a>
+      </p>
+      ${statusSlot()}
+    </article>
+  `;
+}
+
 function renderStep1() {
   setStep(1);
   hostEl.innerHTML = `
@@ -156,7 +293,10 @@ function renderStep1() {
           ? `<p class="wallet__note">Group fee is <code>F_user(L) × (2 + n)</code> where <code>n</code> is signer count — set keys on the next step.</p>`
           : ""
       }
-      <button type="submit" class="btn btn--primary">Check availability</button>
+      <p class="wallet__actions wallet__actions--flush">
+        <button type="submit" class="btn btn--primary">Check availability</button>
+      </p>
+      ${statusSlot()}
     </form>
     <p class="wallet__note">
       ${
@@ -167,40 +307,38 @@ function renderStep1() {
       · Already have a key? <a href="/login/">Log in</a>.
     </p>
   `;
-  const form = hostEl.querySelector("[data-name-form]");
-  form?.addEventListener("submit", async (ev) => {
-    ev.preventDefault();
-    const fd = new FormData(/** @type {HTMLFormElement} */ (form));
+  bindBusyForm(hostEl.querySelector("[data-name-form]"), async (form) => {
+    const fd = new FormData(form);
     const parsed = parseDesiredName(fd.get("name"));
     if ("error" in parsed) {
-      setStatus(parsed.error, "error");
+      say(parsed.error, "error");
       return;
     }
     const name = parsed.name;
-    setStatus("Checking…");
+    say("Checking…", "pending");
     try {
       const free = await checkAvailability(name);
       if (!free) {
-        setStatus(`“${name}” is taken. Try another.`, "error");
+        say(`“${name}” is taken. Try another.`, "error");
         return;
       }
       state.name = name;
       if (isGroup) {
-        setStatus(`“${name}” is available — add signers next.`, "ok");
+        say(`“${name}” is available — add signers next.`, "ok");
         renderStepKeys();
       } else {
         const fee = await apiGet(
           apiBase,
           `/chain/fees/registration?kind=individual&name=${encodeURIComponent(name)}`,
         );
-        setStatus(
-          `“${name}” is available · on-chain fee ≈ ${escapeHtml(String(fee.feeGuld ?? quantaToGuld(fee.fee)))} GULD (paid by your sponsor).`,
+        say(
+          `“${name}” is available · on-chain fee ≈ ${String(fee.feeGuld ?? quantaToGuld(fee.fee))} GULD (paid by your sponsor).`,
           "ok",
         );
         renderStepPassphrase();
       }
     } catch (err) {
-      setStatus(/** @type {Error} */ (err).message, "error");
+      say(/** @type {Error} */ (err).message, "error");
     }
   });
 }
@@ -225,13 +363,13 @@ function renderStepKeys() {
           <button type="submit" class="btn btn--primary">Continue</button>
           <button type="button" class="btn btn--outline" data-back>Back</button>
         </p>
+        ${statusSlot()}
       </form>
     </article>
   `;
   hostEl.querySelector("[data-back]")?.addEventListener("click", () => renderStep1());
-  hostEl.querySelector("[data-keys-form]")?.addEventListener("submit", async (ev) => {
-    ev.preventDefault();
-    const fd = new FormData(/** @type {HTMLFormElement} */ (ev.target));
+  bindBusyForm(hostEl.querySelector("[data-keys-form]"), async (form) => {
+    const fd = new FormData(form);
     const lines = String(fd.get("pubs") || "")
       .split(/[\n,]+/)
       .map((s) => s.trim())
@@ -239,30 +377,31 @@ function renderStepKeys() {
       .map((h) => (h.startsWith("0x") ? h.toLowerCase() : `0x${h.toLowerCase()}`));
     for (const h of lines) {
       if (!/^0x[0-9a-f]{64}$/.test(h)) {
-        setStatus(`Invalid pubkey: ${h.slice(0, 18)}…`, "error");
+        say(`Invalid pubkey: ${h.slice(0, 18)}…`, "error");
         return;
       }
     }
     const n = 1 + lines.length;
     let threshold = Number(fd.get("threshold") || 1);
     if (!Number.isFinite(threshold) || threshold < 1 || threshold > n) {
-      setStatus(`Threshold must be 1…${n}`, "error");
+      say(`Threshold must be 1…${n}`, "error");
       return;
     }
     state.extraPubs = lines;
     state.threshold = threshold;
+    say("Estimating fee…", "pending");
     try {
       const fee = await apiGet(
         apiBase,
         `/chain/fees/registration?kind=group&name=${encodeURIComponent(state.name)}&nKeys=${n}`,
       );
-      setStatus(
+      say(
         `Group · ${n} keys · ${threshold}-of-${n} · fee ≈ ${fee.feeGuld ?? quantaToGuld(fee.fee)} GULD/yr`,
         "ok",
       );
       renderStepPassphrase();
     } catch (err) {
-      setStatus(/** @type {Error} */ (err).message, "error");
+      say(/** @type {Error} */ (err).message, "error");
     }
   });
 }
@@ -286,7 +425,8 @@ function renderStepPassphrase() {
       <p class="wallet__actions wallet__actions--flush">
         <button type="button" class="btn btn--primary" data-gen-unlocked>Generate keys &amp; continue</button>
         <button type="button" class="btn btn--outline" data-back>Back</button>
-      </p>`;
+      </p>
+      ${statusSlot()}`;
   } else if (existing) {
     body = `
       <p class="wallet__meta">This browser already has encrypted keys${
@@ -306,10 +446,13 @@ function renderStepPassphrase() {
           <button type="submit" class="btn btn--primary">Unlock &amp; generate keys</button>
           <button type="button" class="btn btn--outline" data-back>Back</button>
         </p>
+        ${statusSlot()}
       </form>
       <p class="wallet__note">
         Forgot it? You can clear the local keyring and choose a new passphrase.
         On-chain names stay registered — re-import their private keys later if you still have them.
+      </p>
+      <p class="wallet__actions">
         <button type="button" class="btn btn--outline" data-clear-keyring>Clear keyring on this browser</button>
       </p>`;
   } else {
@@ -329,6 +472,7 @@ function renderStepPassphrase() {
           <button type="submit" class="btn btn--primary">Generate keys &amp; continue</button>
           <button type="button" class="btn btn--outline" data-back>Back</button>
         </p>
+        ${statusSlot()}
       </form>`;
   }
 
@@ -344,7 +488,7 @@ function renderStepPassphrase() {
     else renderStep1();
   });
 
-  hostEl.querySelector("[data-clear-keyring]")?.addEventListener("click", () => {
+  bindBusyClick(/** @type {HTMLButtonElement | null} */ (hostEl.querySelector("[data-clear-keyring]")), async () => {
     if (
       !confirm(
         "Clear all Guld keys stored in this browser? You will need the private keys to use those names again here.",
@@ -353,12 +497,12 @@ function renderStepPassphrase() {
       return;
     }
     keyring.clearAll();
-    setStatus("Local keyring cleared — choose a new passphrase.", "ok");
     renderStepPassphrase();
+    say("Local keyring cleared — choose a new passphrase.", "ok");
   });
 
   async function finishWithKeys() {
-    setStatus("Generating keys…", "pending");
+    say("Generating keys…", "pending");
     const priv = await randomPrivateKey();
     const pubHex = await pubkeyHex(priv);
     const privHex = toHex(priv);
@@ -375,29 +519,27 @@ function renderStepPassphrase() {
     state.privHex = privHex;
     state.pubHex = pubHex;
     state.request = request;
-    setStatus("Review registration terms", "ok");
     renderStepConfirm();
   }
 
-  hostEl.querySelector("[data-gen-unlocked]")?.addEventListener("click", async () => {
+  bindBusyClick(/** @type {HTMLButtonElement | null} */ (hostEl.querySelector("[data-gen-unlocked]")), async () => {
     try {
       await finishWithKeys();
     } catch (err) {
-      setStatus(/** @type {Error} */ (err).message, "error");
+      say(/** @type {Error} */ (err).message, "error");
     }
   });
 
-  hostEl.querySelector("[data-key-form]")?.addEventListener("submit", async (ev) => {
-    ev.preventDefault();
-    setStatus(existing ? "Unlocking keyring…" : "Generating keys…", "pending");
+  bindBusyForm(hostEl.querySelector("[data-key-form]"), async (form) => {
+    say(existing ? "Unlocking keyring…" : "Generating keys…", "pending");
     try {
-      const fd = new FormData(/** @type {HTMLFormElement} */ (ev.target));
+      const fd = new FormData(form);
       const pass = String(fd.get("pass") || "");
       if (!pass) throw new Error("Passphrase required");
       await keyring.unlock(pass);
       await finishWithKeys();
     } catch (err) {
-      setStatus(/** @type {Error} */ (err).message, "error");
+      say(/** @type {Error} */ (err).message, "error");
     }
   });
 }
@@ -427,10 +569,12 @@ function renderStepConfirm() {
       <p class="wallet__note">Your encrypted key stays on this device. GULD has no fixed USD price — any off-chain desk fee is set by that operator, not the protocol.</p>
       <p data-faucet-slot></p>
       <p class="wallet__actions">
+        <button type="button" class="btn btn--primary" data-faucet-register-placeholder hidden>Register via faucet</button>
         <button type="button" class="btn btn--outline" data-confirm-register>Continue with paid desk</button>
         <button type="button" class="btn btn--outline" data-friend-only>Friend sponsor only</button>
         <button type="button" class="btn btn--outline" data-back>Back</button>
       </p>
+      ${statusSlot()}
     </article>
   `;
   const faucetSlot = hostEl.querySelector("[data-faucet-slot]");
@@ -442,66 +586,66 @@ function renderStepConfirm() {
         <p class="wallet__note">
           <strong>Testnet faucet</strong> — this peer can sponsor you in GULD (no off-chain payment). Cooldown applies.
         </p>
-        <button type="button" class="btn btn--primary" data-faucet-register>Register via faucet</button>
       `;
-      faucetSlot.querySelector("[data-faucet-register]")?.addEventListener("click", async () => {
-        setStatus("Requesting faucet sponsorship…", "pending");
-        try {
-          const out = await faucetRegister(apiBase, req);
-          const txid = out?.result?.tx_id || "ok";
-          setStep(4);
-          setStatus(
-            `Faucet queued “${state.name}” · tx ${txid} — waiting for a block (PoW may take ~1 min)…`,
-            "pending",
-          );
-          hostEl.innerHTML = `
-            <article class="wallet__card">
-              <p class="wallet__name">${escapeHtml(state.name)}</p>
-              <p class="wallet__meta">Faucet sponsored your registration; waiting for the peer to seal a block.</p>
-              <p class="wallet__meta" data-wait-detail>Polling chain…</p>
-            </article>
-          `;
-          await pollNameOnly();
-        } catch (err) {
-          setStatus(/** @type {Error} */ (err).message, "error");
-        }
-      });
+      const faucetBtn = hostEl.querySelector("[data-faucet-register-placeholder]");
+      if (faucetBtn instanceof HTMLButtonElement) {
+        faucetBtn.hidden = false;
+        faucetBtn.textContent = "Register via faucet";
+        faucetBtn.className = "btn btn--primary";
+        faucetBtn.removeAttribute("data-faucet-register-placeholder");
+        faucetBtn.dataset.faucetRegister = "";
+        bindBusyClick(faucetBtn, async () => {
+          say("Requesting faucet sponsorship…", "pending");
+          try {
+            const out = await faucetRegister(apiBase, req);
+            const txid = extractTxId(out) || "ok";
+            renderWaitStep({
+              mode: "faucet",
+              txid,
+              title: "Faucet queued your registration",
+              detail: "Watching the mempool and tip for inclusion.",
+            });
+            say(`Queued · waiting for a ~${BLOCK_INTERVAL_MIN} min block…`, "pending");
+            await pollNameOnly();
+          } catch (err) {
+            say(/** @type {Error} */ (err).message, "error");
+          }
+        });
+      }
     })
     .catch(() => {});
   hostEl.querySelector("[data-back]")?.addEventListener("click", () => renderStepPassphrase());
-  hostEl.querySelector("[data-copy-req]")?.addEventListener("click", async () => {
+  bindBusyClick(/** @type {HTMLButtonElement | null} */ (hostEl.querySelector("[data-copy-req]")), async () => {
     try {
       await navigator.clipboard.writeText(JSON.stringify(req, null, 2));
-      setStatus("Request copied — send to a funded friend to sponsor.", "ok");
+      say("Request copied — send to a funded friend (Wallet → Advanced → Sponsor a name).", "ok");
     } catch {
-      setStatus("Select the textarea and copy manually.", "pending");
+      say("Select the textarea and copy manually.", "pending");
     }
   });
   hostEl.querySelector("[data-friend-only]")?.addEventListener("click", () => {
-    setStatus(
-      "Ask a funded friend to paste this JSON under Wallet → Sponsor a name. Then open your wallet and wait.",
-      "ok",
+    renderWaitStep({
+      mode: "friend",
+      title: "Waiting for a friend to sponsor",
+      detail:
+        "Ask a funded friend to paste the request JSON under Wallet → Advanced → Sponsor a name. Then watch the mempool / your account in the explorer.",
+    });
+    const card = hostEl.querySelector(".wallet__card");
+    card?.insertAdjacentHTML(
+      "beforeend",
+      `<label class="wallet__meta wallet__spacer">Request JSON
+        <textarea readonly rows="6">${escapeHtml(JSON.stringify(req, null, 2))}</textarea>
+      </label>`,
     );
-    setStep(4);
-    hostEl.innerHTML = `
-      <article class="wallet__card">
-        <p class="wallet__name">${escapeHtml(state.name)}</p>
-        <p class="wallet__meta">Waiting for a friend to sponsor your registration request.</p>
-        <label class="wallet__meta">Request JSON
-          <textarea readonly rows="8">${escapeHtml(JSON.stringify(req, null, 2))}</textarea>
-        </label>
-        <p class="wallet__actions">
-          <a class="btn btn--outline" href="/wallet/#/account/${encodeURIComponent(state.name)}">Open wallet</a>
-        </p>
-      </article>`;
-    pollNameOnly();
+    say("Waiting for sponsor broadcast…", "pending");
+    void pollNameOnly();
   });
-  hostEl.querySelector("[data-confirm-register]")?.addEventListener("click", async () => {
-    setStatus("Creating payment order…", "pending");
+  bindBusyClick(/** @type {HTMLButtonElement | null} */ (hostEl.querySelector("[data-confirm-register]")), async () => {
+    say("Creating payment order…", "pending");
     try {
       await createOrderAndPay();
     } catch (err) {
-      setStatus(/** @type {Error} */ (err).message, "error");
+      say(/** @type {Error} */ (err).message, "error");
     }
   });
 }
@@ -581,32 +725,35 @@ function renderStep3(checkout, desk) {
           ? `<p class="wallet__note">${escapeHtml(state.instructions)}</p>`
           : `<p class="wallet__meta">Payment is matched by this Order ID automatically when using the gateway API.</p>`
       }
-      <p class="wallet__note">On-chain registration is still paid in GULD by the sponsoring account after payment clears.</p>
+      <p class="wallet__note">On-chain registration is still paid in GULD by the sponsoring account after payment clears (~${BLOCK_INTERVAL_MIN} min per block).</p>
       <p class="wallet__actions">
         <a class="btn btn--primary" href="${escapeHtml(state.paymentUrl)}" rel="noopener" target="_blank" data-pay>Open payment link</a>
         <button type="button" class="btn btn--outline" data-paid>I’ve paid — continue</button>
       </p>
+      ${statusSlot()}
     </article>
   `;
   hostEl.querySelector("[data-paid]")?.addEventListener("click", () => {
-    setStatus("Waiting for payment confirmation…", "pending");
-    renderStep4();
+    renderWaitStep({
+      mode: "order",
+      orderId: state.orderId,
+      title: "Waiting for payment and registration",
+      detail: "Watch the order status below. After the registrar signs, the tx sits in the mempool until the next block.",
+    });
+    say("Waiting for payment confirmation…", "pending");
+    void pollUntilRegistered();
   });
 }
 
 function renderStep4() {
-  setStep(4);
-  hostEl.innerHTML = `
-    <article class="wallet__card">
-      <p class="wallet__name">${escapeHtml(state.name)}</p>
-      <p class="wallet__meta">Order <code>${escapeHtml(state.orderId)}</code></p>
-      <p class="wallet__meta" data-wait-detail>Polling for payment and on-chain registration…</p>
-      <p class="wallet__actions">
-        <a class="btn btn--outline" href="/wallet/#/account/${encodeURIComponent(state.name)}">Open wallet</a>
-      </p>
-    </article>
-  `;
-  pollUntilRegistered();
+  renderWaitStep({
+    mode: "order",
+    orderId: state.orderId,
+    title: "Waiting for payment and registration",
+    detail: "Resuming order — payment, registrar signature, then ~10 min block inclusion.",
+  });
+  say("Polling for payment and on-chain registration…", "pending");
+  void pollUntilRegistered();
 }
 
 async function markRegistered() {
@@ -620,7 +767,7 @@ async function markRegistered() {
     });
   }
   activateAccount(state.name);
-  setStatus(`“${state.name}” is registered. Welcome.`, "ok");
+  say(`“${state.name}” is registered. Welcome.`, "ok");
 }
 
 async function pollNameOnly() {
@@ -634,6 +781,7 @@ async function pollNameOnly() {
           "beforeend",
           `<p class="wallet__actions">
             <a class="btn btn--primary" href="/wallet/#/account/${encodeURIComponent(state.name)}">Open wallet</a>
+            <a class="btn btn--outline" href="/explorer/#/account/${encodeURIComponent(state.name)}">View in explorer</a>
           </p>`,
         );
         return;
@@ -641,10 +789,15 @@ async function pollNameOnly() {
     } catch {
       /* keep polling */
     }
-    if (detail) detail.textContent = `Still pending… (${i + 1})`;
+    if (detail) {
+      detail.textContent = `Still pending… check ${i + 1} · blocks ~${BLOCK_INTERVAL_MIN} min apart`;
+    }
     await new Promise((r) => setTimeout(r, 4000));
   }
-  setStatus("Still waiting — check back from your wallet after the peer seals a block.", "pending");
+  say(
+    `Still waiting — open the mempool or account in the explorer, or check your wallet after the next ~${BLOCK_INTERVAL_MIN} min block.`,
+    "pending",
+  );
 }
 
 async function pollUntilRegistered() {
@@ -654,7 +807,7 @@ async function pollUntilRegistered() {
       const order = await apiGet(apiBase, `/registrar/orders/${encodeURIComponent(state.orderId)}`);
       const status = order.status;
       if (detail) {
-        detail.textContent = `Status: ${status.replace(/_/g, " ")}`;
+        detail.textContent = `Order status: ${status.replace(/_/g, " ")} · check ${i + 1}`;
       }
       if (status === "registered" || (await checkAvailability(state.name)) === false) {
         await markRegistered();
@@ -664,21 +817,28 @@ async function pollUntilRegistered() {
           `<p class="wallet__note wallet__spacer">
             Next: open <a href="/settings/">Settings</a> to link <strong>your</strong> Paymento store
             and sell GULD to friends (OTC desk). Then share your invite link from Settings.
+          </p>
+          <p class="wallet__actions">
+            <a class="btn btn--primary" href="/wallet/#/account/${encodeURIComponent(state.name)}">Open wallet</a>
+            <a class="btn btn--outline" href="/explorer/#/account/${encodeURIComponent(state.name)}">View in explorer</a>
           </p>`,
         );
         return;
       }
       if (status === "payment_received") {
-        setStatus("Payment received — waiting for the registrar to sign…", "ok");
+        say("Payment received — waiting for the registrar to sign…", "ok");
       } else if (status === "payment_processing") {
-        setStatus("Payment processing…", "pending");
+        say("Payment processing…", "pending");
       }
     } catch {
       /* keep polling */
     }
     await new Promise((r) => setTimeout(r, 4000));
   }
-  setStatus("Still waiting — check back from your wallet, or ask the registrar.", "pending");
+  say(
+    `Still waiting — check the mempool and your account in the explorer, or return to the wallet after the next block (~${BLOCK_INTERVAL_MIN} min).`,
+    "pending",
+  );
 }
 
 async function boot() {
@@ -699,7 +859,7 @@ async function boot() {
   try {
     state.desk = await resolveRegistrationDesk(apiBase);
     if (faucetReady) {
-      setStatus(
+      setDeskStatus(
         net.network
           ? `Testnet faucet ready on ${net.network} — you can register without off-chain payment.`
           : "Testnet faucet ready — you can register without off-chain payment.",
@@ -716,15 +876,15 @@ async function boot() {
         state.desk.feeUsd != null
           ? ` · operator asks $${state.desk.feeUsd} off-chain`
           : "";
-      setStatus(`${label}${fee}`, "ok");
+      setDeskStatus(`${label}${fee}`, "ok");
     } else {
-      setStatus(
+      setDeskStatus(
         "No paid desk on this peer — use friend sponsor (copy request JSON), or wait for a faucet-enabled testnet peer.",
         "pending",
       );
     }
   } catch (err) {
-    setStatus(/** @type {Error} */ (err).message, "error");
+    setDeskStatus(/** @type {Error} */ (err).message, "error");
   }
 
   const orderId = params.get("order");
@@ -739,7 +899,6 @@ async function boot() {
         state.privHex = keyring.getPriv(order.name) || "";
         state.pubHex = acct.pubHex;
       }
-      setStatus(`Resuming order for “${order.name}”…`, "pending");
       renderStep4();
       return;
     } catch {

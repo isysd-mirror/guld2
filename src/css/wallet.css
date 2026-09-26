@@ -135,6 +135,12 @@
   opacity: 0.85;
 }
 
+.wallet__actions + .wallet__panel-status,
+.wallet__form .wallet__panel-status {
+  margin-top: 0.75rem;
+  margin-bottom: 0;
+}
+
 .wallet__panel-title {
   margin: 0 0 0.75rem;
   font-size: 1.05rem;

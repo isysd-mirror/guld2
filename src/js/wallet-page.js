@@ -47,6 +47,11 @@ import {
   summarizeActivity,
 } from "./lib/rpc.js";
 import { parseRegistrationRequest, sponsorRegistration } from "./lib/sponsor.js";
+import {
+  extractTxId,
+  formatTxSubmittedHtml,
+  statusSlotHtml,
+} from "./lib/tx-feedback.js";
 import { setActiveName } from "./lib/wallet-session.js";
 import { walletAccountHref, walletNameFromHash } from "./lib/wallet-nav.js";
 
@@ -55,6 +60,19 @@ const hostEl = document.querySelector("[data-wallet-host]");
 
 /** @type {string} */
 let apiBase = resolveApiBase();
+
+/** Survives route() remount so explorer links stay visible after refresh. */
+/** @type {{ html: string, state: string, selector: string } | null} */
+let statusFlash = null;
+
+/**
+ * @param {string} html
+ * @param {"ok"|"error"|"pending"} [state]
+ * @param {string} [selector]
+ */
+function flashStatus(html, state = "ok", selector = "[data-send-form]") {
+  statusFlash = { html, state, selector };
+}
 
 window.addEventListener("hashchange", () => route());
 document.addEventListener(AUTH_EVENT, () => route());
@@ -79,9 +97,17 @@ function setStatus(text, state = "ok") {
   statusEl.dataset.state = state;
 }
 
-/** @param {ParentNode | null | undefined} scope @param {string} text @param {"ok"|"error"|"pending"} [state] */
-function setPanelStatus(scope, text, state = "ok") {
-  const el = scope?.querySelector?.("[data-panel-status]");
+/**
+ * @param {ParentNode | Element | null | undefined} scope
+ * @param {string} text
+ * @param {"ok"|"error"|"pending"} [state]
+ * @param {{ html?: boolean }} [opts]
+ */
+function setPanelStatus(scope, text, state = "ok", opts = {}) {
+  const el =
+    scope instanceof Element && scope.matches?.("[data-panel-status]")
+      ? scope
+      : scope?.querySelector?.("[data-panel-status]");
   if (!(el instanceof HTMLElement)) return;
   if (!text) {
     el.hidden = true;
@@ -90,8 +116,24 @@ function setPanelStatus(scope, text, state = "ok") {
     return;
   }
   el.hidden = false;
-  el.textContent = text;
+  if (opts.html) el.innerHTML = text;
+  else el.textContent = text;
   el.dataset.state = state;
+}
+
+function applyStatusFlash() {
+  if (!statusFlash || !(hostEl instanceof HTMLElement)) return;
+  const { html, state, selector } = statusFlash;
+  statusFlash = null;
+  const scope =
+    hostEl.querySelector(selector) ||
+    hostEl.querySelector("[data-send-form]") ||
+    hostEl.querySelector("[data-unlock-form]") ||
+    hostEl.querySelector(".wallet__view") ||
+    hostEl;
+  setPanelStatus(scope, html, state, { html: true });
+  const details = scope instanceof Element ? scope.closest("details") : null;
+  if (details instanceof HTMLDetailsElement) details.open = true;
 }
 
 /**
@@ -142,10 +184,7 @@ function bindBusyClick(btn, handler) {
  * @param {string} content
  */
 function renderWalletView(content) {
-  return `<section class="wallet__view">
-    <p class="wallet__panel-status" data-panel-status hidden aria-live="polite"></p>
-    ${content}
-  </section>`;
+  return `<section class="wallet__view">${content}</section>`;
 }
 
 /**
@@ -290,6 +329,7 @@ async function route() {
           <form class="wallet__form" data-unlock-form>
             <label>Passphrase <input name="pass" type="password" autocomplete="current-password" required /></label>
             <button type="submit" class="btn btn--primary">Unlock keyring</button>
+            ${statusSlotHtml()}
           </form>
         </article>`;
     } else {
@@ -308,7 +348,8 @@ async function route() {
                 `That usually means a RotateKeys completed but the local keyring was not updated ` +
                 `(e.g. the browser timed out while PoW sealed the block). ` +
                 `Re-import the <strong>new</strong> private key via <a href="${LOGIN_HREF}">Log in</a>, ` +
-                `or rotate again from a device that still holds the controlling key.</p>`
+                `or rotate again from a device that still holds the controlling key.</p>
+            ${statusSlotHtml()}`
               : spendOk
               ? `<form class="wallet__form" data-send-form>
             <label>To
@@ -321,8 +362,10 @@ async function route() {
             <label>Memo (optional) <input name="memo" type="text" maxlength="64" placeholder="order id / invoice" /></label>
             <label class="wallet__check"><input name="favorite" type="checkbox" /> Save recipient as favorite</label>
             <button type="submit" class="btn btn--primary">Send</button>
+            ${statusSlotHtml()}
           </form>`
-              : `<p class="wallet__note">This account is ${threshold}-of-n. L0 <code>Transfer</code> still requires threshold 1 — fund a 1-of-1 subaccount or rotate keys to spend.</p>`
+              : `<p class="wallet__note">This account is ${threshold}-of-n. L0 <code>Transfer</code> still requires threshold 1 — fund a 1-of-1 subaccount or rotate keys to spend.</p>
+            ${statusSlotHtml()}`
           }
           <div class="wallet__spacer" data-faucet-drip></div>
         </article>`;
@@ -353,6 +396,7 @@ async function route() {
               <button type="submit" class="btn btn--outline">${
                 threshold > 1 ? "Start cosign (UpdateMaster)" : "Submit UpdateMaster"
               }</button>
+              ${statusSlotHtml()}
             </form>
           </article>
           <article class="wallet__card wallet__card--plain">
@@ -378,6 +422,7 @@ async function route() {
               <button type="submit" class="btn btn--outline">${
                 threshold > 1 ? "Start cosign (RotateKeys)" : "Submit RotateKeys"
               }</button>
+              ${statusSlotHtml()}
             </form>
           </article>
           <article class="wallet__card wallet__card--plain">
@@ -395,6 +440,7 @@ async function route() {
               <label>Inclusion fee (GULD) <input name="fee" type="text" value="0.000001" /></label>
               <p class="wallet__meta">Creates <code>${escapeHtml(r.name)}.&lt;label&gt;</code> with a new local key.</p>
               <button type="submit" class="btn btn--outline">Register subaccount</button>
+              ${statusSlotHtml()}
             </form>
           </article>`
               : `<p class="wallet__meta">Groups cannot open subaccounts.</p>`
@@ -406,6 +452,7 @@ async function route() {
                 <textarea name="request" rows="6" required placeholder='{"version":1,"type":"register_group",...}'></textarea>
               </label>
               <button type="submit" class="btn btn--outline">Pay &amp; broadcast</button>
+              ${statusSlotHtml()}
             </form>
           </article>
           <article class="wallet__card wallet__card--plain">
@@ -433,10 +480,18 @@ async function route() {
       ${renderWalletView(`${sendPanel}${historyPanel}${advancedPanel}`)}
     `;
 
-    /** @param {string} text @param {"ok"|"error"|"pending"} [state] */
-    const say = (text, state = "ok") => {
-      setPanelStatus(hostEl.querySelector(".wallet__view"), text, state);
+    /** @param {string} text @param {"ok"|"error"|"pending"} [state] @param {ParentNode | Element | null} [scope] @param {{ html?: boolean }} [opts] */
+    const say = (text, state = "ok", scope = null, opts = {}) => {
+      const root =
+        scope ||
+        hostEl.querySelector("[data-send-form]") ||
+        hostEl.querySelector("[data-unlock-form]") ||
+        hostEl.querySelector(".wallet__view") ||
+        hostEl;
+      setPanelStatus(root, text, state, opts);
     };
+
+    applyStatusFlash();
 
     bindBusyClick(hostEl.querySelector("[data-copy-name]"), async () => {
       try {
@@ -457,20 +512,26 @@ async function route() {
           dripSlot.innerHTML = `
             <p class="wallet__note"><strong>Testnet faucet</strong> — request ${escapeHtml(String(info.dripGuld ?? 10))} GULD (cooldown applies; inclusion may take ~1 min of PoW).</p>
             <button type="button" class="btn btn--outline" data-request-drip>Request faucet drip</button>
+            ${statusSlotHtml()}
           `;
           bindBusyClick(dripSlot.querySelector("[data-request-drip]"), async () => {
-            say("Requesting faucet drip…", "pending");
+            say("Requesting faucet drip…", "pending", dripSlot);
             try {
               const before = Number(
                 (await apiGet(apiBase, `/chain/accounts/${encodeURIComponent(r.name)}`))?.balance
                   ?.quanta ?? 0,
               );
               const out = await faucetDrip(apiBase, r.name);
-              const txid = out?.result?.tx_id || "";
               say(
-                `Faucet queued ${out?.amountGuld ?? 10} GULD · tx ${txid || "ok"} — waiting for block…`,
+                formatTxSubmittedHtml(
+                  `Faucet queued ${out?.amountGuld ?? 10} GULD — waiting for block…`,
+                  out,
+                ),
                 "pending",
+                dripSlot,
+                { html: true },
               );
+              const txid = extractTxId(out);
               for (let i = 0; i < 45; i++) {
                 await new Promise((res) => setTimeout(res, 4000));
                 try {
@@ -480,7 +541,11 @@ async function route() {
                       `/chain/transactions/${encodeURIComponent(txid)}`,
                     );
                     if (tx && tx.pending !== true && tx.height != null) {
-                      say(`Faucet drip included · tx ${txid}`, "ok");
+                      flashStatus(
+                        formatTxSubmittedHtml("Faucet drip included", out),
+                        "ok",
+                        "[data-send-form]",
+                      );
                       route();
                       return;
                     }
@@ -490,7 +555,11 @@ async function route() {
                       ?.balance?.quanta ?? 0,
                   );
                   if (after > before) {
-                    say(`Faucet drip included · tx ${txid || "ok"}`, "ok");
+                    flashStatus(
+                      formatTxSubmittedHtml("Faucet drip included", out),
+                      "ok",
+                      "[data-send-form]",
+                    );
                     route();
                     return;
                   }
@@ -498,13 +567,14 @@ async function route() {
                   /* keep waiting */
                 }
               }
-              say(
-                `Drip still pending · tx ${txid || "ok"} — refresh the wallet shortly.`,
+              flashStatus(
+                formatTxSubmittedHtml("Drip still pending — refresh the wallet shortly", out),
                 "pending",
+                "[data-send-form]",
               );
               route();
             } catch (err) {
-              say(/** @type {Error} */ (err).message, "error");
+              say(/** @type {Error} */ (err).message, "error", dripSlot);
             }
           });
         })
@@ -530,7 +600,7 @@ async function route() {
         if (!keyring.getPriv(r.name)) throw new Error("Wrong passphrase");
         route();
       } catch (err) {
-        say(/** @type {Error} */ (err).message, "error");
+        say(/** @type {Error} */ (err).message, "error", form);
       }
     });
 
@@ -546,37 +616,37 @@ async function route() {
       const memoRaw = String(fd.get("memo") || "").trim();
       const memoBytes = memoRaw ? new TextEncoder().encode(memoRaw) : undefined;
       if (memoBytes && memoBytes.length > 64) {
-        say("Memo exceeds 64 bytes", "error");
+        say("Memo exceeds 64 bytes", "error", form);
         return;
       }
       const privHex = keyring.getPriv(r.name);
       if (!privHex) {
-        say("Unlock your keyring first", "error");
+        say("Unlock your keyring first", "error", form);
         return;
       }
       if (threshold !== 1) {
-        say("Threshold > 1 cannot Transfer yet", "error");
+        say("Threshold > 1 cannot Transfer yet", "error", form);
         return;
       }
       if (!to) {
-        say("Enter a recipient name", "error");
+        say("Enter a recipient name", "error", form);
         return;
       }
-      say("Checking recipient…", "pending");
+      say("Checking recipient…", "pending", form);
       try {
         if (!(await accountExists(apiBase, to))) {
-          say(`“${to}” is not registered — transfers require a registered name`, "error");
+          say(`“${to}” is not registered — transfers require a registered name`, "error", form);
           return;
         }
       } catch (err) {
-        say(/** @type {Error} */ (err).message, "error");
+        say(/** @type {Error} */ (err).message, "error", form);
         return;
       }
-      say("Sending…", "pending");
+      say("Sending…", "pending", form);
       try {
         const livePub = keyring.getAccount(r.name)?.pubHex;
         if (!livePub) {
-          say("No local public key for this name", "error");
+          say("No local public key for this name", "error", form);
           return;
         }
         const live = await requireLiveSpendKey(r.name, livePub);
@@ -598,13 +668,13 @@ async function route() {
           inclusion_fee: feeQ,
         };
         if (memoRaw) body.memo = memoRaw;
-        await apiPost(apiBase, "/chain/transactions", body);
+        const out = await apiPost(apiBase, "/chain/transactions", body);
         recordSend(to);
         if (fd.get("favorite")) saveContact({ name: to, favorite: true });
-        say("Transfer submitted", "ok");
+        flashStatus(formatTxSubmittedHtml("Transfer submitted", out), "ok", "[data-send-form]");
         route();
       } catch (err) {
-        say(/** @type {Error} */ (err).message, "error");
+        say(/** @type {Error} */ (err).message, "error", form);
       }
     });
 
@@ -615,12 +685,12 @@ async function route() {
       const feeQ = guldToQuanta(String(fd.get("fee") || "0"));
       const privHex = keyring.getPriv(r.name);
       if (!privHex) {
-        say("Unlock keyring first", "error");
+        say("Unlock keyring first", "error", form);
         return;
       }
       try {
         if (threshold === 1 && myIndex === 0) {
-          say("Submitting UpdateMaster…", "pending");
+          say("Submitting UpdateMaster…", "pending", form);
           const msg = await cosignMessage(
             account.account_id,
             account.master_hash,
@@ -629,14 +699,18 @@ async function route() {
             chainId,
           );
           const sig = await sign(msg, fromHex(privHex));
-          await apiPost(apiBase, "/chain/transactions", {
+          const out = await apiPost(apiBase, "/chain/transactions", {
             type: "update_master",
             name: r.name,
             new_master_hash: master,
             cosignatures: [{ key_index: myIndex >= 0 ? myIndex : 0, signature: toHex(sig) }],
             inclusion_fee: feeQ,
           });
-          say("UpdateMaster submitted", "ok");
+          flashStatus(
+            formatTxSubmittedHtml("UpdateMaster submitted", out),
+            "ok",
+            "[data-update-master-form]",
+          );
           route();
           return;
         }
@@ -666,12 +740,12 @@ async function route() {
             });
             document.getElementById('advanced')?.setAttribute('open', '');
           }
-          say(`Cosign started — ${1}/${threshold} signatures. Share the request.`, "ok");
+          say(`Cosign started — ${1}/${threshold} signatures. Share the request.`, "ok", form);
         } else {
-          say("No local key for this account — paste request into Cosign workstation.", "error");
+          say("No local key for this account — paste request into Cosign workstation.", "error", form);
         }
       } catch (err) {
-        say(/** @type {Error} */ (err).message, "error");
+        say(/** @type {Error} */ (err).message, "error", form);
       }
     });
 
@@ -720,7 +794,7 @@ async function route() {
     bindBusyClick(rotateForm?.querySelector("[data-rotate-generate]"), async () => {
       if (!(rotateForm instanceof HTMLFormElement)) return;
       try {
-        say("Generating key…", "pending");
+        say("Generating key…", "pending", rotateForm);
         const priv = await randomPrivateKey();
         const pubHex = await pubkeyHex(priv);
         const privHex = toHex(priv);
@@ -743,9 +817,9 @@ async function route() {
         if (thrEl instanceof HTMLInputElement && (!thrEl.value || Number(thrEl.value) < 1)) {
           thrEl.value = "1";
         }
-        say(`New key ready — keys[0]=${pubHex.slice(0, 18)}… Submit when ready.`, "ok");
+        say(`New key ready — keys[0]=${pubHex.slice(0, 18)}… Submit when ready.`, "ok", rotateForm);
       } catch (err) {
-        say(/** @type {Error} */ (err).message, "error");
+        say(/** @type {Error} */ (err).message, "error", rotateForm);
       }
     });
 
@@ -762,11 +836,11 @@ async function route() {
       const feeQ = guldToQuanta(String(fd.get("fee") || "0"));
       const privHex = keyring.getPriv(r.name);
       if (!privHex) {
-        say("Unlock keyring first", "error");
+        say("Unlock keyring first", "error", form);
         return;
       }
       if (!pubs.length || newThreshold < 1 || newThreshold > pubs.length) {
-        say("Invalid new keys / threshold", "error");
+        say("Invalid new keys / threshold", "error", form);
         return;
       }
       if (kind === "group" && pubs.length > nOld) {
@@ -790,7 +864,7 @@ async function route() {
             return;
           }
         } catch (err) {
-          say(/** @type {Error} */ (err).message, "error");
+          say(/** @type {Error} */ (err).message, "error", form);
           return;
         }
       }
@@ -799,13 +873,14 @@ async function route() {
         if (normPub(derived) !== normPub(pubs[0])) {
           say("New private key does not match keys[0] — generate again or paste the matching pair",
             "error",
+            form,
           );
           return;
         }
         const intent = await rotateKeysIntentMessage(r.name, pubs, newThreshold, feeQ);
         const newSig = await sign(intent, fromHex(privHexNew));
         if (threshold === 1 && myIndex === 0) {
-          say("Submitting RotateKeys…", "pending");
+          say("Submitting RotateKeys…", "pending", form);
           const msg = await rotateKeysMessage(
             account.account_id,
             Number(account.nonce),
@@ -815,7 +890,7 @@ async function route() {
             feeQ,
           );
           const oldSig = await sign(msg, fromHex(privHex));
-          await apiPost(apiBase, "/chain/transactions", {
+          const out = await apiPost(apiBase, "/chain/transactions", {
             type: "rotate_keys",
             name: r.name,
             new_keys: pubs,
@@ -833,13 +908,24 @@ async function route() {
               pubHex: pubs[0],
             });
           }
-          say("RotateKeys queued — waiting for inclusion…", "pending");
+          say(
+            formatTxSubmittedHtml("RotateKeys queued — waiting for inclusion…", out),
+            "pending",
+            form,
+            { html: true },
+          );
           try {
             await waitForKeyRotation(r.name, pubs[0]);
-            say("RotateKeys confirmed — local key updated", "ok");
+            flashStatus(
+              formatTxSubmittedHtml("RotateKeys confirmed — local key updated", out),
+              "ok",
+              "[data-rotate-keys-form]",
+            );
           } catch (waitErr) {
-            say(/** @type {Error} */ (waitErr).message,
+            flashStatus(
+              formatTxSubmittedHtml(/** @type {Error} */ (waitErr).message, out),
               "error",
+              "[data-rotate-keys-form]",
             );
           }
           route();
@@ -878,10 +964,11 @@ async function route() {
           document.getElementById('advanced')?.setAttribute('open', '');
           say(`Cosign RotateKeys — ${seedSigs.size}/${threshold} old-key signatures. Share the request.`,
             "ok",
+            form,
           );
         }
       } catch (err) {
-        say(/** @type {Error} */ (err).message, "error");
+        say(/** @type {Error} */ (err).message, "error", form);
       }
     });
 
@@ -891,7 +978,7 @@ async function route() {
         .trim()
         .toLowerCase();
       if (!/^[a-z0-9]+(-[a-z0-9]+)*$/.test(label)) {
-        say("Invalid label (use lowercase letters, digits, hyphens)", "error");
+        say("Invalid label (use lowercase letters, digits, hyphens)", "error", form);
         return;
       }
       const fullName = `${r.name}.${label}`;
@@ -899,10 +986,10 @@ async function route() {
       const feeQ = guldToQuanta(String(fd.get("fee") || "0"));
       const privHex = keyring.getPriv(r.name);
       if (!privHex) {
-        say("Unlock keyring first", "error");
+        say("Unlock keyring first", "error", form);
         return;
       }
-      say("Registering subaccount…", "pending");
+      say("Registering subaccount…", "pending", form);
       try {
         const feeEst = await apiGet(
           apiBase,
@@ -933,7 +1020,7 @@ async function route() {
           feeQ,
         );
         const parentSig = await sign(parentMsg, fromHex(privHex));
-        await apiPost(apiBase, "/chain/transactions", {
+        const out = await apiPost(apiBase, "/chain/transactions", {
           type: "register_subaccount",
           parent: r.name,
           label,
@@ -952,10 +1039,14 @@ async function route() {
             pubHex: subPub,
           });
         }
-        say(`Subaccount ${fullName} submitted`, "ok");
+        flashStatus(
+          formatTxSubmittedHtml(`Subaccount ${fullName} submitted`, out),
+          "ok",
+          "[data-send-form]",
+        );
         location.hash = `#/account/${encodeURIComponent(fullName)}`;
       } catch (err) {
-        say(/** @type {Error} */ (err).message, "error");
+        say(/** @type {Error} */ (err).message, "error", form);
       }
     });
 
@@ -963,13 +1054,17 @@ async function route() {
       const fd = new FormData(form);
       try {
         const req = parseRegistrationRequest(String(fd.get("request") || ""));
-        say(`Sponsoring “${req.name}”…`, "pending");
+        say(`Sponsoring “${req.name}”…`, "pending", form);
         const result = await sponsorRegistration(apiBase, r.name, req);
-        say(`Sponsored ${req.name} · tx ${result.tx_id || "ok"}${result.mined ? " (mined)" : ""}`,
+        const mined = result.mined ? " (mined)" : "";
+        say(
+          formatTxSubmittedHtml(`Sponsored ${req.name}${mined}`, result),
           "ok",
+          form,
+          { html: true },
         );
       } catch (err) {
-        say(/** @type {Error} */ (err).message, "error");
+        say(/** @type {Error} */ (err).message, "error", form);
       }
     });
   } catch (err) {
@@ -1052,9 +1147,17 @@ function mountCosignWorkstation(mount, opts) {
   /** @type {Map<number, string>} */
   const sigs = opts.seedSigs ? new Map(opts.seedSigs) : new Map();
   let newKeySignature = opts.newKeySignature || "";
-  const panel = mount.closest(".wallet__view");
-  /** @param {string} text @param {"ok"|"error"|"pending"} [state] */
-  const say = (text, state = "ok") => setPanelStatus(panel, text, state);
+  /** @type {{ text: string, state: string, html: boolean }} */
+  let lastStatus = { text: "", state: "ok", html: false };
+  /**
+   * @param {string} text
+   * @param {"ok"|"error"|"pending"} [state]
+   * @param {{ html?: boolean }} [optsSay]
+   */
+  const say = (text, state = "ok", optsSay = {}) => {
+    lastStatus = { text, state, html: Boolean(optsSay.html) };
+    setPanelStatus(mount, text, state, optsSay);
+  };
 
   function render() {
     const threshold = req ? req.threshold : Number(opts.account.threshold ?? 1);
@@ -1095,11 +1198,14 @@ function mountCosignWorkstation(mount, opts) {
         }
         <p class="wallet__spacer--sm">
           <button type="button" class="btn btn--primary" data-broadcast ${ready ? "" : "disabled"}>Broadcast</button>
-        </p>`
-          : ""
+        </p>
+        ${statusSlotHtml()}`
+          : statusSlotHtml()
       }
     `;
-
+    if (lastStatus.text) {
+      setPanelStatus(mount, lastStatus.text, lastStatus.state, { html: lastStatus.html });
+    }
     mount.querySelector("[data-cosign-import-req]")?.addEventListener("submit", (ev) => {
       ev.preventDefault();
       const fd = new FormData(/** @type {HTMLFormElement} */ (ev.target));
@@ -1204,22 +1310,38 @@ function mountCosignWorkstation(mount, opts) {
         }
         const tx = buildTxFromCosign(req, cosignatures, newKeySignature || undefined);
         say("Broadcasting…", "pending");
-        await apiPost(apiBase, "/chain/transactions", tx);
+        const out = await apiPost(apiBase, "/chain/transactions", tx);
         if (req.op === "rotate_keys" && opts.newPrivHex && opts.newPubHex && keyring.isUnlocked()) {
           await keyring.upsertAccount({
             name: opts.name,
             privHex: opts.newPrivHex,
             pubHex: opts.newPubHex,
           });
-          say("RotateKeys queued — waiting for inclusion…", "pending");
+          say(
+            formatTxSubmittedHtml("RotateKeys queued — waiting for inclusion…", out),
+            "pending",
+            { html: true },
+          );
           try {
             await waitForKeyRotation(opts.name, opts.newPubHex);
-            say("RotateKeys confirmed — local key updated", "ok");
+            flashStatus(
+              formatTxSubmittedHtml("RotateKeys confirmed — local key updated", out),
+              "ok",
+              "[data-send-form]",
+            );
           } catch (waitErr) {
-            say(/** @type {Error} */ (waitErr).message, "error");
+            flashStatus(
+              formatTxSubmittedHtml(String(/** @type {Error} */ (waitErr).message), out),
+              "error",
+              "[data-send-form]",
+            );
           }
         } else {
-          say(`${req.op} submitted`, "ok");
+          flashStatus(
+            formatTxSubmittedHtml(`${req.op} submitted`, out),
+            "ok",
+            "[data-send-form]",
+          );
         }
         route();
       } catch (err) {

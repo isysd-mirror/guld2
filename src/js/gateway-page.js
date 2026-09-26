@@ -4,6 +4,7 @@ import { getLocalIdentity, LOGIN_HREF, requireLogin, SETTINGS_HREF } from "./lib
 import { isGatewayConfigured, loadGatewaySettings } from "./lib/gateway-settings.js";
 import { keyring } from "./lib/keyring.js";
 import { escapeHtml } from "./lib/rpc.js";
+import { formatTxSubmittedHtml } from "./lib/tx-feedback.js";
 import { parseRegistrationRequest, sponsorRegistration } from "./lib/sponsor.js";
 
 const statusEl = document.querySelector("[data-gateway-status]");
@@ -20,10 +21,12 @@ const STATUS_LABEL = {
 /**
  * @param {string} msg
  * @param {"pending"|"ok"|"error"} [kind]
+ * @param {{ html?: boolean }} [opts]
  */
-function setStatus(msg, kind = "pending") {
+function setStatus(msg, kind = "pending", opts = {}) {
   if (!(statusEl instanceof HTMLElement)) return;
-  statusEl.textContent = msg;
+  if (opts.html) statusEl.innerHTML = msg;
+  else statusEl.textContent = msg;
   statusEl.dataset.state = kind;
 }
 
@@ -124,11 +127,10 @@ async function render() {
           const payer = settings.registrarName || id.name;
           if (!payer) throw new Error("No registrar name");
           const result = await signAndSubmit(order, payer);
-          setStatus(
-            `Submitted · tx ${result.tx_id || "ok"}${result.mined ? " (mined)" : ""}`,
-            "ok",
-          );
+          const mined = result.mined ? " (mined)" : "";
+          const html = formatTxSubmittedHtml(`Submitted${mined}`, result);
           await render();
+          setStatus(html, "ok", { html: true });
         } catch (err) {
           setStatus(/** @type {Error} */ (err).message, "error");
           btn.removeAttribute("disabled");

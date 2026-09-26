@@ -11,6 +11,7 @@ import {
 import { pubkeyHex, randomPrivateKey, toHex } from "./lib/crypto.js";
 import { keyring } from "./lib/keyring.js";
 import { escapeHtml, quantaToGuld } from "./lib/rpc.js";
+import { explorerPendingTxHref, formatTxSubmittedHtml } from "./lib/tx-feedback.js";
 import { showToast } from "./lib/toast.js";
 
 const statusEl = document.querySelector("[data-claim-status]");
@@ -31,10 +32,12 @@ let ui = {
 /**
  * @param {string} msg
  * @param {"pending"|"ok"|"error"} [kind]
+ * @param {{ html?: boolean }} [opts]
  */
-function setStatus(msg, kind = "pending") {
+function setStatus(msg, kind = "pending", opts = {}) {
   if (!(statusEl instanceof HTMLElement)) return;
-  statusEl.textContent = msg;
+  if (opts.html) statusEl.innerHTML = msg;
+  else statusEl.textContent = msg;
   statusEl.dataset.state = kind;
 }
 
@@ -385,12 +388,13 @@ function renderForm() {
 
       clearClaimDraft();
       claimDraft = null;
-      setStatus(`Claimed ${legacyName} · tx ${result.tx_id ?? "ok"}`, "ok");
+      setStatus(formatTxSubmittedHtml(`Claimed ${legacyName}`, result), "ok", { html: true });
+      const txHref = explorerPendingTxHref(result?.tx_id);
       showToast({
         title: "Claim submitted",
-        body: "Open Wallet to send GULD.",
-        href: "/wallet/",
-        hrefLabel: "Open wallet",
+        body: "Open Wallet to send GULD, or view the pending tx in the explorer.",
+        href: result?.tx_id && result.tx_id !== "ok" ? txHref : "/wallet/",
+        hrefLabel: result?.tx_id && result.tx_id !== "ok" ? "View pending tx" : "Open wallet",
       });
       ui.alreadyClaimed = true;
       ui.formEnabled = false;
