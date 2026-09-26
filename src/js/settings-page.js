@@ -14,6 +14,7 @@ import {
 } from "./lib/key-export.js";
 import { keyring } from "./lib/keyring.js";
 import { loadNetworkInfo, NETWORK_PRESETS } from "./lib/network.js";
+import { accountDetailsHtml, registrationExpiryHtml } from "./lib/account-meta.js";
 import { escapeHtml } from "./lib/rpc.js";
 
 const statusEl = document.querySelector("[data-settings-status]");
@@ -44,6 +45,29 @@ async function render() {
   const peer = await loadPeerInfo(apiBase);
   const invite = deskInviteUrl(gw);
   const net = await loadNetworkInfo(apiBase);
+  let accountBlock = "";
+  if (id.name) {
+    try {
+      const [st, acct] = await Promise.all([
+        apiGet(apiBase, "/chain/status"),
+        apiGet(apiBase, `/chain/accounts/${encodeURIComponent(id.name)}`),
+      ]);
+      const account = acct.account || {};
+      accountBlock = `
+      <fieldset>
+        <legend>Account · ${escapeHtml(id.name)}</legend>
+        ${accountDetailsHtml(account)}
+        ${registrationExpiryHtml(account, st.height)}
+        <p class="wallet__meta">Chain height ${escapeHtml(String(st.height ?? "—"))}.</p>
+      </fieldset>`;
+    } catch (err) {
+      accountBlock = `
+      <fieldset>
+        <legend>Account · ${escapeHtml(id.name)}</legend>
+        <p class="wallet__meta">${escapeHtml(/** @type {Error} */ (err).message)}</p>
+      </fieldset>`;
+    }
+  }
   const presets = NETWORK_PRESETS.map(
     (p) =>
       `<button type="button" class="btn btn--outline" data-preset="${escapeHtml(p.id)}" style="margin:0.25rem 0.35rem 0.25rem 0">${escapeHtml(p.label)}</button>`,
@@ -51,6 +75,7 @@ async function render() {
 
   hostEl.innerHTML = `
     <form class="wallet__form" data-settings-form>
+      ${accountBlock}
       <fieldset>
         <legend>Network</legend>
         <p class="wallet__meta">

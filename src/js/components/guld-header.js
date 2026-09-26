@@ -1,5 +1,7 @@
 import { HEADER_NAV, isNavActive } from "../lib/site-nav.js";
-import { AUTH_EVENT, GATEWAY_HREF, SETTINGS_HREF } from "../lib/auth.js";
+import { AUTH_EVENT, GATEWAY_HREF, getLocalIdentity, REGISTER_HREF } from "../lib/auth.js";
+import { walletAccountHref, WALLET_TABS } from "../lib/wallet-nav.js";
+import { keyring } from "../lib/keyring.js";
 import {
   GATEWAY_SETTINGS_EVENT,
   isGatewayConfigured,
@@ -33,6 +35,7 @@ template.innerHTML = `
       <nav class="site-nav" aria-label="Primary">
         <ul class="site-nav__list"></ul>
       </nav>
+      <a class="site-header__register btn btn--outline" data-header-register hidden>Register</a>
       <div class="site-header__profile" data-header-profile>
         <button type="button" class="site-header__account" data-profile-trigger
           aria-haspopup="menu" aria-expanded="false" aria-controls="profile-menu"></button>
@@ -65,6 +68,9 @@ export class GuldHeader extends HTMLElement {
     });
 
     const list = /** @type {HTMLUListElement} */ (this.querySelector(".site-nav__list"));
+    const registerLink = /** @type {HTMLAnchorElement} */ (
+      this.querySelector("[data-header-register]")
+    );
     const profileWrap = /** @type {HTMLElement} */ (this.querySelector("[data-header-profile]"));
     const trigger = /** @type {HTMLButtonElement} */ (
       this.querySelector("[data-profile-trigger]")
@@ -91,11 +97,20 @@ export class GuldHeader extends HTMLElement {
       list.replaceChildren();
 
       /** @type {{ href: string, label: string }[]} */
-      const items = [...HEADER_NAV];
-      if (isGatewayConfigured(loadGatewaySettings())) {
-        items.splice(1, 0, { href: GATEWAY_HREF, label: "Gateway" });
+      const items = [];
+      const id = getLocalIdentity();
+      if (id.hasKey && id.name) {
+        for (const tab of WALLET_TABS) {
+          items.push({ href: walletAccountHref(id.name, tab.id), label: tab.label });
+        }
       }
-      items.push({ href: SETTINGS_HREF, label: "Settings" });
+      items.push(...HEADER_NAV);
+      if (isGatewayConfigured(loadGatewaySettings())) {
+        const explorerIdx = items.findIndex((i) => i.href === "/explorer/");
+        const gateway = { href: GATEWAY_HREF, label: "Gateway" };
+        if (explorerIdx >= 0) items.splice(explorerIdx, 0, gateway);
+        else items.push(gateway);
+      }
 
       for (const item of items) {
         const li = document.createElement("li");
@@ -109,9 +124,17 @@ export class GuldHeader extends HTMLElement {
     };
 
     const refreshProfile = () => {
-      renderProfileTrigger(trigger);
-      renderProfileMenu(menu);
-      if (!menu.hidden) closeMenu();
+      const loggedIn = getLocalIdentity().hasKey;
+      registerLink.hidden = loggedIn;
+      profileWrap.hidden = !loggedIn;
+      if (loggedIn) {
+        renderProfileTrigger(trigger);
+        renderProfileMenu(menu);
+        if (!menu.hidden) closeMenu();
+      } else {
+        registerLink.href = REGISTER_HREF;
+        closeMenu();
+      }
     };
 
     trigger.addEventListener("click", (ev) => {
@@ -146,6 +169,7 @@ export class GuldHeader extends HTMLElement {
     document.addEventListener(AUTH_EVENT, refresh);
     document.addEventListener(KEYRING_EVENT, refresh);
     document.addEventListener(GATEWAY_SETTINGS_EVENT, refresh);
+    globalThis.addEventListener("hashchange", refresh);
     if (typeof globalThis.addEventListener === "function") {
       globalThis.addEventListener("storage", (event) => {
         if (

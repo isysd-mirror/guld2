@@ -16,7 +16,8 @@ import {
   renderProfileExportPanel,
 } from "./key-export.js";
 import { escapeHtml } from "./rpc.js";
-import { initialsForName, WALLET_HREF } from "./wallet-session.js";
+import { walletAccountHref } from "./wallet-nav.js";
+import { initialsForName } from "./wallet-session.js";
 
 /**
  * @param {HTMLElement} menu
@@ -52,7 +53,7 @@ export function bindProfileMenu(menu, opts = {}) {
         }
         activateAccount(name);
         close();
-        location.href = `${WALLET_HREF}#/account/${encodeURIComponent(name)}`;
+        location.href = walletAccountHref(name, "send");
       } catch (err) {
         showMenuError(menu, /** @type {Error} */ (err).message);
       }
@@ -105,7 +106,7 @@ export function bindProfileMenu(menu, opts = {}) {
       await keyring.upsertAccount({ name, privHex, pubHex, pending: false });
       activateAccount(name);
       close();
-      location.href = `${WALLET_HREF}#/account/${encodeURIComponent(name)}`;
+      location.href = walletAccountHref(name, "send");
     } catch (err) {
       showMenuError(menu, /** @type {Error} */ (err).message);
     }
@@ -180,7 +181,7 @@ export function renderProfileMenu(menu) {
   }
   if (active) {
     parts.push(
-      `<a class="site-header__profile-link" href="${WALLET_HREF}#/account/${encodeURIComponent(active)}" role="menuitem">Open wallet</a>`,
+      `<a class="site-header__profile-link" href="${walletAccountHref(active, "send")}" role="menuitem">Open wallet</a>`,
     );
   }
   parts.push(

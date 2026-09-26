@@ -1,5 +1,5 @@
 /* Guld.io service worker — offline shell, network-first for pages. */
-const CACHE = "guld-io-v12";
+const CACHE = "guld-io-v14";
 const PRECACHE = [
   "/",
   "/index.html",

@@ -53,7 +53,7 @@ test("pages share guld-header and guld-footer chrome", () => {
 test("header nav is product; docs live in footer", () => {
   assert.deepEqual(
     HEADER_NAV.map((i) => i.label),
-    ["Wallet", "Explorer"],
+    ["Explorer"],
   );
   assert.deepEqual(
     FOOTER_NAV.map((i) => i.label),

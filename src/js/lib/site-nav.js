@@ -2,11 +2,8 @@ import { whitepaperDocHref } from "./doc-paths.js";
 
 /** @typedef {{ href: string, label: string }} NavItem */
 
-/** Primary product — header only (static items; auth/gateway injected at runtime). */
-export const HEADER_NAV = [
-  { href: "/wallet/", label: "Wallet" },
-  { href: "/explorer/", label: "Explorer" },
-];
+/** Primary product — header only (wallet tabs + gateway injected at runtime). */
+export const HEADER_NAV = [{ href: "/explorer/", label: "Explorer" }];
 
 /** Docs / meta — footer only. */
 export const FOOTER_NAV = [

@@ -151,9 +151,30 @@ guld-header:has(.site-header--solid) {
   color: #fff;
 }
 
+.site-header__register {
+  flex-shrink: 0;
+  font-size: 0.88rem;
+  padding: 0.35rem 0.85rem;
+  border-color: rgba(255, 255, 255, 0.45);
+  color: rgba(255, 255, 255, 0.95);
+}
+
+.site-header__register[hidden] {
+  display: none !important;
+}
+
+.site-header__register:hover {
+  border-color: rgba(255, 255, 255, 0.75);
+  color: #fff;
+}
+
 .site-header__profile {
   position: relative;
   flex-shrink: 0;
+}
+
+.site-header__profile[hidden] {
+  display: none !important;
 }
 
 .site-header__account {
