@@ -1,5 +1,5 @@
 {
-  "generated": "2026-09-25",
+  "generated": "2026-09-26",
   "extras": [
     {
       "name": "README.md",
@@ -8,6 +8,23 @@
     }
   ],
   "tree": [
+    {
+      "name": "design",
+      "children": [
+        {
+          "name": "feedback-ux-2026-09.md",
+          "path": "design/feedback-ux-2026-09.md"
+        },
+        {
+          "name": "human-first-ux.md",
+          "path": "design/human-first-ux.md"
+        },
+        {
+          "name": "README.md",
+          "path": "design/README.md"
+        }
+      ]
+    },
     {
       "name": "essays",
       "children": [
@@ -268,6 +285,10 @@
             {
               "name": "004-rpc-search-accounts.md",
               "path": "tasks/open/004-rpc-search-accounts.md"
+            },
+            {
+              "name": "005-human-first-ux.md",
+              "path": "tasks/open/005-human-first-ux.md"
             }
           ]
         },
