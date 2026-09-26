@@ -27,12 +27,15 @@ Each account leaf MUST include **`nonce`** (monotonic `u64`) and **`master_hash`
 ```text
 fn apply_block(state: &mut State, block: &Block) -> Result<NewRoots, Error> {
   // 1. verify header links + PoW (consensus crate)
-  // 2. for tx in block.txs: validate + apply
-  // 3. schedule Σ registration_fee into 8-block vest from this height
-  // 4. apply coinbase: subsidy(height) + sum(inclusion_fees) + vested_at(height)
-  // 5. compute state_root, tx_root, receipt_root
+  // 2. apply txs[0] RewardCommit — commit only; no mint (GIP-22)
+  // 3. for tx in block.txs[1..]: validate + apply (includes mature ClaimReward)
+  // 4. schedule Σ registration_fee into 8-block vest from this height
+  // 5. verify RewardCommit.amount == subsidy(h) + inclusion_fees + vested_at(h)
+  // 6. compute state_root, tx_root, receipt_root
 }
 ```
+
+Track **claimed** rewards (per `ref_hash`) so `ClaimReward` cannot double-mint. Legacy path (`credit_miner`) deprecated at GIP-22 activation ([`06-blocks-and-consensus.md`](06-blocks-and-consensus.md) §4).
 
 ## 4. Parallelism
 
@@ -62,7 +65,7 @@ trait StateBackend {
 Genesis MUST:
 
 1. Create account `guld` with initial `master_hash` pointing at genesis protocol tree.  
-2. Apply the 1.0 import manifest ([`15-ledger-import.md`](15-ledger-import.md)): every positive member `name:Assets` as a **legacy-locked** balance; **omit** ERC20 protocol buckets; pin `import_manifest_hash`. Supply **x ≈ 959,947.20 GULD** (working figure).  
+2. Apply the 1.0 import manifest ([`15-ledger-import.md`](15-ledger-import.md)): every positive member `name:Assets` as a **legacy-locked** balance; **omit** ERC20 protocol buckets; pin `import_manifest_hash`. Supply **x = 959,947.19527052 GULD** (Simba locked — A7).  
 3. Set `chain_id`, initial weight params, fee params, subsidy schedule digest (**(2/3)^(y−1)** floored at **4%**, 10-min blocks), **10** decimal places.
 
 Spend from imported names is disabled until `ClaimLegacy`.

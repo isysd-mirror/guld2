@@ -1,14 +1,15 @@
 # Spec 03 — Transactions
 
 **Status:** draft  
-**Related:** [`04-proofs.md`](04-proofs.md), [`07-fees-and-tokenomics.md`](07-fees-and-tokenomics.md)
+**Related:** [`04-proofs.md`](04-proofs.md), [`06-blocks-and-consensus.md`](06-blocks-and-consensus.md) §4, [`07-fees-and-tokenomics.md`](07-fees-and-tokenomics.md)  
+**GIP:** [`../gips/gip-22.md`](../gips/gip-22.md) (miner rewards)
 
 ## 1. Principles
 
 - Fixed vocabulary: **no** user-defined ops.  
 - Each tx has a `type`, body fields, `inclusion_fee` (Amount), and authorization (sig or leaf proof).  
 - Optional **`memo`**: opaque bytes for invoices / order ids — see §2.1.  
-- `TxId = tagged_hash("guld/tx_id/v1", canonical_bytes(tx_without_id))`.
+- `TxId = tagged_hash("guld/tx_id/v1", bare_encode(tx))` — BARE bytes ([`01-cryptography.md`](01-cryptography.md) §4, [`schemas/`](../../schemas/README.md)). JSON-RPC is not consensus-canonical.
 
 ## 2. Common envelope
 
@@ -43,7 +44,65 @@ Rationale: a few dozen bytes for an order id are already priced by the weight ma
 
 ## 3. Tx types
 
-### 3.1 `RegisterUsername`
+### 3.0 `RewardCommit` (block-embedded only)
+
+**GIP:** [`../gips/gip-22.md`](../gips/gip-22.md)
+
+```text
+RewardCommit {
+  version: u8,                    // 1
+  miner: Name,                    // MUST match header.miner
+  beneficiary: Name,              // claim payee (MAY be miner subaccount)
+  amount: Amount,
+  claim_signature: SignatureBytes  // beneficiary keys[0] over claim binding
+}
+```
+
+**Placement:** MUST be `block.txs[0]`; exactly one per block. MUST NOT be accepted from mempool.
+
+**Binding message** (`guld/claim_reward/bind/v1`):
+
+```text
+ref_height: u64
+ref_hash: Hash32       // block_hash of this block
+beneficiary: Name
+amount: Amount
+```
+
+**Amount:**
+
+```text
+amount = subsidy(height) + Σ inclusion_fee(txs[1..]) + vested_registration_fees(height)
+```
+
+**Effects:** record commitment; MUST NOT mint. Zero weight toward `BLOCK_WEIGHT_LIMIT`.
+
+### 3.1 `ClaimReward` (mempool + mature inclusion)
+
+```text
+ClaimReward {
+  version: u8,
+  ref_height: u64,
+  ref_hash: Hash32,
+  beneficiary: Name,
+  amount: Amount,
+  inclusion_fee: Amount,
+  signature: SignatureBytes   // same binding as RewardCommit.claim_signature
+}
+```
+
+**Mempool:** MAY accept when `ref` block is on the best chain and matches an unclaimed `RewardCommit`. MUST NOT require `tip ≥ ref_height + COINBASE_MATURITY_BLOCKS` for admission.
+
+**Block inclusion:** valid in block `B` only if `B.height ≥ ref_height + COINBASE_MATURITY_BLOCKS` (first eligible block: **`ref_height + 100`**).
+
+**Effects when included in block `B`:**
+
+1. Mint `amount` to `beneficiary.balance` (once per `ref_hash`).
+2. `inclusion_fee` → **`B.header.miner`** (summed into `B`’s `inclusion_fees` like any tx in `B`).
+
+Miners SHOULD pre-sign at seal time and retain pending claims (~100) across restarts ([task 008](../tasks/open/008-mempool-persistence.md)).
+
+### 3.2 `RegisterUsername`
 
 ```text
 RegisterUsername {
@@ -59,7 +118,7 @@ RegisterUsername {
 **Effects (atomic):**
 
 1. Name MUST NOT exist; MUST NOT be `guld`.  
-2. Deduct `F_user(L)` from sponsor `payer`; credit protocol fee to block miner; create new account for `name` (`L` = letter count — [`07-fees-and-tokenomics.md`](07-fees-and-tokenomics.md)).
+2. Deduct `F_user(L)` from sponsor `payer`; schedule protocol fee for miner vesting; create new account for `name` (`L` = letter count — [`07-fees-and-tokenomics.md`](07-fees-and-tokenomics.md)).
 
 **Funding model:** explicit `payer` (existing account) plus **`registrant_signature`** from `keys[0]` — see [`16-sponsored-registration.md`](16-sponsored-registration.md).
 
@@ -84,7 +143,7 @@ RegisterUsername {
 - Deduct protocol fee (vested to miners over 8 blocks); transfer `endowment`; pay `inclusion_fee` to coinbase; create account; increment payer nonce.
 - `name` MUST NOT contain `.` (subaccounts use `RegisterSubaccount`).
 
-### 3.2 `RegisterGroup`
+### 3.3 `RegisterGroup`
 
 Same as username, plus:
 
@@ -94,7 +153,7 @@ Same as username, plus:
 - `name` MUST NOT contain `.`  
 - Balance check: `payer.balance >= F_group(L, n) + endowment + inclusion_fee`
 
-### 3.2a `RegisterSubaccount`
+### 3.3a `RegisterSubaccount`
 
 Opens `parent.label` under an **individual** root (GIP: [`../gips/gip-12.md`](../gips/gip-12.md)).
 
@@ -122,7 +181,7 @@ RegisterSubaccount {
 
 **Effects:** create `kind = subaccount` with `parent` set; credit fees to miner; increment parent nonce.
 
-### 3.3 `RotateKeys`
+### 3.4 `RotateKeys`
 
 Change keys/threshold under the **current** policy (own key hygiene / group re-key). **Not** a username resale market — see [`../gips/gip-13.md`](../gips/gip-13.md) and pay-or-release in [`../gips/gip-11.md`](../gips/gip-11.md).
 
@@ -151,9 +210,9 @@ RotateKeys {
 
 Individuals and subaccounts: inclusion fee only (registration fees are not per-signer for those kinds).
 
-### 3.3a `SettleRegistration`
+### 3.4a `SettleRegistration`
 
-Permissionless pay-or-release (typically miner-included). Valid when `chain_height >= expires_at_height` and not network / foreign / legacy-locked.
+Permissionless pay-or-release (typically miner-included). Valid when `chain_height >= expires_at_height` and not **network** (`guld`) or **legacy-locked**.
 
 ```text
 SettleRegistration { name: Name }
@@ -165,7 +224,7 @@ SettleRegistration { name: Name }
   `expires_at_height = max(height, expires_at_height) + BLOCKS_PER_YEAR`; `nonce++`.  
 - Else: leftover balance → vesting queue; **delete** account; if root, cascade-delete live subs (their balances → vesting queue). Name becomes registrable again.
 
-### 3.4 `UpdateMaster`
+### 3.5 `UpdateMaster`
 
 ```text
 UpdateMaster {
@@ -188,7 +247,7 @@ tagged_hash("guld/cosign/v1",
 - `inclusion_fee` sufficient for weight.  
 - **Effects:** `master_hash = new`; `nonce++`. Stale `(prev_master_hash, nonce)` ⇒ reject (leaf race loser).
 
-### 3.5 `Transfer`
+### 3.6 `Transfer`
 
 ```text
 Transfer {
@@ -203,13 +262,13 @@ Transfer {
 
 **Effects:** move `amount` if balances allow; increment `from` nonce. `memo` is recorded in the canonical tx (and thus tx id / receipts explorers may index) but has **no** balance effect.
 
-### 3.6 `ClaimLegacy` (1.0 key upgrade)
+### 3.7 `ClaimLegacy` (1.0 key upgrade)
 
-Ports a genesis-imported, **legacy-locked** account to 2.0 keys without moving coins. Full rules: [`15-ledger-import.md`](15-ledger-import.md).
+Unlocks a genesis-imported, **legacy-locked** account under new keys. **Does not register or rename** — the holder gets **exactly** the 1.0 name from the import manifest. Full rules: [`15-ledger-import.md`](15-ledger-import.md).
 
 ```text
 ClaimLegacy {
-  name: Name,
+  name: Name,              // MUST be the imported name — no alternate target
   new_keys: Vec<Pubkey>,
   new_threshold: u16,
   initial_master_hash: Hash32,
@@ -217,9 +276,9 @@ ClaimLegacy {
 }
 ```
 
-**Effects:** verify legacy ownership; set keys/threshold/`master_hash`; set `legacy.status = claimed`; balance unchanged; pay `inclusion_fee`.
+**Effects:** verify legacy ownership for **`name`**; set keys/threshold/`master_hash`; set `legacy.status = claimed`; **`name` and `account_id` unchanged**; balance unchanged aside from `inclusion_fee`.
 
-**MUST** reject if account missing, not locked, or name was never imported.
+**MUST** reject if: account missing; not legacy-locked; `name` was never imported; or proof/`message` names disagree.
 
 ## 4. Validation pipeline (node)
 
@@ -229,7 +288,8 @@ For each tx, `guld-state` + `guld-crypto` MUST:
 2. Compute weight; check `inclusion_fee` vs relay policy (mempool)  
 3. Verify auth  
 4. Apply state transition or reject  
-5. For `Register*`, deduct protocol fee (vested miner coinbase)  
+5. For `Register*`, deduct protocol fee (vested to miner `RewardCommit` schedule)  
+6. Reject `RewardCommit` from mempool; reject `ClaimReward` in block if immature or already claimed  
 
 ## 5. Component API
 
@@ -249,5 +309,5 @@ trait TxApply {
 
 - Optional intent field restricting allowed sponsor  
 - Multisig spend vs tip role separation  
-- `LegacyOwnershipProof` packet profile ([`15-ledger-import.md`](15-ledger-import.md))  
+- `LegacyOwnershipProof` packet profile — normative v1 ([`15-ledger-import.md`](15-ledger-import.md) §5.1)  
 - Optional `Bond` / role-stake policy (name deposits / attestors)—**not** CAS pins

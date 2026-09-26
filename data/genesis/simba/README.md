@@ -10,6 +10,7 @@ Committed height-0 for `--network simba` (`chain_id = 2`).
 
 ## Design
 
+- **Full 1.0 ledger** in `import-manifest.json` (task 007 **A7** locked). Hash: `0xd5f12f6df4ab2b802ed6957b08d7c104d9eae0878decb10728f7e20975e2df27`. Supply **x ≈ 959,947.19527052 GULD** (ERC20 omitted).
 - **`guld`** is a keyless network shell. Miners witnessing header `master_hash` / `guld_rules_hash` attest CAP changes — no `guld.sk`.
 - **No alice.** No default `--miner`; seal only with `--miner <name>`.
 - **`isysd`** is imported locked, then genesis-claimed via the committed PGP proof so unbound ClaimLegacy attestation works from block 0.

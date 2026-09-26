@@ -51,7 +51,7 @@ Valid while `chain_height <= expires_at_height`. Overdue when `chain_height > ex
 SettleRegistration { name: Name }
 ```
 
-Permissionless (no signature). Valid when overdue and not network / foreign / legacy-locked.
+Permissionless (no signature). Valid when overdue and not **network** (`guld`) or **legacy-locked**.
 
 ## Acceptance
 

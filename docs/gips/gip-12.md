@@ -35,15 +35,15 @@ Each subaccount is a first-class on-chain account (own keys, nonce, balance, `ma
 | Live cap | **8** subaccounts per parent |
 | Nesting | One level only (`parent.label`) |
 | Group parents | **No** — only `individual` roots may open subs |
-| Fees | **Fixed** (see below); no year schedule / supply leg for registration |
+| Fees | Subaccount **flat** `F_sub`; parent individual uses letter **`F_user(L)`** ([GIP-9](gip-9.md)) |
 | Close | Later (not v1) |
 
-### Fixed registration fees (→ miners, 8-block vest)
+### Registration fees (→ miners, 8-block vest)
 
-| Kind | Fee |
-|------|-----|
-| Individual (`F_user`) | **1 GULD** |
-| Subaccount (`F_sub`) | **0.1 GULD** |
+| Kind | Fee / year |
+|------|------------|
+| Individual root | **`F_user(L)`** — letter table ([GIP-9](gip-9.md); `L_cap = 6`) |
+| Subaccount (`F_sub`) | **0.1 GULD** (flat) |
 | Group (`F_group(L, n)`) | **`F_user(L) × (2 + n)`** GULD (`L` = letters; `n` = initial key count) |
 
 ## Naming
@@ -51,7 +51,7 @@ Each subaccount is a first-class on-chain account (own keys, nonce, balance, `ma
 | Rule | Draft |
 |------|--------|
 | Form | `{parent}.{label}` exactly **one** dot |
-| Parent | Existing `individual` root (not group / network / foreign / sub) |
+| Parent | Existing `individual` root (not group / network / sub) |
 | Label | `^[a-z0-9]+(-[a-z0-9]+)*$` |
 | Full name length | ≤ 64 UTF-8 bytes |
 | Uniqueness | Full string globally unique |

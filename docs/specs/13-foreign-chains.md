@@ -1,139 +1,74 @@
-# Spec 13 — Foreign chains in the namespace (L0 witness)
+# Spec 13 — Cross-chain and foreign witnessing (informative / future dapps)
 
-**Status:** draft  
-**Related:** [`02-identity-and-accounts.md`](02-identity-and-accounts.md), [`04-proofs.md`](04-proofs.md), whitepaper §3.4 (L0)
+**Status:** informative — **not L0 v1 consensus**  
+**Related:** [`02-identity-and-accounts.md`](02-identity-and-accounts.md), [`04-proofs.md`](04-proofs.md), whitepaper §3.4  
+**Decision (A11):** Guld **does not** reserve genesis names such as `bitcoin`, `ethereum`, or `solana`. Bridge builders, indexers, and “witness” dapps **register ordinary names** (or operate under their own labels) and ship **leaf** software. Any cross-chain story is **application-layer**, not a built-in account kind in Simba v1.
 
-## 1. Intent (1.0 continuity + L0 framing)
+## 1. What Guld L0 ships (v1)
 
-Guld 1.0 allowed **blockchains to appear in the namespace**. Guld 2.0 keeps that idea and names the role clearly: Guld is an **L0 witness substrate**. Other chains are first-class **names**; their tips advance under **foreign consensus proofs**. Dapps (e.g. a hypothetical **guldex**) MAY build application proofs over those tips. Fast paths (“lightning”), personal chains, and rollups-as-leaves settle by committing **hashes** to Guld—same `UpdateMaster` toolset as any leaf.
+| In scope | Out of scope (v1) |
+|----------|-------------------|
+| Registered **individual / group / sub** names | Genesis **`foreign_chain`** shells |
+| `threshold_cosign_v1` tip updates | Enumerated **`bitcoin_spv_v1`** / **`ethereum_light_v1`** in consensus |
+| `Transfer`, registration, PoW, GIP-22 rewards | Reserved **`bitcoin`** namespace slot |
+| Leaves under any registered name | Mandatory foreign light-client verify in every full node |
 
-- Reserve or register names such as **`bitcoin`**, **`ethereum`**, **`solana`**, …  
-- Those accounts’ **tips** represent a Guld-facing view of that chain (or a curated home about it).  
-- Advancing those tips MAY require proofs that invoke **that chain’s consensus rules** (light-client / SPV style)—not Guld cosign alone.
+Only **`guld`** is reserved at genesis (network account). Every other label—including short names attractive to bridge UX—is subject to **normal registration economics** (`F_user(L)`, letter table). Squatting `bitcoin` is a **market** problem for dapp teams, not a protocol reservation.
 
-This is **cross-chain at the identity and tip layer**. It is **not** automatically a token bridge.
+## 2. Theoretical dapp capabilities (whitepaper §3.4)
 
-## 2. What “cross-chain” means here
+The whitepaper describes **patterns dapps MAY build** on top of Guld’s name + hash + cosign substrate. They are **not** promises of reference-node behavior in v1:
 
-| Capability | In scope for this spec? | Notes |
-|------------|-------------------------|--------|
-| Address `bitcoin` / `ethereum` / `solana` by **name** | **Yes** | Same UX as people/groups |
-| Commit foreign tips under SHA-256 `master_hash` | **Yes** | Home may hold headers, checkpoints, metadata leaves |
-| Require **foreign consensus proofs** to update those tips | **Yes** | Enumerated proof kinds |
-| Dapps proving over witnessed foreign tips (e.g. guldex) | **Yes** (leaf / app) | Not a special opcode |
-| Periodic hash settlement (“lightning”, personal chains) | **Yes** (leaf) | Ordinary `UpdateMaster` / txs |
-| Atomic BTC↔GULD / ETH↔GULD peg | **No** (separate bridge spec later) | Needs lock/mint, watchers, fraud proofs, … |
-| Every Guld node runs a full BTC/ETH/SOL node | **MUST NOT** | Use light-client / SPV / succinct proofs only |
+| Pattern | Dapp responsibility | L0 v1 role |
+|---------|---------------------|------------|
+| **Foreign chain indexer** | Register e.g. `acme-bridge`; run BTC/ETH/SOL infra off-chain; publish checkpoints in **leaf** CAS | Stores only authorized **tips** if the dapp cosigns `UpdateMaster` |
+| **guldex-style exchange** | Leaf logic + optional external indexers; settle in GULD via ordinary `Transfer` | No exchange opcode |
+| **Lightning-style channels** | Off-hub state; periodic hash commit under a registered name | Witnesses cosigned head only |
+| **Personal / app chain** | Leaf ledger; checkpoint `master_hash` | Same as any group/individual |
+| **Token bridge (peg)** | Lock/mint contracts, watchers, fraud proofs — **separate product** | Not implied by names |
 
-So: **yes, Guld is cross-chain L0** — a **unified namespace that can witness other networks’ consensus outcomes**. Bridging value is optional on top. Settlement dapps are expected leaf uses.
+Cross-chain **liquidity** and **foreign consensus verification** are **not** native L0 opcodes. Teams that want a canonical public name choose one, pay the letter fee, and operate their stack.
 
-## 3. Account kinds (extension)
+## 3. Future protocol upgrades (optional)
 
-| Kind | Registration | Tip authorization |
-|------|--------------|-------------------|
-| `individual` / `group` | Paid register | `threshold_cosign_v1` (etc.) |
-| `network` | Genesis (`guld`) | Network governance cosign + full clone |
-| `foreign_chain` | Genesis reserved **or** gated registration | **Foreign consensus proof kind** for that chain |
+If the ecosystem later wants **consensus-enumerated foreign proof kinds** (SPV, light client, …), that requires:
 
-**Draft reserved names (genesis):** `bitcoin`, `ethereum`, `solana` (extend as needed). MUST NOT be user-registrable.
+1. A **GIP** + height-activated rule bundle ([`17-protocol-upgrades.md`](17-protocol-upgrades.md))  
+2. Possibly reintroducing an account kind or proof-kind table — **not** assumed in Simba beta  
+3. Honest bounds on verify cost (tx weight)
 
-Optional later: permissionless `RegisterForeignChain` with high burn + governance—out of v1.
+Until then, spec 13 is **design vocabulary** for leaf authors, not a checklist for `guld-node` v1.
 
-## 4. Foreign-chain account state
+## 4. Research sketches (non-normative)
 
-```text
-Account {
-  … usual fields …
-  kind: foreign_chain,
-  chain_params_hash: Hash32,   // digest of light-client params in guld home or account meta
-  // master_hash commits to home tree (checkpoints, header digests, docs, bridges config, …)
-}
-```
+These sections preserve earlier exploration; **do not implement** without a new GIP.
 
-`chain_params_hash` MUST be updated only under the same proof rules as tip advances (or via `guld` rules activation)—so nodes agree on *which* BTC/ETH rules they verify.
+### 4.1 Hypothetical foreign proof kinds
 
-## 5. Proof kinds (extension to Spec 04)
+| Kind | Would verify | Would require upgrade |
+|------|--------------|------------------------|
+| `bitcoin_spv_v1` | BTC header chain + Merkle proof | Yes |
+| `ethereum_light_v1` | ETH sync committee / light update | Yes |
+| `threshold_cosign_v1` | Guld keys | **Shipped** (all accounts) |
 
-| Kind | Verifies | Typical use |
-|------|----------|-------------|
-| `bitcoin_spv_v1` | BTC header chain PoW + Merkle proof to a committed payload | Advance `bitcoin` tip / announce BTC-embedded commitment |
-| `ethereum_light_v1` | ETH light-client update (sync committee / equivalent **TBD**) | Advance `ethereum` tip |
-| `threshold_cosign_v1` | Guld keys | People/groups; MAY also be used for *admin* leaves under a foreign account if policy allows a hybrid |
+### 4.2 Hypothetical `foreign_chain` account
 
-### 5.1 Conceptual `UpdateMaster` for `bitcoin`
+Previously drafted: genesis-reserved names with `chain_params_hash` and foreign proof-gated tips. **Rejected for v1 (A11)** in favor of dapp-registered names and ordinary cosign tips.
 
-```text
-UpdateMaster {
-  name: "bitcoin",
-  new_master_hash,
-  proof: {
-    kind: bitcoin_spv_v1,
-    // headers / proof bytes sufficient for any full node to verify PoW cumulative work
-    // and that new_master_hash (or a document containing it) is committed as claimed
-  }
-}
-```
+### 4.3 Node requirements (if ever activated)
 
-Exact SPV payload layout **TBD**. Requirement: verification cost MUST be **bounded and metered in tx weight** (large proofs ⇒ expensive inclusion).
-
-### 5.2 Eth note
-
-Full Ethereum consensus verification is heavier than BTC SPV. v1 MUST pick a **light-client** scheme with bounded cost or defer `ethereum` tip updates to a hybrid (light proof + Guld multisig of known guardians)—document honesty if hybrid.
-
-## 6. Leaves under foreign accounts
-
-Leaves under `bitcoin` / `ethereum` / `solana` MAY include:
-
-- Checkpoint archives  
-- Indexer schemas / explorers  
-- Bridge configs  
-- Human docs  
-
-**Recognizing consensus** applies to **authorizing the account tip**, not to executing arbitrary leaf software. Leaf hosts MAY run BTC/ETH/SOL-related tools; Guld validators only check the enumerated proof.
-
-### 6.1 Settlement dapps (informative)
-
-| Pattern | Mechanism |
-|---------|-----------|
-| **guldex** (example) | Leaf/dapp under its own name; consumes foreign tips + builds app proofs; settles via its tip / Guld txs |
-| **Lightning-style** | Off-hub channel state; interact with guldex or peers; periodically commit settlement hash to Guld |
-| **Personal / app chain** | Leaf ledger under a user/group name; `UpdateMaster` checkpoints state root |
-
-These are **not** consensus upgrades; they are expected uses of §4 leaf sovereignty + this foreign-tip surface.
-
-## 7. Node requirements
-
-| Node type | BTC/ETH proof verify | Full foreign node |
+| Node type | Foreign proof verify | Full foreign node |
 |-----------|----------------------|-------------------|
-| Guld full node | MUST verify enumerated foreign proof kinds it claims to support | MUST NOT require |
-| Soft fork | New proof kinds via `guld` rules tip | — |
+| Guld full node | Only kinds in active rule bundle | MUST NOT require |
+| Wallet / leaf | Optional | Runs whatever the dapp needs |
 
-A node that cannot verify `bitcoin_spv_v1` MUST reject blocks containing those txs (or MUST NOT advertise full validation)—same as unknown tx types.
+## 5. RPC (future)
 
-## 8. RPC additions (draft)
+Methods such as `guld_estimateForeignProofWeight` remain **TBD** until a foreign-proof GIP activates.
 
-| Method | Result |
-|--------|--------|
-| `guld_getAccount` | includes `kind: "foreign_chain"` |
-| `guld_getChainParamsHash` | `[name]` → hash |
-| `guld_estimateForeignProofWeight` | `[kind, proofSize]` → weight |
+## 6. Summary
 
-## 9. Game theory (short)
-
-- Reserved foreign names prevent squatters from impersonating `bitcoin` in the Guld namespace.  
-- Proof cost in **weight** prevents header spam.  
-- Guld does **not** inherit BTC/ETH security for GULD balances—only for the truth of *that named tip*.  
-- Bridges need extra incentives; do not equate namespace recognition with peg safety.
-
-## 10. Open parameters
-
-- Exact reserved name list at genesis  
-- BTC SPV message layout + minimum work delta per tip update  
-- ETH light-client scheme or defer  
-- Whether foreign tips MAY also accept `threshold_cosign` for non-consensus admin leaves (sub-paths) without moving `master_hash`
-
-## 11. Summary answer
-
-**Yes — this makes Guld cross-chain** as a **named witness hub**: one namespace, many consensus oracles (`guld` native cosign, `bitcoin` PoW SPV, `ethereum` light client, …).  
-
-**No — it does not by itself make Guld a cross-chain liquidity layer**; that remains a later bridge design using these tips as anchors.
+- **v1:** Guld is a **witness hub for registered identities** — not a built-in multi-chain oracle.  
+- **Cross-chain:** **Dapp problem** — register a name, run leaves, use HTTP/P2P/off-chain coordination.  
+- **No genesis foreign names (A11 locked).**  
+- **Bridges / SPV / pegs:** informative here; normative only after a future upgrade GIP.

@@ -36,7 +36,7 @@ Goals:
 - Lean validators (no multi-identity / email archaeology per block)
 - First-class **cosign** + **gas-metered** rules VM
 - Preserve **historical balances** 1:1 via import from `ledger-guld`; unlock spend with **key upgrade** (`ClaimLegacy`)
-- BTC/ETH/SOL-class security bar; differentiate on signed personal trees and foreign-chain witness
+- BTC/ETH/SOL-class security bar; differentiate on signed personal trees and identity-first witness hub (cross-chain = dapp-layer — spec 13 informative)
 
 SoT research: [`research/modern-l1-direction.md`](research/modern-l1-direction.md). GIP: [`gips/gip-14.md`](gips/gip-14.md).
 

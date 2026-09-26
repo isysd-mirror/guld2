@@ -7,7 +7,7 @@
 | Use | Algorithm | Output |
 |-----|-----------|--------|
 | Content addressing, Merkle/home roots, `master_hash`, message digests | **SHA-256** | 32 bytes |
-| PoW hash (**TBD** algo family) | MAY use SHA-256 or related; see [`06-blocks-and-consensus.md`](06-blocks-and-consensus.md) | — |
+| PoW block hash | **Double SHA-256** (SHA256d) on header preimage — locked v1; see [`06-blocks-and-consensus.md`](06-blocks-and-consensus.md) §2 | 32 bytes |
 
 Domain separation: all structured hashes MUST use a **tagged** preimage:
 
@@ -81,24 +81,52 @@ Desktop `guld-wallet` MAY use OS keychain for the wrapping key instead of passph
 
 See [`14-reference-ui.md`](14-reference-ui.md) §5.
 
-## 4. Canonical encoding
+## 4. Canonical encoding (locked — BARE)
 
-Until a binary codec is frozen, specs use **canonical JSON** for human review plus a **byte encoding** for signatures:
+**Decision (A2):** consensus-critical objects use **[BARE](https://baremessages.org/)** (Binary Application Record Encoding). Schemas live in [`schemas/`](../../schemas/README.md); research: [`wire-codec-comparison.md`](../research/wire-codec-comparison.md).
 
-**Proposal (v1 draft):** [BARE](https://baremessages.org/) or protobuf with a frozen `.proto` — **TBD**. Interim documentation uses:
+| Layer | Encoding |
+|-------|----------|
+| **Consensus wire** — P2P tx/block, disk blocks, `TxId`, account leaves | **BARE bytes** from frozen `.bare` schemas |
+| **HTTP / JSON-RPC** — wallets, explorer | JSON (ergonomic); node MUST decode → BARE before mempool insert and `TxId` |
+| **PoW header preimage** | Fixed binary layout ([06 §2.1](06-blocks-and-consensus.md)) — not BARE |
+| **Ed25519 message strings** | UTF-8 tagged strings (`guld/transfer/v1`, …) — unchanged |
 
-- Integers: unsigned little-endian fixed widths where binary  
-- Bytes: raw  
-- Names: UTF-8 NFC, length-prefixed `u16` then bytes (max 64)  
-- Hex in JSON-RPC: `0x`-prefixed lowercase  
+**Tooling (reference implementations):**
 
-Implementations MUST agree on one wire codec before mainnet; this draft’s logical fields are normative even if encoding TBD.
+| Language | Generator / runtime |
+|----------|-------------------|
+| Rust | [`serde_bare`](https://crates.io/crates/serde_bare) + [`bare_proc`](https://git.sr.ht/~chiefnoah/bare_proc) |
+| JavaScript / TypeScript | [`@bare-ts/tools`](https://www.npmjs.com/package/@bare-ts/tools) (`bare compile …`) |
+| Python | [`bare-py`](https://git.sr.ht/~martijnbraam/bare-py) |
+
+**Type conventions (Guld extensions on BARE):**
+
+- `Amount` → `data[16]` — **big-endian u128** quanta (10 decimal GULD places)
+- `Name` → `str` — UTF-8 NFC, max 64 bytes (validate before encode)
+- `Hash32` → `data[32]`
+- `Pubkey` → `data[32]` (Ed25519)
+- `Signature` → `data[64]`
+- Tx vocabulary → tagged **`union`** at top level (extensibility per BARE guidance)
+
+**TxId:**
+
+```text
+TxId = SHA256("guld/tx_id/v1" ‖ 0x00 ‖ bare_encode(Tx))
+```
+
+**Interim (pre-activation):** reference code still uses `serde_json` for P2P — MUST NOT be treated as frozen. Migration via spec-17 `activation_height` and P2P protocol id bump (e.g. `/guld/tx/2.0.0`).
+
+JSON-RPC conventions until clients ship BARE:
+
+- Hex in APIs: `0x`-prefixed lowercase  
+- Logical field names in spec 03 remain normative
 
 ## 5. Identifiers
 
 | Id | Type | Construction |
 |----|------|----------------|
-| `AccountId` | 32 bytes | `SHA256("guld/account_id/v1" ‖ 0x00 ‖ name ‖ initial_pubkey_set_commit)` **TBD exact** — MUST be stable after register |
+| `AccountId` | 32 bytes | See [02 §3.2](02-identity-and-accounts.md) — variant by account kind; **MUST NOT change** after creation |
 | `TxId` | 32 bytes | `SHA256("guld/tx_id/v1" ‖ 0x00 ‖ canonical_tx)` |
 | `ObjectId` | 32 bytes | SHA-256 of object bytes (raw content hash) |
 | `BlockHash` | 32 bytes | PoW-defined header hash |
@@ -121,7 +149,6 @@ trait Crypto {
 
 ## 7. Open parameters
 
-- Final wire codec  
-- Exact `AccountId` preimage  
+- Publish `schemas/guld/v1/*.bare` + golden test vectors (implementation)  
 - PQ migration path (ML-DSA / hybrid) as later proof/key types  
 - Argon2id vs PBKDF2 for non–Web Crypto desktop paths (browser MUST use PBKDF2 via Web Crypto)

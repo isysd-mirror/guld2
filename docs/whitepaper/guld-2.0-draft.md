@@ -1,19 +1,21 @@
 # Guld 2.0 Whitepaper
 
-**Version:** 0.23  
+**Version:** 0.25  
 **Date:** 2026-09-26  
 **Token:** GULD (native)  
 **Specifications:** [`../specs/README.md`](../specs/README.md) · **Glossary:** [§14](#14-glossary)
+
+> **Normative detail:** This document explains **product intent**, economics, and security reasoning. **Implementations MUST follow** the numbered specs and accepted GIPs. Exact formulas, wire layouts, genesis pins, and field encodings live in specs — not here. Where this text and a spec disagree, resolve per the hierarchy in [`specs/README.md`](../specs/README.md).
 
 ---
 
 ## Abstract
 
-Guld 2.0 is a **global, identity-focused DeFi layer-0**: a **PoW-anchored namespace and witness substrate** where people, groups, **other blockchains**, and unbounded dapps share one address space of **usernames**, **content hashes**, and **enumerated proofs**. The chain records that an account achieved consensus on a new **head** (master hash). It does not interpret why they signed, run their private scripts, or adjudicate their disputes.
+Guld 2.0 is a **global, identity-focused DeFi layer-0**: a **PoW-anchored namespace and witness substrate** where people, groups, and unbounded dapps share one address space of **usernames**, **content hashes**, and **enumerated proofs**. The chain records that an account achieved consensus on a new **head** (master hash). It does not interpret why they signed, run their private scripts, or adjudicate their disputes.
 
-Other networks (e.g. **`ethereum`**, **`solana`**, **`bitcoin`**) MAY appear as names whose tips advance under **those chains’ consensus proofs**. Dapps such as a hypothetical **guldex** can build further proofs over those witnessed states; “lightning”-style or personal chains can settle periodically by committing hashes to Guld. The network is **not a general VM**: it validates fixed transaction schemas, checks hashes and signatures, and applies a small set of built-in state updates. **Everything else**—games, exchanges, rollups-as-leaves, agents—lives in **leaves**, on custom domains. Clients talk to full nodes only over the node’s **HTTP API** or **JSON-RPC** (or a proxy in front)—not consensus opcodes. Between leaves, dapps coordinate however they choose (HTTPS, IPC, in-process, …). Validators stay lean on keys, tips, and balances. Optional git and PGP remain **leaf** tools, not the consensus bus.
+**Cross-chain and foreign-chain witnessing are not built into Simba v1.** Bridge builders, indexers, and exchange dapps **register ordinary names** (pay letter fees like anyone else) and ship **leaves** that MAY coordinate with Bitcoin, Ethereum, Solana, or other networks off-chain. A hypothetical **guldex** or lightning-style channel dapp **could** read foreign state, build application proofs, and settle by advancing **its** name’s tip—or by posting ordinary Guld txs—but that is **dapp capability**, not a protocol guarantee. The network is **not a general VM**: it validates fixed transaction schemas, checks hashes and signatures, and applies a small set of built-in state updates. **Everything else**—games, exchanges, rollups-as-leaves, agents—lives in **leaves**, on custom domains. Clients talk to full nodes only over the node’s **HTTP API** or **JSON-RPC** (or a proxy in front)—not consensus opcodes. Between leaves, dapps coordinate however they choose (HTTPS, IPC, in-process, …). Validators stay lean on keys, tips, and balances. Optional git and PGP remain **leaf** tools, not the consensus bus.
 
-Fees follow a **Bitcoin-style weight market** (GULD per virtual byte), not an EVM gas ISA. Emission and PoW (or DAG-PoW) align open membership with scarce block space. Each account is responsible for what it **witnesses** and **cowitnesses**.
+Fees follow a **Bitcoin-style weight market** (GULD per virtual byte), not an EVM gas ISA. Emission and **double-SHA256 PoW** align open membership with scarce block space (DAG-PoW remains a research upgrade path). Each account is responsible for what it **witnesses** and **cowitnesses**.
 
 ---
 
@@ -35,19 +37,19 @@ Ethereum proved programmable settlement and fee markets. Bitcoin proved open Syb
 
 ### 1.2 Thesis
 
-**Address by name. Commit by hash. Authorize by proof. Pay a tx fee. Leave leaf law to the leaf — including dapps with no ceiling. Witness other chains the same way.**
+**Address by name. Commit by hash. Authorize by proof. Pay a tx fee. Leave leaf law to the leaf — including dapps with no ceiling.**
 
-Guld 2.0 is an **L0 witness hub**: identities and foreign networks share one namespace; settlement of fast paths and personal chains is “just another hash tip.” Preserve historical 1.0 balances where possible; do not carry forward blockchain-in-git or FUSE as the 2.0 product model.
+Guld 2.0 is an **L0 witness hub** for **registered identities**: settlement of fast paths and personal chains is “just another hash tip.” Cross-chain stories are **optional dapp designs** ([§3.4](#34-addressing-referencing-and-cross-chain-dapp-patterns)). Preserve historical 1.0 balances where possible; do not carry forward blockchain-in-git or FUSE as the 2.0 product model.
 
 ### 1.3 Design bar
 
 | Goal | Meaning |
 |------|---------|
-| **L0 substrate** | Names + proofs + PoW anchoring under people, groups, **and other chains** |
+| **L0 substrate** | Names + proofs + PoW anchoring under people and groups |
 | Identity-first DeFi | Transfers, bonds, grants, and permissions bind to **usernames / groups** |
 | Flexible leaves / dapps | **No app ceiling** — leaves run any stack; Guld only witnesses heads |
-| Foreign-chain proofs | Tips for `ethereum` / `solana` / … under **their** consensus proofs ([`../specs/13-foreign-chains.md`](../specs/13-foreign-chains.md)) |
-| Network as witness | Verifies external proofs and records heads — does not re-execute app logic |
+| Cross-chain (dapp layer) | **Theoretical** bridge/indexer/exchange patterns — not reserved L0 names ([`../specs/13-foreign-chains.md`](../specs/13-foreign-chains.md) informative) |
+| Network as witness | Verifies **Guld** proofs and records heads — does not re-execute app or foreign VM logic |
 | PoW security class | Open membership and scarce block space in the BTC/ETH/SOL security conversation |
 | Lean validators | No requirement to index social graphs or execute leaf interpreters |
 
@@ -67,29 +69,11 @@ Steps 6–7 are **ecosystem UX** (extension and dapp conventions). They are not 
 
 ### 1.5 Ecosystem comparison (draft)
 
-Comparative sketch for positioning — not a feature checklist or investment advice. **Cosmos Hub** stands in for the widely deployed **IBC interoperability hub** (Polkadot relay and Avalanche subnets follow similar L0 patterns). Guld 2.0 beta on Simba uses interim double-SHA256 PoW; DAG-PoW and foreign-chain proof kinds remain draft ([`../specs/13-foreign-chains.md`](../specs/13-foreign-chains.md)). Hard fork / 1.0 continuity: [`../FAQ.md`](../FAQ.md).
+Comparative sketch for positioning — not a feature checklist or investment advice. Guld 2.0 is an **L0 witness hub** (names, tips, balances, PoW headers) — not a general VM L1. It uses **Bitcoin-class SHA256d PoW** ([spec 06](../specs/06-blocks-and-consensus.md)); cross-chain is **dapp-layer** in v1 ([spec 13](../specs/13-foreign-chains.md) informative). Hard fork / 1.0 continuity: [`../FAQ.md`](../FAQ.md).
 
-| Dimension | Guld 2.0 | Guld 1.0 | Bitcoin | Ethereum | Solana | Cosmos Hub |
-|-----------|----------|----------|---------|----------|--------|------------|
-| **Relationship** | Hard fork from 1.0 snapshot | Original 1.0 chain (continues) | Independent L1 | Independent L1 | Independent L1 | Independent L0 hub |
-| **Primary role** | L0 witness hub: names, tips, balances | Identity-first chain: names, ledger, git leaves | L1 digital money | L1 programmable settlement | L1 high-throughput chain | L0 interconnect hub (IBC) |
-| **Consensus** | Open PoW (DAG-PoW planned) | Identity/contribution-weighted **PoS** (staker agreement degraded) | Nakamoto PoW | Gasper PoS | Tower BFT PoS | Tendermint BFT PoS |
-| **Block time (target)** | ~10 minutes | Irregular / policy-driven | ~10 minutes | ~12 s (slots) | ~400 ms | ~7 seconds |
-| **Header / state hash** | SHA-256 commitments | Git object SHA-1; ledger hashes | Double SHA-256 | Keccak-256 (Merkle Patricia) | SHA-256 | SHA-256 (Tendermint) |
-| **Account keys** | Ed25519 (PQ migration path) | OpenPGP + mixed legacy | secp256k1 (ECDSA) | secp256k1 (+ smart wallets) | Ed25519 | secp256k1 (amino-encoded) |
-| **Addressing** | Registered **usernames** (global namespace) | Usernames in namespace | UTXO outputs (addresses) | 20-byte account addresses | Ed25519 pubkeys | Bech32 account addresses |
-| **Smart contracts (L0)** | **None** — fixed tx vocabulary only | No L0 VM; leaf tooling | Bitcoin Script (limited) | EVM (+ account abstraction) | SVM (BPF programs) | **None on Hub** — CosmWasm on zones |
-| **Execution model** | Parse schema → verify proofs → built-in state delta | Ledger postings + weighted staker tips + git leaves | UTXO + script | General VM re-execution | Parallel accounts + programs | App logic on connected chains |
-| **Fee model** | Bitcoin-style **weight** (GULD per vB) + registration protocol fees | Registration fees + ledger conventions | sat/vB weight market | Gas (EIP-1559 base + tip) | Compute units + priority fee | Gas per connected chain |
-| **Cross-chain** | Foreign chain **names** + witnessed tips (SPV/light proofs); not an auto token bridge | Namespace could reference other systems | Apps (Lightning, L2); not native L0 | Bridges, rollups, L2s | Wormhole / etc. | **IBC** native between zones |
-| **Identity model** | **First-class** names, groups, threshold cosign | **First-class** names; PGP/git identity layers | Pseudonymous keys | Keys + optional ENS (app layer) | Pseudonymous keys | Keys; ICS-23 proofs between chains |
-| **Validator / node burden** | Keys, tips, balances, enumerated proof verify | Ledger + git/PGP + staker-weight votes | UTXO set + headers | Full state + EVM | Accounts + programs + ledger | Hub consensus + light clients for IBC |
-| **Consensus state growth** | O(registered names); payments update balances in place | Ledger + git history on chain | O(UTXO outputs); dust persists | O(accounts + contract storage) | O(accounts + program data) | Hub state + IBC light clients |
-| **Typical L0 tx shape** | Fixed schema (~264 vB `Transfer`; cosign scales linearly) | Variable (git/PGP/staker votes) | Variable I/O + script; can be very large | Variable calldata + EVM steps | Fixed-ish but program-heavy | Zone-dependent (not Hub-native) |
+**Thesis in one row:** address by **name**, commit by **hash**, authorize by **proof** — leaves stay unbounded; the chain witnesses heads rather than re-running leaf politics.
 
-**Guld 2.0 thesis in one row:** address by **name**, commit by **hash**, authorize by **proof** — leaves and dapps stay unbounded; the chain witnesses heads rather than re-running leaf politics.
-
-Source also published at [`../fragments/chain-comparison.md`](../fragments/chain-comparison.md) and on the [landing page](/#compare).
+Full comparison table (Guld vs Bitcoin, Ethereum, Solana, Cosmos Hub, …): [`../fragments/chain-comparison.md`](../fragments/chain-comparison.md) · [landing page](/#compare).
 
 ### 1.6 Incumbent L1 pathologies (and Guld’s response)
 
@@ -103,7 +87,7 @@ Beyond the identity gap (§1.1), several **operational scaling patterns** on wid
 
 **UTXO clutter** is the canonical UTXO-L1 example: state tracks **outputs**, so high payment volume and dust accumulation burden every full node even when most outputs are economically worthless. Guld’s account model avoids that fragmentation — value lives in a **balance per name**; a payment does not mint permanent new consensus rows. Namespace spam is gated by **registration protocol fees** (`F_user`, `F_group`, `F_sub` — §8.7) rather than free output creation inside unrelated transactions.
 
-This does **not** claim higher **L1 throughput** than Bitcoin (same weight cap and ~10-minute target — §8.3). The win is **cleaner state hygiene** and **more useful work per on-chain byte** when applications batch activity in leaves (one `UpdateMaster` tip vs many L0 payments or contract calls).
+This does **not** claim higher **L1 throughput** than Bitcoin (same block-weight class and ~10-minute target — [spec 07](../specs/07-fees-and-tokenomics.md)). The win is **cleaner state hygiene** and **more useful work per on-chain byte** when applications batch activity in leaves (one `UpdateMaster` tip vs many L0 payments or contract calls).
 
 ---
 
@@ -112,7 +96,7 @@ This does **not** claim higher **L1 throughput** than Bitcoin (same weight cap a
 ```
 ┌─────────────────────────────────────────────────────────────┐
 │  Consensus plane                                            │
-│  PoW / DAG-PoW headers · fork choice · coinbase · fees      │
+│  SHA256d PoW headers · fork choice · coinbase · fees        │
 └────────────────────────────┬────────────────────────────────┘
                              │ commits to state_root
                              ▼
@@ -201,36 +185,37 @@ Registering a name consumes **global namespace** and creates durable validator s
 
 A sponsor is usually a **friend** (or any funded account). Anyone with GULD MAY also run an **optional paid registrar**: the newcomer pays via a **third-party payment service** (BTC/ETH/SOL/USDT/fiat); after payment, automation submits the **same** sponsor tx. Early on, guld.io / **isysd** may be a convenient first desk — not a privileged one. Everyday users can turn the same feature on against their own node. The desk is **not** consensus authority, **not** required to join, and **turn-offable**. The first user can still build from git and never visit guld.io. See [`../gips/gip-8.md`](../gips/gip-8.md).
 
-```
-RegisterUsername / RegisterGroup(
-  name, keys[1..n], threshold, initial_master_hash
-)  requires  balance ≥ F_*(n) + endowment + inclusion_fee
-           F_*(n) → vested miner credits over 8 blocks; inclusion_fee → including miner
-```
-
 Legacy Guld 1.0 usernames and balances are imported as **claimable pre-mine accounts** (§8.6, [`../specs/15-ledger-import.md`](../specs/15-ledger-import.md)). Spend and tip authority activate only after a **key upgrade**: the holder proves control of the 1.0 identity (PGP / legacy binding) and registers Ed25519 (or hybrid) keys. Until then, balances are respected on-chain but **locked**. OpenPGP is not the hot verify path after claim.
 
-### 3.4 Addressing, referencing, and L0 foreign chains
+### 3.4 Addressing, referencing, and cross-chain dapp patterns
 
 - **Address by name** in UX and high-level txs (`Transfer { to: "alice", amount }`).
 - **Reference by hash** for tips, trees, and proofs (`master_hash`, CAS oids).
 - Resolvers and indexers may cache name→id; consensus stores the authoritative map.
 
-**Foreign chains in the namespace.** Names such as **`bitcoin`**, **`ethereum`**, **`solana`**, … MAY be reserved (or later gated) as **`foreign_chain`** accounts. Their `master_hash` tips advance only with **enumerated proofs that invoke that chain’s consensus rules** (SPV / light-client style)—not Guld cosign alone. Guld nodes verify those proofs at bounded weight cost; they **MUST NOT** be required to run full foreign nodes.
+**No reserved foreign names (A11).** Guld **does not** genesis-reserve `bitcoin`, `ethereum`, `solana`, or similar labels. Only **`guld`** is a network account. If a bridge team wants a short public name, they **register it** (letter fees, first-come market dynamics) and operate under ordinary cosign rules. Squatting attractive names is a **dapp/ops** problem, not an L0 reservation.
 
-That is the L0 move: **one identity and tip layer that can witness many networks’ outcomes**. It is **not** automatically a token bridge (lock/mint is a separate product). Full rules: [`../specs/13-foreign-chains.md`](../specs/13-foreign-chains.md).
+**Cross-chain is a theoretical dapp capability, not Simba v1 consensus.** The patterns below describe what **leaves MAY build** on top of Guld’s name + hash + cosign substrate. They are **not** shipped as mandatory full-node behavior in v1. Informative sketches: [`../specs/13-foreign-chains.md`](../specs/13-foreign-chains.md).
 
-**Dapps on top of witnessed foreign state.** A third-party leaf such as a hypothetical **guldex** MAY read those tips (and related home documents), build **application proofs** about foreign balances or events, and settle its own state by advancing **its** name’s tip—or by posting ordinary Guld txs. Guld does not need a special “exchange opcode”; guldex is a dapp with keys, a home tree, and whatever off-chain indexing it needs.
+| Pattern | What a dapp **could** do | What L0 v1 **does** |
+|---------|--------------------------|---------------------|
+| **Foreign indexer / bridge** | Register e.g. `acme-bridge`; run BTC/ETH/SOL infra off-chain; publish checkpoints in leaf CAS; cosign `UpdateMaster` | Stores only **Guld**-authorized tips for that registered name |
+| **guldex-style exchange** | Leaf logic + external indexers; settle in GULD via `Transfer` | No exchange opcode |
+| **“Lightning”-style channels** | Off-hub state; periodic hash commit under a registered name | Witnesses cosigned head only |
+| **Personal / app chain** | Leaf ledger; checkpoint `master_hash` | Same as any group/individual |
+| **Token peg** | Lock/mint, watchers, fraud proofs — separate product | Not implied by the namespace |
 
-**Fast paths and personal chains are trivial in this toolset.** Identities, keys, threshold cosign, and PoW-anchored tips already give you:
+A third-party leaf such as a hypothetical **guldex** **could** read foreign chain data (via its own nodes), build **application proofs** about balances or events, and settle by advancing **its** name’s tip—or by posting ordinary Guld txs. Guld does not need a special “exchange opcode”; guldex is a dapp with keys, a home tree, and whatever off-chain indexing it needs. **Future protocol upgrades** MAY add enumerated foreign proof kinds (SPV / light client) — that would require a GIP and height activation, not an assumption in beta.
+
+**Fast paths and personal chains** use the same toolset today:
 
 | Pattern | How it maps |
 |---------|-------------|
 | **Personal / app chain** | A name (or group) whose leaf is a ledger; periodic `UpdateMaster` commits the latest state root to Guld |
-| **“Lightning”-style channels** | A dapp keeps off-Guld updates among parties; periodically settles a hash (and optional proofs) to Guld — and MAY interact with guldex or foreign-chain tips for multi-asset stories |
-| **Side systems / rollups-as-leaves** | Same: fast execution off the witness hub; hash commitment on Guld when you need global finality under PoW |
+| **“Lightning”-style channels** | A dapp keeps off-Guld updates among parties; periodically settles a hash to Guld — and **may** coordinate with other dapps for multi-asset stories off-L0 |
+| **Side systems / rollups-as-leaves** | Fast execution off the witness hub; hash commitment on Guld when you need global finality under PoW |
 
-The main Guld chain stays a **scarce, weight-priced settlement and naming plane**. Speed and experimentation live in leaves that **checkpoint** here.
+The main Guld chain stays a **scarce, weight-priced settlement and naming plane**. Speed, foreign consensus verification, and cross-chain liquidity live in **leaves** (and optional future upgrades), not in every validator.
 ### 3.5 Reserved name: `guld` (network identity)
 
 The username / account **`guld`** is **reserved for the network itself**. It is not available for public registration.
@@ -311,7 +296,7 @@ So a Guld dapp MAY be:
 - an **agent**, bot, notebook, or long-running service the leaf host starts  
 - encrypted personal vaults, guild tooling, markets, social graphs, DAOs-as-process, research labs, art — **whatever the builders ship**  
 - **cross-dapp** flows over **whatever transport fits between leaves** (HTTPS between domains, IPC, in-process, …)—e.g. lightning ↔ guldex settling off-L0—plus ordinary sponsored/paid registration and transfers when money or names must hit the chain  
-- **foreign-chain witnesses** and settlement dapps (guldex, lightning-style channels, personal chains) that commit hashes to Guld (§3.4)
+- **cross-chain / settlement dapps** (guldex, lightning-style channels, personal chains) that **could** commit hashes to Guld — **dapp designs**, not L0 guarantees (§3.4)
 
 There is **no on-chain language whitelist**, **no gas ISA for app logic**, and **no requirement** that every validator understand your stack. Unsupported leaf types are still valid on-chain; clients that care materialize them; others ignore them.
 
@@ -412,30 +397,28 @@ Payment rails and gateway UI are **out of protocol**. They MUST NOT be required 
 The Guld chain is intentionally **not** a programmable machine for app logic. It may:
 
 - validate fixed **schemas** for a closed set of tx types  
-- check **hashes**, **signatures**, and enumerated **leaf-consensus proofs** (including **foreign-chain** proof kinds)  
+- check **hashes**, **signatures**, and enumerated **leaf-consensus proofs** (`threshold_cosign_v1` in v1; foreign proof kinds only after a future upgrade)  
 - apply **built-in** balance/tip/key updates  
 
-It does **not** host user-defined functions, loops, or leaf languages. Those run only in leaves — which is exactly why dapps are unbounded (§4.1b) and why other chains / fast paths settle as **tips** (§3.4). That is why Bitcoin-style tx fees fit and an EVM gas ISA does not.
+It does **not** host user-defined functions, loops, or leaf languages. Those run only in leaves — which is exactly why dapps are unbounded (§4.1b) and why fast paths settle as **tips** (§3.4). That is why Bitcoin-style tx fees fit and an EVM gas ISA does not.
 
 ---
 
 ## 6. Transaction types (network surface)
 
-| Tx | Effect |
-|----|--------|
-| `RegisterUsername` | Bind individual name; pay `F_user(L)` + inclusion fee |
-| `RegisterGroup` | Bind group name with `n` signers; pay `F_group(L, n)` + miner fee |
-| `RegisterSubaccount` | Bind `parent.label`; pay `F_sub` + inclusion fee |
-| `RotateKeys` | Change keys/threshold (own key hygiene — not resale); dual auth old+new; **group key-set growth** pays `F_group` delta |
-| `SettleRegistration` | Pay-or-release at expiry: auto-debit `F_*` or delete name (miner) |
-| `UpdateMaster` | Advance `master_hash` with leaf-consensus proof |
-| `Transfer` | Move GULD between named accounts |
-| `ClaimLegacy` | Unlock a 1.0-imported name under new keys |
-| `Bond` / `Unbond` / `Slash` | Optional stake for **roles / name deposits**—**not** CAS storage |
+Guld has a **closed vocabulary** — no user-defined opcodes. At a high level:
 
-All fee-paying txs MAY carry an optional **`memo`** (≤ **64** bytes): opaque correlation data (payment order id, invoice tag). Consensus does not interpret it; weight includes every byte. `SettleRegistration` omits memo. Spec: [`../specs/03-transactions.md`](../specs/03-transactions.md) §2.1.
+| Category | Examples |
+|----------|----------|
+| **Names** | Register individual / group / sub; yearly settle (pay-or-release); rotate keys |
+| **Money & tips** | Transfer GULD; update `master_hash` with a leaf-consensus proof |
+| **1.0 continuity** | Claim legacy import (key upgrade) |
+| **Miner rewards** | `RewardCommit` + mature `ClaimReward` ([GIP-22](../gips/gip-22.md)) |
+| **Future / optional** | Bond / slash for roles or name deposits — not CAS storage |
 
-All txs pay a **weight-based fee**. Conflict sets are account ids touched; non-overlapping updates may execute in parallel within a block.
+Fee-paying txs MAY carry an optional opaque **`memo`** (weight-priced). Every tx pays a **weight-based inclusion fee** to miners. Non-overlapping **conflict sets** may apply in parallel within a block.
+
+**Normative schemas, auth rules, and weights:** [`../specs/03-transactions.md`](../specs/03-transactions.md).
 
 ---
 
@@ -443,17 +426,9 @@ All txs pay a **weight-based fee**. Conflict sets are account ids touched; non-o
 
 ### 7.1 Role of PoW
 
-Open membership for block proposal uses **PoW or DAG-PoW** on headers that commit to:
+Open membership for block proposal uses **Bitcoin-style double-SHA256 PoW** on headers that commit to chain state, txs, active rule bundle, and miner identity. Useful validation (schema + proof verify + state transition) is **eligibility**; PoW elects among valid candidates and prices Sybil spam.
 
-- `prev` / DAG parents  
-- `state_root`  
-- `tx_root`  
-- `receipt_root`  
-- `difficulty` / `nonce`  
-- `coinbase` (PQ-ready reward address)  
-- `fee_total` / block weight used  
-
-Useful validation (schema + proof verify + state transition) is **eligibility**. PoW elects among valid candidates and prices Sybil proposal spam. DAG-PoW variants may raise parallel block throughput without abandoning PoW’s open-entry property.
+**Target:** ~**10 minutes** per block, **2016-block** difficulty retarget, **median-time-past** + bounded future skew on timestamps ([spec 06](../specs/06-blocks-and-consensus.md) §2–§3). **DAG-PoW** and **merged mining** remain optional future upgrades.
 
 ```mermaid
 flowchart TD
@@ -461,16 +436,14 @@ flowchart TD
   due["Due names: SettleRegistration prepend"]
   ordered["Ordered txs: settles then user txs"]
   apply["Apply each tx: state deltas and receipts"]
-  coinbase["Coinbase: subsidy + inclusion + vested F_star share"]
-  header["Header: state_root, tx_root, receipt_root"]
-  pow["PoW: search nonce to difficulty"]
-  block["Sealed block: header + txs"]
+  rewards["RewardCommit + vesting queue"]
+  header["Header roots + PoW nonce"]
+  block["Sealed block"]
   mempool --> due --> ordered --> apply
-  apply --> coinbase
-  apply --> header --> pow --> block
+  apply --> rewards --> header --> block
 ```
 
-**Block construction (miner path):** select mempool txs by fee rate under the weight cap; prepend permissionless `SettleRegistration` for names due at this height (pay-or-release); apply every tx to produce receipts and fee totals; schedule registration/settle fees into the 8-block vesting queue; credit **coinbase** = subsidy + inclusion fees + this height's vested registration share; fill header roots; search a PoW nonce. Peers re-apply the same txs—they never execute leaf code inside the block.
+Miners order txs under the weight cap, prepend due name settles, apply state, schedule registration-fee vesting, commit rewards ([GIP-22](../gips/gip-22.md)), seal a PoW header. Peers re-apply the same txs — they never execute leaf code inside the block. **Header layout, fork choice, and miner path:** [`../specs/06-blocks-and-consensus.md`](../specs/06-blocks-and-consensus.md), [`../specs/10-node.md`](../specs/10-node.md).
 
 ### 7.2 Finality
 
@@ -510,62 +483,17 @@ Leaf runtimes may invent their own internal metering; Guld never sees it.
 
 ### 8.3 Weight (virtual size)
 
-Each tx has a **weight** in virtual bytes (vB), in the spirit of Bitcoin:
+Each tx has a **weight** in virtual bytes (vB), Bitcoin-style: serialized size plus surcharges for signatures verified and extra account writes. Large group cosign sets stay expensive **every tip**, not only at registration.
 
-```
-weight(tx) = size_bytes(tx)
-           + W_sig × n_signatures
-           + W_extra_account_write × max(0, n_writes - 1)
-```
+Registration also charges a separate **protocol fee** in GULD (`F_user(L)`, `F_group(L, n)`, or `F_sub`) — see §3.3 and §8.7.
 
-Registration also charges a separate **protocol fee** in GULD (`F_user(L)` or `F_group(L, n)`), not only weight—see §3.3. Weight still grows with `n_signatures` so ongoing tips from large groups stay costly to include.
-
-**Weight constants** (genesis / soft-fork adjustable):
-
-| Term | Value | Rationale |
-|------|-------|-----------|
-| Serialized bytes | 1 weight unit / byte | Bandwidth + storage in block |
-| `W_sig` | 64 vB per signature | Dominant verify cost |
-| `W_extra_account_write` | 50 vB | Extra state leaves (e.g. transfer touches 2) |
-
-**Registration protocol fees** (locked structure; see §8.7 and [`../specs/07-fees-and-tokenomics.md`](../specs/07-fees-and-tokenomics.md)):
-
-| Fee | Formula (per year) |
-|-----|---------|
-| `F_user(L)` | **1k / 100 / 10 / 5 / 2 / 1 GULD** for L = 1..5, **≥6** (see spec 07) |
-| `F_sub` | **0.1 GULD** (fixed) |
-| `F_group(L, n)` | **`F_user(L) × (2 + n)`** GULD |
-
-Signatures in the tx body already add `size_bytes`; `W_sig` is an **additional** CPU surcharge so large cosign sets remain expensive every tip—not only at registration.
-
-**Examples**
-
-| Tx | Approx size | Sigs | Writes | Weight | Protocol fee |
-|----|-------------|------|--------|--------|--------------|
-| `UpdateMaster` (1-of-1) | 200 B | 1 | 1 | ≈ **264 vB** | — |
-| `UpdateMaster` (3-of-5) | 400 B | 3 | 1 | ≈ **592 vB** | — |
-| `Transfer` | 150 B | 1 | 2 | ≈ **264 vB** | — |
-| `RegisterUsername` | 250 B | 1 | 1 | ≈ **314 vB** | **`F_user`** |
-| `RegisterGroup` (n=5) | 400 B | 5 | 1 | ≈ **720 vB** | **`F_group(L, 5)`** |
+**Normative formula, constants, and example weights:** [`../specs/07-fees-and-tokenomics.md`](../specs/07-fees-and-tokenomics.md) §1.
 
 ### 8.4 Fee market (Bitcoin-style)
 
-Users attach `fee` in GULD (or `fee_rate` × weight):
+Users bid **`inclusion_fee`** (GULD per vB, mempool-ordered). **Registration protocol fees** vest to miners over **8 blocks** ([GIP-10](../gips/gip-10.md)) so a miner cannot self-deal the full `F_*` in one win. Blocks cap total weight (Bitcoin-order magnitude). Congestion ⇒ higher fee rates — no EVM opcode schedule.
 
-```
-inclusion_fee ≥ fee_rate_min × weight(tx)     # policy / relay floor
-inclusion_fee → miner who includes the tx
-
-registration_protocol_fee F_*(n) → miners over 8 blocks   # vest from inclusion height
-```
-
-- **Inclusion fees** go to the miner who includes the tx (Bitcoin-like weight market).  
-- **Registration protocol fees** vest over **8** consecutive blocks so a self-dealing miner cannot pocket the full `F_*` in one win.  
-- Mempool orders by **fee rate** (GULD / vB), same intuition as sat/vB.  
-- Blocks have a **weight limit** (**4_000_000** weight units / block—BTC-order).  
-- Miners maximize total revenue (inclusion + vested registration shares) under the weight cap among valid txs.
-
-Congestion ⇒ users raise `fee_rate`. No opcode schedule to maintain.
+**Relay floors, block limit, and GIP-22 payout path:** [`../specs/07-fees-and-tokenomics.md`](../specs/07-fees-and-tokenomics.md) §2–§4, [GIP-22](../gips/gip-22.md).
 
 ### 8.5 Block capacity (order of magnitude)
 
@@ -583,102 +511,23 @@ Sig-heavy tips consume more weight → self-limit. Target remains **PoW base-lay
 
 #### Pre-existing GULD as genesis pre-mine
 
-**Snapshot source:** `archives/ledger-guld` — per-user ledger-cli journals (`*.dat`), concatenated in timestamp order into a single journal (working copy `archives/guld-ledger-all.dat` alongside a flat balance dump). Period covered: **2016-06-01 → 2018-12-09**.
-
-**Amount precision:** the 1.0 journal uses at most **10 decimal places** in any `GULD` amount. Freeze: **10** decimals (1 GULD = 10¹⁰ quanta).
-
-Let **x** = total GULD imported at genesis = sum of positive member `name:Assets` roots:
-
-| Quantity | GULD (working) |
-|----------|----------------|
-| **x** = member circulating / claimable | **≈ 959,947.19527052** |
-
-**Not imported:** `guld:Assets:ERC20` and other protocol-side ERC20 mirror buckets (barely used in 1.0; omitted from the pre-mine).
-
-Notes from the same pass:
-
-- **≈ 2,217** names with positive `Assets`; ~15 names with negative `Assets` summing to ≈ **−1,028** GULD (import as **0**; list in the genesis anomaly appendix).
-- Top holders (share of **x**): mizim ≈ 37%, isysd ≈ 9%, cz ≈ 4%, raadyx ≈ 3%, tigoctm ≈ 3%, then betatown, zimmi, aehaynes, torvalds, minotaur (~1% each). Top 10 ≈ **63%** of **x**.
-
-```
-circulating_supply(0) = x ≈ 959_947.20 GULD   // claimable by 1.0 names; legacy-locked until key upgrade
-```
+Guld 2.0 is a **hard fork** that respects 1.0 balances: every positive member `name:Assets` from the `ledger-guld` snapshot is imported **1:1** at genesis as disclosed pre-mine **x** (~**960k GULD**, **≈ 2,217** holders). ERC20 / protocol mirror buckets are **omitted**. Amounts use **10** decimal places. Genesis embeds a verifiable **import manifest hash** ([GIP-14](../gips/gip-14.md), [`../specs/15-ledger-import.md`](../specs/15-ledger-import.md) §2.1) — network-specific pins live in genesis artifacts, not in this document.
 
 #### Respect balances; unlock via key upgrade
 
-**Invariant:** every positive 1.0 `Assets` balance is imported 1:1. No haircut, no silent consolidation, no reassignment of names.
+**Invariant:** no haircut, no silent consolidation, no reassignment of names.
 
-Import creates **legacy-locked** accounts: balance is on-chain, but `Transfer`, tip spend, and ordinary `RotateKeys` are disabled until the owner completes a **key upgrade** (`ClaimLegacy` — [`../specs/15-ledger-import.md`](../specs/15-ledger-import.md)):
+Import creates **legacy-locked** accounts: balance is on-chain, but spend and tip authority require **`ClaimLegacy`** (PGP proof when bound; **`isysd` attestation** when unbound). Thereafter the account is a normal 2.0 name with yearly settle. Claims stay open indefinitely. **New** GULD after genesis enters only via **PoW subsidy** ([GIP-22](../gips/gip-22.md) commit/claim path).
 
-1. Prove control of the 1.0 identity: **PGP** if `keys-pgp` has a binding, else **`isysd` attestation** for unbound names/groups.
-2. Record Ed25519 (or hybrid) keys + threshold; clear the legacy lock; start a normal 1y registration period.
-3. Thereafter the account is a normal 2.0 individual with yearly settle; further rotations use `RotateKeys`. Claims stay open indefinitely for never-claimed locked names.
+#### Block time and inflation **shape**
 
-Unclaimed balances remain in the owner's name; they count toward **x** but do not move without a valid claim. From genesis forward, **new** GULD enters only via the **block subsidy**.
+**~10 minute** blocks, Bitcoin-class retarget ([spec 06](../specs/06-blocks-and-consensus.md)). Annual inflation **i(y)** decays by **two-thirds each year**, floored at **4%** from year 9 — year 1 opens at **100%** (strong bootstrap), then cools. Subsidy steps every **2016 blocks** (aligned with retarget). Starting supply **S(0) = x**.
 
-#### Block time
+**Why (2/3) decay:** slower paths stay too hot for a decade; this reaches a **4%** security tail without a cliff.
 
-**Target block interval: 10 minutes** (600 s) — Bitcoin-class. Comfortable for identity tips and weight-priced inclusion; keeps header/PoW overhead modest.
+**Exact formulas, epoch math, and per-block tables:** [`../specs/07-fees-and-tokenomics.md`](../specs/07-fees-and-tokenomics.md) §5–§6.
 
-```
-TARGET_BLOCK_INTERVAL = 600        // seconds
-BLOCKS_PER_YEAR       = 52_560     // 365 × 144
-```
-
-Retarget keeps mean interval near target (see [`../specs/06-blocks-and-consensus.md`](../specs/06-blocks-and-consensus.md)).
-
-#### Inflation schedule
-
-Annual inflation rate **i(y)** (fraction of supply at the start of year **y**, y = 1 at genesis) decays by **two-thirds each year**, floored at **4%**:
-
-```
-i(y) = max(0.04, (2/3) ** (y - 1))   // y ≥ 1  →  1.00, ~0.667, ~0.444, … then 0.04
-```
-
-Year 1 opens at **100%** (doubles supply); year 2 ≈ **66.7%**; year 3 ≈ **44.4%**. The geometric term drops below 4% at year 9, so **i(y) = 4%** from year 9 onward (no cliff — continuous floor).
-
-```
-S(0) = x
-annual_issuance(y) = S(y - 1) * i(y)
-S(y) = S(y - 1) + annual_issuance(y)
-subsidy(height) = annual_issuance(year(height)) / BLOCKS_PER_YEAR
-```
-
-`year(height) = floor((height - 1) / BLOCKS_PER_YEAR) + 1`. Within a year the per-block subsidy is **constant** (deterministic from genesis `x`). Consensus MUST embed the precomputed yearly per-block table (or an equivalent pure function of `height` and `x`).
-
-**Why (2/3) decay:** a slower geometric path (e.g. 100%→4% over 20 equal log steps) stays too hot for a decade and mints ~150× **x**. Two-thirds decay still opens with a strong year-1 bootstrap, cools quickly through the early years, and reaches the **4%** security tail by year 9.
-
-##### Rewards schedule (from genesis **x**; gross subsidy)
-
-The following charts use the genesis pre-mine **x** from the 1.0 ledger import (ERC20 omitted). Exact values are pinned by the genesis manifest.
-
-| Year | Inflation i(y) | Annual issuance (GULD) | Subsidy / block (GULD) | Supply end (GULD) | Supply / x |
-|------|----------------|------------------------|------------------------|-------------------|------------|
-| 1 | 100.00% | 959,947.20 | 18.263836 | 1,919,894.39 | 2.000× |
-| 2 | 66.67% | 1,279,929.59 | 24.351781 | 3,199,823.98 | 3.333× |
-| 3 | 44.44% | 1,422,143.99 | 27.057534 | 4,621,967.98 | 4.815× |
-| 4 | 29.63% | 1,369,471.99 | 26.055403 | 5,991,439.97 | 6.241× |
-| 5 | 19.75% | 1,183,494.32 | 22.517015 | 7,174,934.29 | 7.474× |
-| 6 | 13.17% | 944,847.31 | 17.976547 | 8,119,781.60 | 8.459× |
-| 7 | 8.78% | 712,847.77 | 13.562553 | 8,832,629.37 | 9.201× |
-| 8 | 5.85% | 516,953.16 | 9.835486 | 9,349,582.53 | 9.740× |
-| 9 | 4.00% | 373,983.30 | 7.115360 | 9,723,565.83 | 10.129× |
-| 10 | 4.00% | 388,942.63 | 7.399974 | 10,112,508.46 | 10.534× |
-| 11 | 4.00% | 404,500.34 | 7.695973 | 10,517,008.80 | 10.956× |
-| 12 | 4.00% | 420,680.35 | 8.003812 | 10,937,689.15 | 11.394× |
-| 13 | 4.00% | 437,507.57 | 8.323964 | 11,375,196.72 | 11.850× |
-| 14 | 4.00% | 455,007.87 | 8.656923 | 11,830,204.58 | 12.324× |
-| 15 | 4.00% | 473,208.18 | 9.003200 | 12,303,412.77 | 12.817× |
-| 16 | 4.00% | 492,136.51 | 9.363328 | 12,795,549.28 | 13.329× |
-| 17 | 4.00% | 511,821.97 | 9.737861 | 13,307,371.25 | 13.863× |
-| 18 | 4.00% | 532,294.85 | 10.127375 | 13,839,666.10 | 14.417× |
-| 19 | 4.00% | 553,586.64 | 10.532470 | 14,393,252.74 | 14.994× |
-| 20 | 4.00% | 575,730.11 | 10.953769 | 14,968,982.85 | 15.594× |
-| 21+ | 4.00% | 0.04 · S(y−1) | recomputed each year | +4%/yr | — |
-
-Peak **per-block** subsidy is around year **3** (~27 GULD/block) as `S·i(y)` maximizes under the faster decay; after the 4% floor, block rewards rise slowly with supply.
-
-##### Supply and inflation graphs
+##### Supply and inflation (illustrative)
 
 ```mermaid
 xychart-beta
@@ -704,7 +553,7 @@ xychart-beta
     line [18.3, 24.4, 27.1, 26.1, 22.5, 18.0, 13.6, 9.8, 7.1, 7.4, 7.7, 8.0, 8.3, 8.7, 9.0, 9.4, 9.7, 10.1, 10.5, 11.0]
 ```
 
-Subsidy is paid in the **coinbase** to the miner. **Inclusion fees** join that coinbase immediately; **registration protocol fees** join via the 8-block vest (§8.7).
+Miner revenue uses **`RewardCommit`** (block `txs[0]`) plus mature **`ClaimReward`** ([GIP-22](../gips/gip-22.md)): subsidy, inclusion fees, and vested registration shares are **committed** at height `h` and **mint** when the claim is included at **`h + 100`**. Claims MAY wait in mempool during the maturity window.
 
 #### Why not zero long-run inflation?
 
@@ -714,53 +563,24 @@ New humans and new named identities continually join. Registration fees fund min
 |------|-----------|-----------|
 | 1.0 `*:Assets` → genesis | Pre-mine **x** (locked until key upgrade) | Continuity; respect every balance |
 | Key upgrade (`ClaimLegacy`) | Unlock spend/tip under new keys | Port 1.0 → 2.0 without moving coins |
-| Block subsidy | Mint → miner | PoW security + distribution |
-| Inclusion (weight) fee | User → miner | Pay for block space |
-| Registration `F_*` | User → **miners (8-block vest)** | Anti-spam + lottery without same-block self-deal |
+| Block subsidy | Commit at `h`, mint via `ClaimReward` ~`h+100` | PoW security + distribution ([GIP-22](../gips/gip-22.md)) |
+| Inclusion (weight) fee | User → miner (via commit/claim path) | Pay for block space |
+| Registration `F_*` | User → **miners (8-block vest → commit/claim)** | Anti-spam + lottery without same-block self-deal |
 | Name deposit | Lock / unlock | Optional squat policy |
 
 **Invariant:** no hidden inflation beyond the issuance schedule; **x** and the per-name import manifest are disclosed at genesis; registration fees are consensus-enforced and paid to miners over eight blocks; no imported balance spends until key upgrade.
 
 ### 8.7 Registration fees (miner lottery)
 
-Registration charges a **protocol fee** separate from the weight-priced inclusion fee. The full `F_*` is debited at apply, then **vested** into coinbases over **`REGISTRATION_FEE_VEST_BLOCKS = 8`** consecutive heights starting at inclusion—no burn. A miner who includes their own registration recovers only ~1/8 in that block.
+Registration charges a **protocol fee** separate from weight-priced **inclusion**. Fees buy **one year** of name control ([GIP-11](../gips/gip-11.md)); at expiry miners run permissionless **pay-or-release** settle.
 
-#### 8.7.1 What charges `F_*`
+**Letter-based pricing ([GIP-9](../gips/gip-9.md) Final):** short root names are premium; names with **≥ 6 letters** hit a **1 GULD**/year floor. Groups scale as **`F_user(L) × (2 + n)`** — more signers ⇒ more proof work forever. Subaccounts stay **0.1 GULD**/year under a parent.
 
-| Source | Amount | When |
-|--------|--------|------|
-| `RegisterUsername` | **`F_user(L)`**/yr (letter table) | Each new individual name |
-| `RegisterGroup` | **`F_group(L, n)`**/yr | Each new group (`L` = letters; `n` = initial keys) |
-| `RegisterSubaccount` | **0.1 GULD**/yr (`F_sub`) | Each new `parent.label` (max 8 live per individual) |
-| `SettleRegistration` | `F_*` (renew) or leftover dust (release) | Yearly pay-or-release |
+The full `F_*` debits at apply, then **vests to miners over 8 blocks** ([GIP-10](../gips/gip-10.md)) — no burn. A miner who self-registers recovers only ~1/8 per block. Transfers and tip updates pay inclusion only.
 
-`ClaimLegacy`, transfers, and tip updates **do not** charge registration protocol fees (only weight-priced inclusion to miner). Keep balances ≥ `F_*` before expiry or the name is released.
+**Fee table, letter count rules, vesting split, and RPC estimates:** [`../specs/07-fees-and-tokenomics.md`](../specs/07-fees-and-tokenomics.md) §3.
 
-#### 8.7.2 Fee formula (per year)
-
-Letter count `L` = alphabetic characters in the root label (NFC); cap at **6** for fee lookup (see spec 07).
-
-```
-F_user(L)              = lookup table (1k / 100 / 10 / 5 / 2 / 1 GULD for L = 1..≥6)
-F_sub                  = 0.1 GULD / year
-F_group(L, n)          = F_user(L) × (2 + n) GULD / year
-REGISTRATION_PERIOD    = BLOCKS_PER_YEAR   # 52_560
-```
-
-Examples: 1-letter 1-of-1 group **`x`** = **3_000 GULD**/yr; long-name 5-key group = **7 GULD**/yr (= 1 × 7). Issuance (§8.6) is independent of registration fees.
-
-#### 8.7.3 Miner revenue from registrations
-
-Per block:
-
-```
-vested_F(h) = sum of protocol-fee shares scheduled for height h
-coinbase(h) = subsidy(h) + Σ inclusion_fee(tx) + vested_F(h)
-```
-
-When a registration/settle debits `R` at height `H`, consensus adds shares of `R` to heights `H .. H+7` (`base = R/8`, remainder to earliest). Registration fees are **transfers** from payer into the vesting queue, then to miners — not minted or burned. Heavy registration activity raises miner revenue across the following eight blocks.
-
-#### 8.7.4 Game theory
+#### Game theory
 
 | Threat | Mechanism |
 |--------|-----------|
@@ -769,8 +589,6 @@ When a registration/settle debits `R` at height `H`, consensus adds shares of `R
 | Miners ignore registrations | Vesting still pays includers first share + subsequent winners; inclusion fee is immediate |
 | Miner self-registers / self-settles | Full `F_*` only if they win **8 consecutive** blocks |
 | Groups cheap vs proof cost | `F_group(L, n) = F_user(L) × (2 + n)` |
-
-Normative detail: [`../specs/07-fees-and-tokenomics.md`](../specs/07-fees-and-tokenomics.md) §3; GIP: [`../gips/gip-10.md`](../gips/gip-10.md).
 
 ### 8.8 Content retention (leaf, not L0)
 
@@ -909,7 +727,7 @@ Status snapshot (**2026-09**). Live **tx × API × UI** matrix: [`../specs/14-re
 
 | Layer | Today |
 |-------|--------|
-| **Consensus** | Single-lane PoW (interim double-SHA256; retarget ~600 s); fixed tx vocabulary; weight fees + registration protocol fees (8-block vest) |
+| **Consensus** | Single-lane SHA256d PoW (locked v1; retarget ~600 s); fixed tx vocabulary; weight fees + registration protocol fees (8-block vest) |
 | **State** | fjall KV — accounts, balances, tips, names; **10** decimal GULD |
 | **Genesis** | Committed artifacts ([`../data/genesis/simba/`](../data/genesis/simba/)); keyless `guld` shell; `isysd` genesis-claim; 1.0 balances **legacy-locked** until `ClaimLegacy` |
 | **P2P** ([GIP-15](../gips/gip-15.md)) | libp2p Hello, tx gossip, block/header sync, CAS objects, ban scoring — **no chain reorg yet** (competing forks need reset or HTTP catch-up) |
@@ -927,7 +745,7 @@ Implemented GIPs include **5–13, 15–17, 19** (PWA, docs, software browser, r
 | **Sync** | Longest-chain **reorg**; fork-safe P2P height index | specs 06, 09 |
 | **1.0 → 2.0** | Mainnet import manifest audit + published pin | [GIP-14](../gips/gip-14.md) draft, spec 15 |
 | **Extension** | Browser extension site-login | spec 14 §3.4, [GIP-5](../gips/gip-5.md) |
-| **Foreign chains** | Reserved names + SPV/light proof kinds | spec 13 draft |
+| **Foreign / cross-chain** | Dapp-layer only in v1 (A11); optional SPV/light proof kinds = future GIP | spec 13 informative |
 | **Leaf host** | Dedicated materialization crate / ops path | spec 11 |
 | **Mainnet** | Locked genesis + `data/networks/main.json` | stub today |
 
@@ -949,7 +767,7 @@ Account schema, `threshold_cosign_v1`, weight table, and **10 decimals** are **l
 ### 12.5 Later
 
 1. **DAG-PoW** / multi-parent headers (research; Simba stays single-lane until activated).  
-2. **Foreign-chain witnesses** (spec 13) and settlement dapps as leaves.  
+2. **Optional foreign proof kinds** (spec 13) if ecosystem needs consensus-enumerated SPV/light verify; settlement dapps as leaves today.  
 3. **`guld` leaf** hosting of reference site bytes + miner-governed gateway roster ([GIP-21](../gips/gip-21.md) draft).  
 4. Leaf SDK polish, optional git remotes, off-consensus indexers.  
 5. Post-quantum signature migration.
@@ -958,11 +776,11 @@ Account schema, `threshold_cosign_v1`, weight table, and **10 decimals** are **l
 
 ## 13. Conclusion
 
-Guld 2.0 is an **L0** where **identity is the product** and **leaves are unlimited**: a PoW-anchored namespace for people, groups, **and other blockchains**, with **dapps that can literally do anything**—including guldex-style proofs over foreign tips and lightning-/personal-chain settlement by hash—while the network remains a **witness**, not a VM that re-executes their politics. DeFi settles between names under a **Bitcoin-style weight fee** market. Legacy supply **x ≈ 9.6×10⁵ GULD** is a disclosed pre-mine from the 1.0 ledger (ERC20 bucket omitted), unlocked per user by **key upgrade**; PoW issuance follows **`i(y) = max(0.04, (2/3)^(y−1))`** at **10-minute** blocks; **registration fees** (§8.7: letter-based / group / sub) go to miners over an 8-block vest. Scalability follows from keeping validators on keys and hashes; content retention and app logic stay in **leaves**; incentives follow from attributable cosign, fee-rate bidding, registration lottery, and PoW security.
+Guld 2.0 is an **L0** where **identity is the product** and **leaves are unlimited**: a PoW-anchored namespace for people and groups, with **dapps that can literally do anything**—including **theoretical** cross-chain indexers, guldex-style settlement, and lightning-/personal-chain hash commits—while the network remains a **witness for registered Guld identities**, not a VM that re-executes leaf politics or mandatory foreign-chain verification. DeFi settles between names under a **Bitcoin-style weight fee** market. Legacy supply **x ≈ 9.6×10⁵ GULD** is a disclosed pre-mine from the 1.0 ledger (ERC20 bucket omitted), unlocked per user by **key upgrade**; PoW issuance follows **`i(y) = max(0.04, (2/3)^(y−1))`** at **10-minute** blocks; **registration fees** (§8.7: letter-based / group / sub) go to miners over an 8-block vest. Scalability follows from keeping validators on keys and hashes; content retention and app logic stay in **leaves**; incentives follow from attributable cosign, fee-rate bidding, registration lottery, and PoW security.
 
 Users join via **sponsored registration**; any funded peer can onboard the next — free (friend) or paid (third-party gateway). The everyday path is whitepaper **§1.4**: PWA wallet on device → extension → many dapps, one name.
 
-Invariants: **name-addressable accounts**, **hash-referenced tips**, **foreign chains as names**, **leaf-sovereign process (unbounded dapps)**, **lean witness nodes**, **fixed tx vocabulary**, **priced inclusion**, **respected 1.0 balances**, and **tip ≠ DA** (CAS retention off the witness hub except mandatory `guld` rule bytes when fetched).
+Invariants: **name-addressable accounts**, **hash-referenced tips**, **leaf-sovereign process (unbounded dapps)**, **lean witness nodes**, **fixed tx vocabulary**, **priced inclusion**, **respected 1.0 balances**, and **tip ≠ DA** (CAS retention off the witness hub except mandatory `guld` rule bytes when fetched). Cross-chain bridging is **optional dapp design**, not a genesis foreign-name slot.
 
 ---
 
@@ -984,7 +802,7 @@ Terms are defined for this whitepaper. Normative detail lives in [`../specs/READ
 | **DAG-PoW** | Optional variant where headers may reference multiple parents; still PoW-anchored, not proof-of-stake. |
 | **Dapp** | Any application built as a **leaf** (or composition of leaves) under one or more names. No on-chain VM required. |
 | **Endowment** | Minimum GULD balance required at registration (anti-spam); distinct from the annual registration fee. |
-| **Foreign-chain account** | Reserved name (e.g. `bitcoin`, `ethereum`) whose tip advances under **that chain’s** enumerated proof kind—not Guld cosign alone. |
+| **Cross-chain dapp (informative)** | A leaf under a **registered** name that MAY coordinate with foreign chains off-L0. Not a built-in `foreign_chain` account kind in Simba v1 (A11). |
 | **Full node** | Validates blocks and txs, maintains state (+ mandatory `guld` rule bundle), participates in **P2P**, exposes **HTTP** and **JSON-RPC** client surfaces. |
 | **`F_group(L, n)`** | Group registration fee per year: `F_user(L) × (2 + n)` GULD, where `L` = letters in root name, `n` = initial signer count (§8.7). |
 | **`F_sub`** | Subaccount registration fee: **0.1 GULD**/year for `parent.label` (§8.7). |
@@ -1008,7 +826,7 @@ Terms are defined for this whitepaper. Normative detail lives in [`../specs/READ
 | **ObjectId** | `SHA256(object_bytes)`—CAS address for opaque blob storage. |
 | **P2P mesh** | Primary **peer-to-peer** protocol among full nodes (blocks, txs, CAS gossip). Not the same as HTTP or JSON-RPC client APIs. |
 | **Pin (L0)** | **Not used.** Consensus has no on-chain pin market or slash-for-missing-data. “Pin” elsewhere may mean git submodule SHAs or genesis manifest hashes—operational, not protocol. |
-| **Proof kind** | Enumerated leaf-consensus verifier (e.g. `threshold_cosign_v1`, foreign-chain SPV). New kinds require protocol upgrade. |
+| **Proof kind** | Enumerated leaf-consensus verifier (e.g. `threshold_cosign_v1` in v1). Foreign-chain SPV/light kinds are **future upgrade** material. New kinds require protocol upgrade. |
 | **Quanta** | Smallest GULD unit (10⁻¹⁰ GULD). On-chain amounts are integer quanta. |
 | **Registration fee** | Annual `F_user` / `F_group` / `F_sub` paid (or settled) to the **block miner**—purchases namespace control, not storage. |
 | **Rule bundle** | Small normative CAS tree under account `guld`: schemas, fee tables, proof kinds. Source code ships from ordinary git, not from this tree alone. |
@@ -1020,6 +838,6 @@ Terms are defined for this whitepaper. Normative detail lives in [`../specs/READ
 | **Transfer** | Built-in tx moving GULD between registered names. |
 | **`UpdateMaster`** | Tx advancing `master_hash` with a valid leaf-consensus proof. |
 | **Virtual byte** | Unit for weight-based inclusion pricing (Bitcoin-style), counting serialized tx size. |
-| **Witness** | Cryptographic attestation: account keys attest a head; validators attest proof + fee; foreign proofs attest other chains’ outcomes. |
-| **Witness hub / substrate** | Guld’s role: record authorized tips and balances, not re-execute leaf or foreign VM logic. |
+| **Witness** | Cryptographic attestation: account keys attest a head; validators attest proof + fee. Foreign-chain attestation is **dapp/off-chain** in v1 unless a future proof kind activates. |
+| **Witness hub / substrate** | Guld’s role: record authorized tips and balances for **registered names**, not re-execute leaf or foreign VM logic. |
 | **Weight fee** | Synonym for inclusion fee priced by tx **weight** (virtual bytes). |

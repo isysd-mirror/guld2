@@ -4,6 +4,11 @@
 
 ### Added
 
+- Simba beta readiness task ([007](docs/tasks/open/007-simba-beta-public-readiness.md)); BARE wire ([009](docs/tasks/open/009-bare-wire-implementation.md)), mempool persistence ([008](docs/tasks/open/008-mempool-persistence.md)), timestamp validation ([010](docs/tasks/open/010-header-timestamp-validation.md)) tasks
+- Research: [bitcoin-guld-comparison](docs/research/bitcoin-guld-comparison.md), [pow-nbits-vs-leading-bits](docs/research/pow-nbits-vs-leading-bits.md), [wire-codec-comparison](docs/research/wire-codec-comparison.md); [`schemas/README.md`](schemas/README.md)
+- **PoW locked v1:** Bitcoin-style double-SHA256 block hash, **leading-zero-bits** difficulty (not compact `nBits` — [research](docs/research/pow-nbits-vs-leading-bits.md)), **2016-block / 14-day** retarget with 4× timespan clamp (spec 06 §2); [`bitcoin-guld-comparison.md`](docs/research/bitcoin-guld-comparison.md) for parameter parity
+- **[GIP-22](docs/gips/gip-22.md) Accepted:** deferred miner rewards — `RewardCommit` (tx[0]) + mature `ClaimReward` (mempool-open, inclusion at `h+100`); replaces implicit `credit_miner()` at activation
+- **Wire codec locked (A2):** **BARE** for consensus bytes — Rust/JS/Python tooling; [`schemas/README.md`](schemas/README.md); HTTP stays JSON ([`wire-codec-comparison.md`](docs/research/wire-codec-comparison.md))
 - Reproducible Simba genesis artifacts (`data/genesis/simba/`) + `guld-genesis` CLI (`preprocess` / `challenge` / `verify-claim` / `build`)
 - Keyless `guld` network shell; genesis-claim path for `isysd` via committed PGP clearsign
 - Durable **testnet / mainnet** network modes (`data/networks/*.json` `mode` field) exposed on `/chain/status`
@@ -15,6 +20,8 @@
 
 ### Changed
 
+- **Simba protocol pins:** A7 import manifest/**x**, A8 letter fees (GIP-9 Final), A11 no foreign genesis names, GIP-14 Accepted, GIP-22 spec acceptance; whitepaper v0.25 trimmed to product narrative with spec links
+- **ClaimLegacy:** imported name immutable (no rename on claim)
 - `--miner` has no default — required to seal blocks; validating peers omit it
 - `--network simba` loads committed genesis (no alice premine; `--import-ledger` ignored)
 - Inflation `i(y) = max(0.04, (2/3)^(y-1))` (cooler early years; 4% from year 9)

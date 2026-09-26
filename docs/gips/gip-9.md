@@ -4,7 +4,7 @@ title: Letter-based registration fees
 description: Length-based annual F_user(L) for root names with a six-letter floor.
 author: Guld contributors
 discussions-to: ./README.md
-status: Accepted
+status: Final
 type: Standards
 category: Core
 created: 2026-09-25
@@ -43,9 +43,9 @@ L = count of Unicode alphabetic characters in the label (NFC)
 - **Subaccounts:** `parent.label` uses flat **`F_sub`** on the parent (parent already bought root namespace)  
 - **Groups:** root group name uses the same **`F_user(L)`** table via **`F_group(L, n) = F_user(L) × (2 + n)`**
 
-## Fee schedule (draft)
+## Fee schedule (locked v1 — task 007 A8)
 
-Cap: **`L_cap = 6`**. For `L ≥ L_cap`, fee = **`F_floor = 1 GULD`/year** (preserves 1.0 continuity for normal names).
+Cap: **`L_cap = 6`** (locked). `L_eff = min(L, L_cap)`. For `L_eff ≥ 6`, fee = **`F_floor = 1 GULD`/year** (preserves 1.0 continuity for normal names).
 
 | L | `F_user(L)` / year | Notes |
 |---|-------------------|--------|
@@ -78,12 +78,13 @@ Legacy-locked imports: after `ClaimLegacy`, normal yearly settle applies at **`F
 
 ## Open parameters
 
-- Exact premium table (1k / 100 / 10 … vs smooth formula)  
-- `L_cap` = 5 vs 6  
-- Whether digits-only labels (`404`) count as L=0 or reject at validation  
-## Next
+- Whether digits-only labels (`404`) count as L=0 or reject at validation (deferred)
 
-- [x] Accept intent → lock table in spec 07 + whitepaper §3.3 / §8.7  
+## Acceptance
+
+- [x] Premium table locked (1k / 100 / 10 / 5 / 2 / 1 GULD) — spec 07 §3.1  
+- [x] **`L_cap = 6`** — maintainer confirmed 2026-09-26 (task 007 A8)  
+- [x] **`F_group(L, n) = F_user(L) × (2 + n)`** for groups  
 - [x] Implement `label_letter_count(name)` in `guld-types`  
 - [x] Wire letter-based fees in `guld-state` / `guld_estimateRegistrationFee` / wallet estimate
 

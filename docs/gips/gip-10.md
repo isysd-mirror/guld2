@@ -29,7 +29,7 @@ When a tx debits protocol fee `R` (register, funded settle, or unfunded settle d
 1. Payer (or released account) is debited `R` at apply time (unchanged).
 2. Consensus schedules `R` across heights `H .. H+7` where `H` is the including block height.
 3. Integer split: `base = R / 8`, remainder `R % 8` added +1 to the earliest shares.
-4. Each block's coinbase includes only that height's vested bucket (plus subsidy + inclusion fees).
+4. Each block's `RewardCommit` amount includes only that height's vested bucket (plus subsidy + inclusion fees) — mint via mature `ClaimReward` ([GIP-22](gip-22.md)).
 
 Recovering the **full** `R` therefore requires winning **8 consecutive** blocks. Inclusion fees remain paid entirely to the including miner (weight market unchanged). Fees are still transfers to miners — not burned.
 

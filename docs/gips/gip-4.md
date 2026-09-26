@@ -20,12 +20,12 @@ Turn the whitepaper into **implementable specs**: clear components, wire/logical
 ## Delivered (v0)
 
 - [`../specs/README.md`](../specs/README.md) index  
-- Specs `00`–`14`: protocol through foreign chains + **reference UI (PWA wallet on guld.io)**  
+- Specs `00`–`17`: protocol + **reference UI (PWA wallet on guld.io)**; spec **13** is **informative** (cross-chain dapp patterns — no genesis foreign names, task 007 **A11**)  
 - Scaffold: `src/guld-types`, `src/guld-crypto`, `src/guld-wallet` ([`GIP-2`](gip-2.md))
 
 ## Next acceptance criteria
 
-- [ ] Freeze wire codec (BARE/protobuf/…) in `01`  
+- [x] Freeze wire codec — **BARE** in `01` §4 ([`schemas/`](../../schemas/README.md))  
 - [ ] Freeze registration funding model in `03`  
 - [x] Freeze PoW + subsidy function shape in `06`/`07` (10-min blocks; `(2/3)^(y−1)` floored at 4%)  
 - [ ] Prototype `guld-types` + `guld-crypto` against `01`/`04`  

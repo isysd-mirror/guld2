@@ -37,11 +37,13 @@ trait Mempool {
 }
 ```
 
+Mempool MUST reject `RewardCommit`. MUST accept `ClaimReward` before maturity (inclusion gated in consensus — [GIP-22](../gips/gip-22.md)). SHOULD persist pending claims across restarts ([task 008](../tasks/open/008-mempool-persistence.md)).
+
 ### 3.2 Block production (miner)
 
 ```text
 trait Miner {
-  /// Assemble block template from mempool + coinbase; search PoW.
+  /// Assemble block: RewardCommit tx[0] + mempool txs; search PoW; pre-sign ClaimReward.
   fn mine(&self, tip: &ChainTip) -> Option<Block>;
 }
 ```

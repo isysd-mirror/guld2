@@ -25,13 +25,15 @@ weight(tx) = size_bytes(canonical_tx)
 inclusion_fee >= ceil(weight(tx) * fee_rate)   // user-chosen fee_rate
 ```
 
-Relay floor: `fee_rate_min` = genesis `EconomyParams.fee_rate_min_per_vb` (default **1** quanta per weight unit). Nodes MUST reject mempool inserts with `inclusion_fee < weight(tx) × fee_rate_min` (`SettleRegistration` exempt). Paid to block miner via coinbase accounting.
+Relay floor: `fee_rate_min` = genesis `EconomyParams.fee_rate_min_per_vb` (default **1** quanta per weight unit). Nodes MUST reject mempool inserts with `inclusion_fee < weight(tx) × fee_rate_min` (`SettleRegistration` exempt; `RewardCommit` not mempool-eligible).
+
+**Payout path ([GIP-22](../gips/gip-22.md)):** inclusion fees from block **`h`** txs are debited at apply and included in `RewardCommit(h).amount`; they mint when block **`h`**’s `ClaimReward` is included (~`h + 100`). `ClaimReward.inclusion_fee` pays the miner who includes the claim in block **`B`** (added to **`B`’s** `inclusion_fees`).
 
 Optional `memo` bytes ([`03-transactions.md`](03-transactions.md) §2.1) increase `size_bytes(canonical_tx)` like any other field — there is no free metadata channel.
 
 ## 3. Registration protocol fees (→ miners, 8-block vest)
 
-Registration / settle protocol fees MUST be paid to **miners** via coinbase accounting. They MUST NOT be burned. They MUST be **spread** over **`REGISTRATION_FEE_VEST_BLOCKS = 8`** consecutive blocks starting at the inclusion height (integer split; remainder to earliest heights). Inclusion (weight) fees remain one-shot to the including miner.
+Registration / settle protocol fees MUST be paid to **miners** via **`RewardCommit` / `ClaimReward`** ([GIP-22](../gips/gip-22.md)). They MUST NOT be burned. They MUST be **spread** over **`REGISTRATION_FEE_VEST_BLOCKS = 8`** consecutive blocks starting at the inclusion height (integer split; remainder to earliest heights). Each vest share is included in that height’s `RewardCommit.amount` and mints on the matching mature claim.
 
 **Lottery:** including a registration schedules the fee across eight heights; recovering the full protocol fee requires winning all eight. GIP: [`../gips/gip-10.md`](../gips/gip-10.md).
 
@@ -46,7 +48,7 @@ Fees buy **`REGISTRATION_PERIOD = BLOCKS_PER_YEAR` (52_560)** blocks of control 
 ```text
 label_letter_count(name) → L   // root label only (strip parent.label for subs)
 L = count of Unicode alphabetic characters (NFC); hyphens/digits/punctuation ignored
-L_eff = min(L, L_cap)            // L_cap = 6 (draft)
+L_eff = min(L, L_cap)            // L_cap = 6 (locked v1 — task 007 A8)
 F_user(L) = TABLE[L_eff]         // same fee on register, settle, and estimate
 ```
 
@@ -132,35 +134,44 @@ Examples: 1-letter 1-of-1 group = **3_000 GULD**/yr; long-name 5-key group = **7
 |----------|-------|
 | `TARGET_BLOCK_INTERVAL` | **600** seconds (10 minutes) |
 | `BLOCKS_PER_YEAR` | **52_560** (= 365 × 144) |
+| `COINBASE_MATURITY_BLOCKS` | **100** (Bitcoin `COINBASE_MATURITY`; spec [06 §4](06-blocks-and-consensus.md)) |
 
-## 6. Issuance (locked draft)
+Miner block rewards (subsidy + inclusion + vested registration share) MUST NOT mint until a matching **`ClaimReward`** is included at block height **`≥ earn_height + 100`** ([GIP-22](../gips/gip-22.md), [06 §4](06-blocks-and-consensus.md)). Claims MAY sit in mempool before maturity.
 
-Let `x = genesis_premine_supply` ≈ **959,947.19527052** GULD (member `*:Assets` only; ERC20 omitted — [`15-ledger-import.md`](15-ledger-import.md)).
+## 6. Issuance (locked v1)
+
+Let `x = genesis_premine_supply` = **959,947.19527052** GULD (member `*:Assets` only; ERC20 omitted — [`15-ledger-import.md`](15-ledger-import.md) A7 locked).
 
 Decimals: **10** (mandatory for exact 1.0 import).
 
-### 6.1 Inflation rate
+### 6.1 Inflation rate (annual index)
 
-Year index `y = floor((height - 1) / BLOCKS_PER_YEAR) + 1` (y = 1 at first mined block).
+Year index `y = floor((height - 1) / BLOCKS_PER_YEAR) + 1` (y = 1 at first mined block). Used for registration periods and the macro `(2/3)` decay table.
 
 ```text
 i(y) = max(0.04, (2/3) ** (y - 1))   // y ≥ 1: 100%, ~66.7%, ~44.4%, … then 4% from year 9
 ```
 
-### 6.2 Subsidy
+### 6.2 Subsidy (2016-block epochs — locked)
 
-Let `S(0) = x`. For each year y ≥ 1:
+Issuance steps every **`ISSUANCE_PERIOD_BLOCKS = 2016`**, aligned with difficulty retarget ([06 §2.4](06-blocks-and-consensus.md)). Within an epoch the per-block subsidy is **flat**; it steps at the same heights as PoW retarget (epoch 1: heights `1..2015`; epoch `k ≥ 2` starts at `(k-1) × 2016`).
+
+Let `S(0) = x`. Issuance epoch `e` (1-indexed): epoch 1 = heights `1..2015`; epoch `k ≥ 2` starts at height `(k-1) × 2016` (same boundary as difficulty retarget). At the start of epoch `e`, let `y = year(height_at_epoch_start(e))` and supply `S`:
 
 ```text
-annual_issuance(y) = S(y - 1) * i(y)
-S(y) = S(y - 1) + annual_issuance(y)
-subsidy(height) = annual_issuance(y) / BLOCKS_PER_YEAR
-                 // constant within year y
+i_period(y) = (1 + i(y)) ** (2016 / BLOCKS_PER_YEAR) - 1
+epoch_issuance(e) = S * i_period(y)
+subsidy(height) = epoch_issuance(e) / len(e)     // len(1) = 2015; len(e≥2) = 2016
+S ← S + epoch_issuance(e)   // once per epoch
 ```
 
-`subsidy(height)` MUST be a pure consensus function of `height` and genesis `x`. Full year-by-year table and graphs: whitepaper §8.6.
+`i_period(y)` spreads each year’s nominal rate across ~26 retarget windows (~14 days each), giving a **smoother** curve than one step per year while preserving the same long-run `(2/3)^(y-1)` schedule on calendar years.
 
-Gross supply path: year-1 supply **2×**; year-20 supply ≈ **15.6×**; thereafter **+4%/yr**. Peak per-block subsidy ≈ **27 GULD** around year 3.
+`subsidy(height)` MUST be a pure consensus function of `height` and genesis `x`. Full year-by-year table and graphs: whitepaper §8.6 (graphs may be updated for epoch steps).
+
+Gross supply path (unchanged macro): year-1 supply ≈ **2×**; year-20 supply ≈ **15.6×**; thereafter **+4%/yr**. Peak per-block subsidy remains ≈ **27 GULD** around year 3 (slightly earlier/smooth ramp vs flat yearly steps).
+
+**On-chain supply timing (GIP-22):** `subsidy(h)` is committed at **`h`** but typically mints at claim inclusion near **`h + 100`** — macro schedule anchors to commit height; circulating supply lags by ~100 blocks.
 
 ## 7. Component API
 
@@ -176,7 +187,8 @@ fn vest_registration_fee_shares(fee: u128) -> Vec<u128>;  // REGISTRATION_FEE_VE
 
 ## 8. Open parameters
 
-- Final premium table values and `L_cap` (5 vs 6)  
-- Whether name **deposits** exist alongside registration fees  
-- Final audited `x` / per-name manifest hash (does not change `i(y)` shape)  
+- Whether name **deposits** exist alongside registration fees (deferred)  
+- Mainnet re-audit of **x** if manifest is regenerated (Simba pin locked — A7; [`15-ledger-import.md`](15-ledger-import.md) §2.1)  
 - `MAX_SUBACCOUNTS` (default **8**) — [`../gips/gip-12.md`](../gips/gip-12.md)
+
+**Locked (A8):** `L_cap = 6`; premium table in §3.1; `F_group(L, n) = F_user(L) × (2 + n)` — [GIP-9](../gips/gip-9.md) Final.

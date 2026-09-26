@@ -1,7 +1,7 @@
 # Task: Chain lifecycle integration tests
 
 Status: open
-Priority: normal
+Priority: **high** (Simba beta blocker — task 007 §C: reorg)
 GIP:
 Spec: ../specs/06-blocks-and-consensus.md, ../specs/16-sponsored-registration.md
 
@@ -12,7 +12,7 @@ Spec: ../specs/06-blocks-and-consensus.md, ../specs/16-sponsored-registration.md
 | **1** | State matrix — all tx types in-process | **Done** — `guld-state/tests/lifecycle_matrix.rs` |
 | **2** | Single-node dev smoke (RPC + subprocess) | **Done** — mine, register, transfer |
 | **3** | Two-node forward sync (P2P) | **Done** — Rust test + shell script (mDNS on `--dev`) |
-| **4** | Fork / reorg | **Blocked** — no chain rewind in `guld-node` yet |
+| **4** | Fork / reorg | **Required for Simba** — no chain rewind in `guld-node` yet |
 | **CI** | Run phases 1–2 in pipeline | **Not started** (optional follow-up) |
 
 Node RPC smoke covers a **subset** of the matrix today (register + transfer). Rotate, group/sub over RPC, and full parity with the state matrix are follow-ups under this task while it stays open.

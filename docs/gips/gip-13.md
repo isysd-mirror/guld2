@@ -42,7 +42,7 @@ RotateKeys {
 |------|--------|
 | Effects | Replace keys/threshold; balance / `master_hash` / `account_id` / `expires_at_height` unchanged |
 | Allowed | `individual`, `group`, `subaccount` (not lapsed; sub also requires parent current) |
-| Forbidden | `network` / `foreign_chain`; legacy-locked |
+| Forbidden | `network` (`guld`); `foreign_chain` (unused v1 — A11); legacy-locked |
 | Inclusion fee | Always (weight market) |
 
 ### Group key-set expansion fee (closes cheap-register → fat-rotate loophole)

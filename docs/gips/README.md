@@ -25,12 +25,12 @@ Small bugs and polish: use [`../tasks/`](../tasks/) instead. Specs remain normat
 | [6](gip-6.md) | Docs browser | Accepted | Standards | Application |
 | [7](gip-7.md) | Software browser | Final | Standards | Application |
 | [8](gip-8.md) | Optional paid registrar | Accepted | Standards | Interface |
-| [9](gip-9.md) | Letter-based registration fees | Accepted | Standards | Core |
+| [9](gip-9.md) | Letter-based registration fees | Final | Standards | Core |
 | [10](gip-10.md) | Registration fee vesting (8 blocks) | Final | Standards | Core |
 | [11](gip-11.md) | Name registration expiry | Accepted | Standards | Core |
 | [12](gip-12.md) | Subaccounts | Accepted | Standards | Core |
 | [13](gip-13.md) | RotateKeys | Accepted | Standards | Core |
-| [14](gip-14.md) | Ledger 1.0 to 2.0 import and claim | Draft | Standards | Core |
+| [14](gip-14.md) | Ledger 1.0 to 2.0 import and claim | Accepted | Standards | Core |
 | [15](gip-15.md) | P2P mesh (libp2p) | Final | Standards | Networking |
 | [16](gip-16.md) | Tx memo + protocol upgrade activation | Final | Standards | Core |
 | [17](gip-17.md) | UI full coverage | Accepted | Standards | Interface |
@@ -38,6 +38,7 @@ Small bugs and polish: use [`../tasks/`](../tasks/) instead. Specs remain normat
 | [19](gip-19.md) | Mempool visualizer | Accepted | Standards | Interface |
 | [20](gip-20.md) | Wallet contacts and account lookup | Draft | Standards | Application |
 | [21](gip-21.md) | guld.io in guld leaf + miner governance | Draft | Standards | Core |
+| [22](gip-22.md) | Deferred miner rewards (ClaimReward) | Accepted | Standards | Core |
 
 ## Migration note
 

@@ -8,7 +8,7 @@ Related: [`postgres-blockchain.md`](postgres-blockchain.md), [`block-window-cons
 
 ## Goal bar
 
-Compete with **Bitcoin / Ethereum / Solana-class** security and fee-metering fundamentals while sitting **below** those networks as an L0 witness hub. Differentiator is product shape — **registered usernames, signed personal / group hash trees, witnessed leaf consensus, foreign-chain tips** — not PayPal TPS or “git as the blockchain.”
+Compete with **Bitcoin / Ethereum / Solana-class** security and fee-metering fundamentals while sitting **below** those networks as an L0 witness hub. Differentiator is product shape — **registered usernames, signed personal / group hash trees, witnessed leaf consensus** — not PayPal TPS or “git as the blockchain.” Cross-chain coordination is **dapp-layer** (informative spec 13; no genesis foreign names — task 007 **A11**).
 
 ## Direction (captured)
 

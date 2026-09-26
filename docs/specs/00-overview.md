@@ -166,7 +166,7 @@ Testnets MAY use short activation margins; mainnet SHOULD leave a multi-week gap
 
 ## 6. Open parameters
 
-- Wire encoding (SSZ-like vs protobuf vs canonical JSON+hex) — default proposal in [`01-cryptography.md`](01-cryptography.md).
+- Wire encoding — **BARE locked** ([`01-cryptography.md`](01-cryptography.md) §4, [`schemas/`](../../schemas/README.md)); HTTP JSON unchanged.
 - P2P stack — **libp2p** locked ([`09-p2p.md`](09-p2p.md)); CAS object fetch still phase C.
 - Exact PoW algorithm — [`06-blocks-and-consensus.md`](06-blocks-and-consensus.md).
 - Protocol upgrade activation — [`17-protocol-upgrades.md`](17-protocol-upgrades.md) (height-scheduled; soft/hard class advisory).

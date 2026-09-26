@@ -21,11 +21,12 @@ Guld 2.0 **MUST** respect every positive Guld 1.0 member `Assets` balance in the
 | Balance rule | For each 1.0 **name** (except omitted protocol mirrors), `imported_balance = max(0, quantity(name:Assets))` at the `Assets` **root** |
 | Commodity | `GULD` only for genesis balances |
 
-### 2.1 Working totals (unaudited; pin at freeze)
+### 2.1 Import totals (locked for Simba — task 007 A7)
 
-| Quantity | Approx. GULD |
-|----------|----------------|
+| Quantity | GULD |
+|----------|------|
 | **x** = sum of positive member `name:Assets` roots | **959,947.19527052** |
+| **`import_manifest_hash`** (Simba) | `0xd5f12f6df4ab2b802ed6957b08d7c104d9eae0878decb10728f7e20975e2df27` |
 | Positive member holders | **≈ 2,217** |
 | Negative `Assets` names (anomaly) | **≈ 15** (sum ≈ **−1,028**); import **0**, list in manifest appendix |
 
@@ -44,7 +45,7 @@ For each row in the import manifest with `balance > 0`:
 1. Create account `name` if absent (`kind = individual` unless the manifest marks a group).  
 2. Set `balance = imported_balance` (quanta).  
 3. Set `legacy = { status: locked, binding_hint: … }` (see §4).  
-4. Set `keys = []`, `threshold = 0` (or a sentinel “no spend policy”).  
+4. Set `keys = []`, `threshold = 0` — **no spend policy** until `ClaimLegacy` (§8).  
 5. `master_hash` MAY be zero / empty-home until first tip after claim.
 
 For network account `guld`:
@@ -81,9 +82,11 @@ While `status = locked`:
 
 ## 5. Key upgrade — `ClaimLegacy`
 
+**Name rule (locked):** a 1.0 holder receives **exactly** the name imported from the ledger manifest — the same UTF-8 string as in `ledger-guld`. `ClaimLegacy` **only installs keys** on that existing account. It MUST NOT register, rename, alias, or “port” balance to a different name. There is no `new_name` field and no migration path to another label.
+
 ```text
 ClaimLegacy {
-  name: Name,
+  name: Name,              // MUST equal the legacy-locked import name — immutable
   new_keys: Vec<Pubkey>,
   new_threshold: u16,
   initial_master_hash: Hash32,
@@ -92,7 +95,7 @@ ClaimLegacy {
 }
 ```
 
-### 5.1 `LegacyOwnershipProof` (draft)
+### 5.1 `LegacyOwnershipProof` (normative v1)
 
 ```text
 message = tagged_hash(
@@ -111,13 +114,16 @@ message = tagged_hash(
 
 ### 5.2 Effects (atomic)
 
-1. Account exists; `legacy.status = locked`; `name` matches.  
-2. Verify `legacy_proof` over `message`.  
+1. Account exists at **`name`**; `legacy.status = locked`; `account.name == name` (tx name MUST match stored name — no rename).  
+2. Verify `legacy_proof` over `message` (which embeds the same **`name`**).  
 3. `keys = new_keys`; `threshold = new_threshold`; `master_hash = initial_master_hash`.  
-4. `legacy.status = claimed`; `claimed_at_height = current`.  
-5. `expires_at_height = height + REGISTRATION_PERIOD` (then yearly `SettleRegistration` like any account).  
-6. Pay `inclusion_fee`; increment nonce.  
-7. **Balance unchanged** (aside from inclusion fee).
+4. **`name` unchanged**; `account_id` unchanged (legacy id — [02 §3.1](02-identity-and-accounts.md)).  
+5. `legacy.status = claimed`; `claimed_at_height = current`.  
+6. `expires_at_height = height + REGISTRATION_PERIOD` (then yearly `SettleRegistration` like any account).  
+7. Pay `inclusion_fee`; increment nonce.  
+8. **Balance unchanged** (aside from inclusion fee).
+
+Want a different public name? That name was never yours in 1.0 — use `RegisterUsername` for a free name, not `ClaimLegacy`.
 
 ### 5.3 Name conflicts with fresh registration
 
@@ -148,10 +154,23 @@ fn verify_claim_proof(name, message, proof, &BindingSet) -> Result<()>;
 
 Crate: `guld-legacy`. Tools: `guld-genesis` (`preprocess` / `challenge` / `verify-claim` / `build`). Node: `--network <name>` loads `data/genesis/<name>/`; ad-hoc `--keys-pgp` / `--import-ledger` remain for local/dev only.
 
-## 8. Open parameters
+## 8. Empty keys and `threshold = 0` (legacy import)
+
+Imported 1.0 accounts that are **legacy-locked** MUST be created with `keys = []` and `threshold = 0`.
+
+| Account | `keys` | `threshold` | Spend lock |
+|---------|--------|-------------|------------|
+| Legacy import (locked) | `[]` | `0` | `legacy.status = locked` — `Transfer`, `RotateKeys`, registration-as-payer, etc. MUST fail until `ClaimLegacy` |
+| Network `guld` | `[]` | `0` | `kind = network`, no `legacy` — CAP witnessed via headers, not account signatures |
+| After `ClaimLegacy` | `new_keys` | `new_threshold ≥ 1` | Normal individual/group/sub rules |
+
+**Why not a separate flag?** The authoritative lock is **`legacy.status`**, not empty keys alone. Empty keys + zero threshold are still required so generic paths (`RotateKeys`, registration validators, faucet) reject “no signing policy” without consulting `legacy`. Do **not** use empty keys on accounts that are meant to be spendable.
+
+Alternative encodings (e.g. a dedicated `no_spend_policy` bit without `threshold = 0`) are **out of scope for v1** — genesis and import MUST use the table above.
+
+## 9. Open parameters
 
 - Canonical manifest encoding (JSON rows + `manifest_hash` SHA-256 — drafted in `guld-legacy`)  
-- Whether empty-key locked accounts use `threshold = 0` vs a dedicated flag bit  
 - Abandonment / recycle of never-claimed names — **deferred**; locked forever is accepted  
-- Audited replacement of working **x** before mainnet genesis  
+- Mainnet re-audit of **x** if manifest is regenerated (Simba pin locked — A7)  
 - Repair / omit corrupt `.asc` files under `keys-pgp` (loader skips; list in `BindingSet.skipped`)

@@ -2,7 +2,7 @@
 
 **Status:** draft  
 **SoT hierarchy:** [**whitepaper**](../whitepaper/guld-2.0-draft.md) (wins all disputes) → **these specs** (normative detail) → implementation  
-**Whitepaper:** v0.23 — [`../whitepaper/guld-2.0-draft.md`](../whitepaper/guld-2.0-draft.md) (includes [§14 glossary](../whitepaper/guld-2.0-draft.md#14-glossary))  
+**Whitepaper:** v0.25 — [`../whitepaper/guld-2.0-draft.md`](../whitepaper/guld-2.0-draft.md) (product narrative; normative detail in specs)  
 **Research backdrop:** [`../research/modern-l1-direction.md`](../research/modern-l1-direction.md)
 
 ## Reading order
@@ -20,7 +20,7 @@
 11. [`10-node.md`](10-node.md) — full node process & internal APIs  
 12. [`11-leaf-host.md`](11-leaf-host.md) — leaf materialization & client-facing host API  
 13. [`12-rpc.md`](12-rpc.md) — node API: HTTP `/api/v1` (canonical) + transitional JSON-RPC  
-14. [`13-foreign-chains.md`](13-foreign-chains.md) — L0: `bitcoin` / `ethereum` / `solana` as names; foreign proofs; settlement dapps  
+14. [`13-foreign-chains.md`](13-foreign-chains.md) — **Informative:** cross-chain / witnessing as **dapp** patterns (not L0 v1; A11)  
 15. [`14-reference-ui.md`](14-reference-ui.md) — reference UI: coverage matrix (all tx types + RPC/HTTP), flows, groups + cosign workstation  
 16. [`15-ledger-import.md`](15-ledger-import.md) — 1.0 `ledger-guld` snapshot, pre-mine **x**, `ClaimLegacy` key upgrade  
 17. [`16-sponsored-registration.md`](16-sponsored-registration.md) — pay-for-name bootstrap; dual-signature register  
@@ -30,8 +30,12 @@
 **GIP (Accepted):** [GIP-17](../gips/gip-17.md) — UI matrix for all txs; groups + cosign workstation.  
 **GIP (Accepted):** [GIP-8](../gips/gip-8.md) — optional paid registrar (any peer + third-party gateway).  
 **GIP (Final):** [GIP-16](../gips/gip-16.md) — optional tx `memo`; height-activated upgrades.  
-**GIP (Accepted):** [GIP-12](../gips/gip-12.md) — `parent.label` device wallets; fixed fees in spec 07.  
+**GIP (Final):** [GIP-9](../gips/gip-9.md) — letter-based `F_user(L)`; `L_cap = 6`; `F_group(L,n)`.  
+**GIP (Accepted):** [GIP-12](../gips/gip-12.md) — `parent.label` device wallets; `F_sub` flat in spec 07.  
 **GIP (Accepted):** [GIP-13](../gips/gip-13.md) — key change = username transfer via `RotateKeys`.  
+**GIP (Accepted):** [GIP-14](../gips/gip-14.md) — 1.0 import + `ClaimLegacy`; Simba manifest pin (A7).  
+**GIP (Accepted):** [GIP-22](../gips/gip-22.md) — `RewardCommit` + deferred `ClaimReward` (100-block maturity).  
+**Wire codec (A2):** [BARE](https://baremessages.org/) — [`schemas/`](../../schemas/README.md), [research](../research/wire-codec-comparison.md).  
 **GIP (Draft):** [GIP-20](../gips/gip-20.md) — wallet contacts, explorer account pages, prefix search (later).  
 **Process:** [GIP-1](../gips/gip-1.md) · [GIP index](../gips/README.md).
 

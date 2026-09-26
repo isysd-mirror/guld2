@@ -20,7 +20,7 @@
 | `group` | `RegisterGroup` | `n` keys; fee = `F_user(L) × (2 + n)` GULD |
 | `subaccount` | `RegisterSubaccount` | Under an **individual** parent only; max **8** live |
 | `network` | Genesis only | Reserved name **`guld`** — **keyless** protocol shell (empty keys). CAP / rules changes are witnessed by miners via header `master_hash` / `guld_rules_hash`, not by a `guld` signature. |
-| `foreign_chain` | Genesis reserved (e.g. `bitcoin`, `ethereum`) | Tip via foreign consensus proof kinds — [`13-foreign-chains.md`](13-foreign-chains.md) |
+| `foreign_chain` | **Not used v1** (A11) | Reserved genesis foreign names **removed** — bridge/indexer dapps use ordinary registration ([`13-foreign-chains.md`](13-foreign-chains.md) informative) |
 
 Groups MUST NOT open subaccounts in v1.
 
@@ -53,7 +53,7 @@ Fees buy **one year** of control (`REGISTRATION_PERIOD = BLOCKS_PER_YEAR`). See 
 - **Pay-or-release:** miners include permissionless `SettleRegistration` — debit `F_*` and extend, or delete the name and pay leftover dust to the miner.
 - Parent release **cascades** delete of live subaccounts.
 - Legacy-locked imports: settle forbidden; `ClaimLegacy` open indefinitely. After claim: normal 1y period.
-- Network / foreign: `u64::MAX`. No resale market; lost keys ⇒ eventually unfunded settle ⇒ name free.
+- Network (`guld`): `u64::MAX`. No resale market; lost keys ⇒ eventually unfunded settle ⇒ name free.
 
 ### 3.0.1 Account nonce (tip and spend sequencing)
 
@@ -78,7 +78,35 @@ Each account carries a monotonic **`nonce`** (`u64`, starts at **0** at registra
 
 Leaf hosts and wallets MUST NOT sign blind: fetch current tip + nonce via HTTP API before cosign. There is no merge/conflict resolution at L0 — only one successor tip per nonce step.
 
-### 3.1 `master_hash`
+### 3.1 `account_id` (locked — A3)
+
+`AccountId` is a 32-byte [`Hash32`](01-cryptography.md) assigned at account creation and **MUST NOT change** for the lifetime of that name (including after `ClaimLegacy` or `RotateKeys`).
+
+All variants use domain-separated hashing ([`01-cryptography.md`](01-cryptography.md) §1):
+
+```text
+tagged_hash(tag, payload) = SHA256(tag ‖ 0x00 ‖ payload)
+```
+
+| Account kind | When | Tag | Payload |
+|--------------|------|-----|---------|
+| **Keyed** | `RegisterUsername`, `RegisterGroup`, `RegisterSubaccount`; genesis premine **with** keys | `guld/account_id/v1` | `utf8(name) ‖ 0x00 ‖ keys[0]` (32-byte Ed25519 pubkey) |
+| **Keyless network** | Genesis `guld` (or reserved shell) with **empty** `keys` | `guld/account_id/network/v1` | `utf8(name)` |
+| **Legacy locked** | 1.0 import before `ClaimLegacy` ([`15-ledger-import.md`](15-ledger-import.md)) | `guld/account_id/legacy/v1` | `utf8(name)` |
+
+**Keyed rule (normative — matches `guld-state::derive_account_id`):**
+
+```text
+account_id = tagged_hash("guld/account_id/v1", name.as_bytes() ‖ 0x00 ‖ keys[0].as_bytes())
+```
+
+`name` is the canonical UTF-8 bytes of the registered name (including `parent.label` for subaccounts). Only **`keys[0]`** participates — not the full key set or threshold.
+
+**After `ClaimLegacy`:** balance, keys, and `master_hash` update; **`name` and `account_id` stay** exactly as imported (`guld/account_id/legacy/v1`). Claim is key upgrade only — not registration, not rename. New registrations never use the legacy tag.
+
+Implementation: `guld-state` `derive_account_id`, `derive_network_account_id`; legacy import in `guld-legacy`.
+
+### 3.2 `master_hash`
 
 ```text
 master_hash = tagged_hash(
@@ -91,7 +119,7 @@ master_hash = tagged_hash(
 - Home encoding is a **hash tree of objects**, not git, at the network layer.  
 - Leaf formats under the home (git packs, binaries, …) are opaque blobs addressed by `ObjectId`.
 
-### 3.2 Remote hints
+### 3.3 Remote hints
 
 ```text
 RemoteHint { url: String, kind: "git" | "http" | "other" }
@@ -99,7 +127,7 @@ RemoteHint { url: String, kind: "git" | "http" | "other" }
 
 Hints MUST NOT affect validation. Clients/leaf-hosts MAY use them to fetch bytes.
 
-### 3.3 Subaccounts
+### 3.4 Subaccounts
 
 - Spend authority is **only** the subaccount’s keys (parent does not co-sign Transfers).
 - Parent pays `F_sub` to register; see [`03-transactions.md`](03-transactions.md) `RegisterSubaccount`.
