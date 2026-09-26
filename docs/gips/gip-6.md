@@ -35,7 +35,7 @@ Stop linking humans at raw `.md` URLs (browser plain text). Ship a **docs browse
 | `data/docs-tree.json` | Manifest of browsable paths (no directory-listing API) |
 | `src/js/lib/doc-render.js` | Shared GFM render (existing) |
 
-Curated routes **`/whitepaper/`**, **`/specs/`**, **`/help/paymento/`** stay as featured entry points; they keep using `renderMarkdownDoc`. The docs browser is the **generic** explorer and the fix for stray raw links.
+Curated routes **`/whitepaper/`** (via docs viewer) and **`/specs/`** stay as featured entry points. Help guides live under **`docs/help/`** in the docs browser (no separate `/help/` site). The docs browser is the **generic** explorer and the fix for stray raw links.
 
 ## Serving
 

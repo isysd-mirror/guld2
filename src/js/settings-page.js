@@ -15,6 +15,7 @@ import {
 import { keyring } from "./lib/keyring.js";
 import { loadNetworkInfo, NETWORK_PRESETS } from "./lib/network.js";
 import { accountDetailsHtml, registrationExpiryHtml } from "./lib/account-meta.js";
+import { docsViewerHref } from "./lib/doc-paths.js";
 import { escapeHtml } from "./lib/rpc.js";
 
 const statusEl = document.querySelector("[data-settings-status]");
@@ -111,7 +112,7 @@ async function render() {
           <a href="${GATEWAY_HREF}">Gateway</a>.
           This overrides the peer’s bootstrap desk for <strong>your</strong> sales;
           new users still pay the peer desk unless they use your invite.
-          Guide: <a href="/help/paymento/">Paymento pairing</a>.
+          Guide: <a href="${docsViewerHref("help/paymento.md")}">Paymento pairing</a>.
         </p>
         ${
           peer?.paymentLink

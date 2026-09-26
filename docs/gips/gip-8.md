@@ -112,7 +112,7 @@ guld.io may ship with the feature **on** for isysd during bootstrap; clones defa
 - [x] `POST /api/v1/payment-gateway-webhook` (HMAC verify; payment-link + IPN; idempotent store)  
 - [x] `GET /api/v1/registrar` public desk config  
 - [x] Wallet UI: show pay link when registrar enabled; attach registration request metadata  
-- [x] Help: `/help/paymento/` pairing guide + Order ID regex  
+- [x] Help: `docs/help/paymento.md` pairing guide + Order ID regex (docs browser)
 - [ ] Auto `RegisterUsername` as payer after paid / OrderStatus 7–8  
 - [ ] Optional: call Paymento Verify Payment API before fulfill  
 - [ ] Clear UI: “This peer sells sponsorships; any other sponsor also works.”

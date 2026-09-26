@@ -39,6 +39,15 @@
       ]
     },
     {
+      "name": "fragments",
+      "children": [
+        {
+          "name": "chain-comparison.md",
+          "path": "fragments/chain-comparison.md"
+        }
+      ]
+    },
+    {
       "name": "gips",
       "children": [
         {
@@ -141,6 +150,10 @@
         {
           "name": "paymento.md",
           "path": "help/paymento.md"
+        },
+        {
+          "name": "README.md",
+          "path": "help/README.md"
         }
       ]
     },
@@ -325,6 +338,10 @@
       "path": "brand-concepts.md"
     },
     {
+      "name": "FAQ.md",
+      "path": "FAQ.md"
+    },
+    {
       "name": "HOSTING.md",
       "path": "HOSTING.md"
     },
@@ -343,10 +360,6 @@
     {
       "name": "SOFTWARE_FLOW.md",
       "path": "SOFTWARE_FLOW.md"
-    },
-    {
-      "name": "FAQ.md",
-      "path": "FAQ.md"
     },
     {
       "name": "UPGRADE_FROM_1.md",

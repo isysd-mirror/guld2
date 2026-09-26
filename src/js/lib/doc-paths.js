@@ -104,6 +104,5 @@ export function curatedDocHref(fetchPath) {
     if (id.toLowerCase() === "readme") return "/specs/";
     return `/specs/?doc=${encodeURIComponent(id)}`;
   }
-  if (/\/docs\/help\/paymento\.md$/i.test(fetchPath)) return "/help/paymento/";
   return null;
 }

@@ -127,6 +127,14 @@ export const keyring = {
     passphrase = null;
   },
 
+  /** Wipe all local keys (this browser only). Irreversible without re-import. */
+  clearAll() {
+    mem.clear();
+    unlocked = false;
+    passphrase = null;
+    saveRaw({ accounts: [], activeName: null });
+  },
+
   /**
    * @param {{ name: string, privHex: string, pubHex: string, pending?: boolean }} account
    */

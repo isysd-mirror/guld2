@@ -1231,5 +1231,4 @@ function mountCosignWorkstation(mount, opts) {
   render();
 }
 
-syncGuestChrome();
 route();

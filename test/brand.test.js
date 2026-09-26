@@ -33,8 +33,6 @@ test("pages share guld-header and guld-footer chrome", () => {
     "settings/index.html",
     "claim/index.html",
     "gateway/index.html",
-    "help/index.html",
-    "help/paymento/index.html",
     "explorer/index.html",
     "explorer/legacy/index.html",
     "specs/index.html",
@@ -57,7 +55,7 @@ test("header nav is product; docs live in footer", () => {
   );
   assert.deepEqual(
     FOOTER_NAV.map((i) => i.label),
-    ["Install", "Legacy claim", "Whitepaper", "Specs", "Help", "Software", "Docs"],
+    ["Install", "Legacy claim", "Whitepaper", "Specs", "Software", "Docs"],
   );
   assert.equal(FOOTER_NAV.find((i) => i.label === "Install")?.href, "/#install");
   assert.equal(FOOTER_NAV.find((i) => i.label === "Docs")?.href, "/docs/");

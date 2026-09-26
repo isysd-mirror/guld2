@@ -269,14 +269,52 @@ function renderStepKeys() {
 
 function renderStepPassphrase() {
   setStep(2);
-  const existing = keyring.load().accounts.length > 0;
-  const passHint = existing
-    ? "Enter the passphrase for your existing keyring on this browser (same one you used before)."
-    : "Choose a passphrase to encrypt your key in this browser. It never leaves your device.";
-  hostEl.innerHTML = `
-    <article class="wallet__card">
-      <p class="wallet__name">${escapeHtml(state.name)}</p>
-      <p class="wallet__meta">${escapeHtml(passHint)}</p>
+  const stored = keyring.load().accounts;
+  const existing = stored.length > 0;
+  const alreadyOpen = keyring.isUnlocked();
+  const names = stored.map((a) => a.name).filter(Boolean);
+
+  let body = "";
+  if (alreadyOpen) {
+    body = `
+      <p class="wallet__meta">Keyring is unlocked — new keys will be saved with your current passphrase.</p>
+      ${
+        isGroup
+          ? `<p class="wallet__meta">${state.threshold}-of-${1 + state.extraPubs.length} · you hold keys[0]</p>`
+          : ""
+      }
+      <p class="wallet__actions wallet__actions--flush">
+        <button type="button" class="btn btn--primary" data-gen-unlocked>Generate keys &amp; continue</button>
+        <button type="button" class="btn btn--outline" data-back>Back</button>
+      </p>`;
+  } else if (existing) {
+    body = `
+      <p class="wallet__meta">This browser already has encrypted keys${
+        names.length ? ` (${names.map((n) => escapeHtml(n)).join(", ")})` : ""
+      }. Unlock with that passphrase to add “${escapeHtml(state.name)}”.</p>
+      ${
+        isGroup
+          ? `<p class="wallet__meta">${state.threshold}-of-${1 + state.extraPubs.length} · you hold keys[0]</p>`
+          : ""
+      }
+      <form class="wallet__form" data-key-form>
+        <label>
+          Existing passphrase
+          <input name="pass" type="password" autocomplete="current-password" minlength="8" required />
+        </label>
+        <p class="wallet__actions wallet__actions--flush">
+          <button type="submit" class="btn btn--primary">Unlock &amp; generate keys</button>
+          <button type="button" class="btn btn--outline" data-back>Back</button>
+        </p>
+      </form>
+      <p class="wallet__note">
+        Forgot it? You can clear the local keyring and choose a new passphrase.
+        On-chain names stay registered — re-import their private keys later if you still have them.
+        <button type="button" class="btn btn--outline" data-clear-keyring>Clear keyring on this browser</button>
+      </p>`;
+  } else {
+    body = `
+      <p class="wallet__meta">Choose a passphrase to encrypt your key in this browser. It never leaves your device.</p>
       ${
         isGroup
           ? `<p class="wallet__meta">${state.threshold}-of-${1 + state.extraPubs.length} · you hold keys[0]</p>`
@@ -285,49 +323,79 @@ function renderStepPassphrase() {
       <form class="wallet__form" data-key-form>
         <label>
           Passphrase
-          <input name="pass" type="password" autocomplete="${existing ? "current-password" : "new-password"}" minlength="8" required />
+          <input name="pass" type="password" autocomplete="new-password" minlength="8" required />
         </label>
         <p class="wallet__actions wallet__actions--flush">
           <button type="submit" class="btn btn--primary">Generate keys &amp; continue</button>
           <button type="button" class="btn btn--outline" data-back>Back</button>
         </p>
-      </form>
+      </form>`;
+  }
+
+  hostEl.innerHTML = `
+    <article class="wallet__card">
+      <p class="wallet__name">${escapeHtml(state.name)}</p>
+      ${body}
     </article>
   `;
+
   hostEl.querySelector("[data-back]")?.addEventListener("click", () => {
     if (isGroup) renderStepKeys();
     else renderStep1();
   });
+
+  hostEl.querySelector("[data-clear-keyring]")?.addEventListener("click", () => {
+    if (
+      !confirm(
+        "Clear all Guld keys stored in this browser? You will need the private keys to use those names again here.",
+      )
+    ) {
+      return;
+    }
+    keyring.clearAll();
+    setStatus("Local keyring cleared — choose a new passphrase.", "ok");
+    renderStepPassphrase();
+  });
+
+  async function finishWithKeys() {
+    setStatus("Generating keys…", "pending");
+    const priv = await randomPrivateKey();
+    const pubHex = await pubkeyHex(priv);
+    const privHex = toHex(priv);
+    const keys = isGroup ? [pubHex, ...state.extraPubs] : [pubHex];
+    const threshold = isGroup ? state.threshold : 1;
+    const request = await buildRequest(state.name, privHex, keys, threshold);
+    await keyring.upsertAccount({
+      name: state.name,
+      privHex,
+      pubHex,
+      pending: true,
+    });
+    activateAccount(state.name);
+    state.privHex = privHex;
+    state.pubHex = pubHex;
+    state.request = request;
+    setStatus("Review registration terms", "ok");
+    renderStepConfirm();
+  }
+
+  hostEl.querySelector("[data-gen-unlocked]")?.addEventListener("click", async () => {
+    try {
+      await finishWithKeys();
+    } catch (err) {
+      setStatus(/** @type {Error} */ (err).message, "error");
+    }
+  });
+
   hostEl.querySelector("[data-key-form]")?.addEventListener("submit", async (ev) => {
     ev.preventDefault();
-    setStatus("Generating keys…", "pending");
+    setStatus(existing ? "Unlocking keyring…" : "Generating keys…", "pending");
     try {
       const fd = new FormData(/** @type {HTMLFormElement} */ (ev.target));
       const pass = String(fd.get("pass") || "");
       if (!pass) throw new Error("Passphrase required");
-      const priv = await randomPrivateKey();
-      const pubHex = await pubkeyHex(priv);
-      const privHex = toHex(priv);
-      if (keyring.isUnlocked()) {
-        /* already unlocked this session — keep current passphrase */
-      } else {
-        await keyring.unlock(pass);
-      }
-      const keys = isGroup ? [pubHex, ...state.extraPubs] : [pubHex];
-      const threshold = isGroup ? state.threshold : 1;
-      const request = await buildRequest(state.name, privHex, keys, threshold);
-      await keyring.upsertAccount({
-        name: state.name,
-        privHex,
-        pubHex,
-        pending: true,
-      });
-      activateAccount(state.name);
-      state.privHex = privHex;
-      state.pubHex = pubHex;
-      state.request = request;
-      setStatus("Review registration terms", "ok");
-      renderStepConfirm();
+      await keyring.unlock(pass);
+      await finishWithKeys();
     } catch (err) {
       setStatus(/** @type {Error} */ (err).message, "error");
     }
