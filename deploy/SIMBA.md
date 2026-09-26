@@ -48,7 +48,7 @@ cargo run -p guld-node -- \
 
 The faucet account must exist on-chain with spendable balance (Simba `isysd` after genesis claim). Cooldown default: 1 hour per name. On mainnet the faucet routes stay off.
 
-Faucet txs are **mempool-queued** then sealed in the **background** when `--miner` is set (Simba keeps `auto_mine: false` so ordinary traffic is not auto-sealed). Initial PoW bits are **1** (see `data/networks/simba.json`; difficulty **0** is genesis-only and cannot seal height ≥ 1). Difficulty retargets from observed block times. With `--mine-cpu-percent 1`, early blocks are cheap — the UI polls until the name/balance appears. The peer **must** run with `--miner <faucet-account>` or faucet grants stay pending forever.
+Faucet txs are **mempool-queued** then included by the continuous miner. Simba uses the **same block-production model as mainnet**: a peer with `--miner` runs unbroken PoW (empty blocks allowed); difficulty retargets toward **600 s**. Initial PoW bits are **1** (see `data/networks/simba.json`; difficulty **0** is genesis-only). With `--mine-cpu-percent 1`, early blocks are cheap and bits climb. The faucet peer **must** run with `--miner <faucet-account>` or grants stay pending until some miner seals them.
 
 Explorer live updates: `GET /api/v1/chain/events` (SSE, GIP-19) on both `--http` and `--rpc` listeners; soft cap 64 subscribers.
 
@@ -167,7 +167,7 @@ cargo build -p guld-node --release
 
 Add `--miner <name>` only if this process should seal blocks (e.g. `--miner isysd`). On shared bootstrap hosts always pass `--mine-cpu-percent 1`.
 
-`--network simba` sets `chain_id=2`, difficulty, `auto_mine=false`, and dials guld.io bootnodes. Do **not** pass `--dev` (that skips default bootnodes and enables empty-block mining).
+`--network simba` sets `chain_id=2`, difficulty, and dials guld.io bootnodes. Do **not** pass `--dev` on shared testnet peers (that soft-caps difficulty for rapid local empty ticks).
 
 Check mesh:
 
@@ -178,19 +178,18 @@ curl -s http://127.0.0.1:8545/ -H 'content-type: application/json' \
 
 ## 4. Mining policy (simba)
 
-- Default on simba: **`auto_mine=false`** — txs sit in mempool until someone calls `guld_mineBlock` or turns auto-mine on for a designated miner.
-- **`--miner <name>` is required to seal.** No default miner.
-- Reasonable v1: **only guld.io mines** with an explicit `--miner isysd` (after genesis claim); laptop is a validating peer.
-- **Shared hosts (guld.io / this machine):** always `--mine-cpu-percent 1` (PoW duty cycle of one core). Service units under `deploy/` already set this.
+- **Same as mainnet:** `--miner <name>` starts a **continuous PoW loop** (empty blocks OK). Difficulty retargets toward `TARGET_BLOCK_INTERVAL` (**600 s**).
+- Validating peers omit `--miner` and never seal.
+- Reasonable v1: **only guld.io mines** with `--miner isysd` (after genesis claim); laptops validate.
+- **Shared hosts:** always `--mine-cpu-percent 1`. Service units under `deploy/` already set this.
+- `auto_mine` may also seal on mempool insert; the miner loop is the source of truth for block time.
 
-Force a block on the miner:
+Force a block (usually unnecessary once the loop is running):
 
 ```bash
 curl -s http://127.0.0.1:8545/ -H 'content-type: application/json' \
   -d '{"jsonrpc":"2.0","id":1,"method":"guld_mineBlock","params":[]}'
-```
-
-## 5. Replace deprecated API unit
+```## 5. Replace deprecated API unit
 
 guld.io still has [`guld-api.service`](guld-api.service) (Python). Prefer:
 

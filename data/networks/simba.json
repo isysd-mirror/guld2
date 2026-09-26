@@ -4,9 +4,9 @@
   "chain_id": 2,
   "difficulty": 1,
   "p2p_listen": "0.0.0.0:4001",
-  "auto_mine": false,
+  "auto_mine": true,
   "bootnodes": [
     "/dns4/guld.io/tcp/4001"
   ],
-  "comment": "Guld 2.0 public testnet. Initial PoW bits 1 (0 is genesis-only — sealing height≥1 at 0 hangs the miner). Retarget climbs from observed block times (use --mine-cpu-percent 1 on shared hosts). auto_mine false: faucet/RPC seals via guld_mineBlock. Faucet on when GULD_FAUCET_KEY or datadir/keys/<faucet>.sk is set. See deploy/SIMBA.md."
+  "comment": "Guld 2.0 public testnet — same mining model as mainnet: peers with --miner run continuous PoW (empty blocks OK); difficulty retargets toward 600s. Start bits 1 (0 is genesis-only). Shared hosts: --mine-cpu-percent 1. auto_mine accelerates seals on mempool insert. Faucet when GULD_FAUCET_KEY or datadir/keys/<faucet>.sk is set. See deploy/SIMBA.md."
 }
