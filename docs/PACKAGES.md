@@ -41,7 +41,7 @@ Submodule URLs in `.gitmodules` point at **`https://guld.io/repos/<name>.git`**.
 | guld-node | `src/guld-node/` | `repos/guld-node.git` | Rust | Full node + HTTP API + JSON-RPC |
 | guld-client | `src/guld-client/` | `repos/guld-client.git` | Rust | Wallet library |
 | guld-cli | `src/guld-cli/` | `repos/guld-cli.git` | Rust | Wallet CLI (`guld`) |
-| guld-wallet | `src/guld-wallet/` | `repos/guld-wallet.git` | Rust | Dioxus desktop wallet |
+| guld-wallet | `src/guld-wallet/` | `repos/guld-wallet.git` | Rust | Optional Dioxus desktop wallet (on hold) |
 | guld-extension | `src/guld-extension/` | `repos/guld-extension.git` | JS | Browser provider — **not protocol** |
 | guld-js | `src/guld-js/` | `repos/guld-js.git` | JS | Later |
 

@@ -15,7 +15,7 @@
     {
       "id": "guld-node",
       "title": "guld-node",
-      "summary": "Full node — JSON-RPC, HTTP API, static site, dumb git HTTP",
+      "summary": "Full node — JSON-RPC, HTTP API, primary web UI (`--http-static`), dumb git HTTP",
       "kind": "software",
       "home": "here",
       "href": "/software/guld-node/",
@@ -25,12 +25,11 @@
     {
       "id": "guld-wallet",
       "title": "guld-wallet",
-      "summary": "Dioxus desktop wallet — primary human UX",
+      "summary": "Optional Dioxus desktop wallet — on hold; primary UX is the web UI",
       "kind": "software",
       "home": "here",
       "href": "/software/guld-wallet/",
-      "topics": ["rust", "wallet"],
-      "pinned": 3
+      "topics": ["rust", "wallet"]
     },
     {
       "id": "guld-client",

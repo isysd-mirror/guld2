@@ -15,7 +15,7 @@ Implement Guld 2.0 core Rust crates and reference surfaces against docs/specs.
 
 ## Goal
 
-Implement Guld 2.0 against `docs/specs/`: core Rust crates + reference desktop wallet.
+Implement Guld 2.0 against `docs/specs/`: core Rust crates + reference surfaces (primary UX: repo-root web UI / PWA; desktop `guld-wallet` optional).
 
 ## Acceptance
 
