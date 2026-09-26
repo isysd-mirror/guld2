@@ -6,7 +6,7 @@
     <meta name="theme-color" content="#000000" />
     <meta
       name="description"
-      content="Guld reference wallet — register, send, and look up names via the PWA."
+      content="Guld reference wallet — send GULD and review your activity."
     />
     <meta property="og:url" content="https://guld.io/wallet/" />
     <meta property="og:title" content="Guld wallet" />
@@ -28,31 +28,9 @@
     <guld-header></guld-header>
 
     <main class="site-main wallet" id="main">
-      <header class="wallet__head" data-wallet-guest-head>
-        <h1>Wallet</h1>
-        <p data-wallet-guest-intro>
-          Send, receive, and review history by name. Keys stay in your browser —
-          sign up or log in to act on your account.
-        </p>
-      </header>
-
-      <div class="wallet__bar" data-wallet-guest-bar>
-        <label>
-          API base
-          <input type="url" data-wallet-api spellcheck="false" autocomplete="off" />
-        </label>
-        <div class="wallet__lookup">
-          <label style="flex: 1">
-            Name
-            <input type="text" data-wallet-name placeholder="isysd" spellcheck="false" autocomplete="off" />
-          </label>
-          <button type="button" class="btn btn--primary" data-wallet-lookup>Look up</button>
-        </div>
-        <button type="button" class="btn btn--outline" data-wallet-refresh>Refresh</button>
-        <p class="wallet__chain-status" data-wallet-status data-state="pending">Connecting…</p>
-      </div>
+      <p class="wallet__chain-status" data-wallet-status data-state="pending">Connecting…</p>
       <div data-wallet-host>
-        <p class="wallet__empty">Look up a name to see balance and recent activity.</p>
+        <p class="wallet__empty">Loading…</p>
       </div>
     </main>
 

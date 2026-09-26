@@ -53,7 +53,7 @@ export function bindProfileMenu(menu, opts = {}) {
         }
         activateAccount(name);
         close();
-        location.href = walletAccountHref(name, "send");
+        location.href = walletAccountHref(name);
       } catch (err) {
         showMenuError(menu, /** @type {Error} */ (err).message);
       }
@@ -106,7 +106,7 @@ export function bindProfileMenu(menu, opts = {}) {
       await keyring.upsertAccount({ name, privHex, pubHex, pending: false });
       activateAccount(name);
       close();
-      location.href = walletAccountHref(name, "send");
+      location.href = walletAccountHref(name);
     } catch (err) {
       showMenuError(menu, /** @type {Error} */ (err).message);
     }
@@ -181,7 +181,7 @@ export function renderProfileMenu(menu) {
   }
   if (active) {
     parts.push(
-      `<a class="site-header__profile-link" href="${walletAccountHref(active, "send")}" role="menuitem">Open wallet</a>`,
+      `<a class="site-header__profile-link" href="${walletAccountHref(active)}" role="menuitem">Open wallet</a>`,
     );
   }
   parts.push(

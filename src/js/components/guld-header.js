@@ -1,6 +1,6 @@
 import { HEADER_NAV, isNavActive } from "../lib/site-nav.js";
 import { AUTH_EVENT, GATEWAY_HREF, getLocalIdentity, REGISTER_HREF } from "../lib/auth.js";
-import { walletAccountHref, WALLET_TABS } from "../lib/wallet-nav.js";
+import { walletAccountHref } from "../lib/wallet-nav.js";
 import { keyring } from "../lib/keyring.js";
 import {
   GATEWAY_SETTINGS_EVENT,
@@ -100,9 +100,7 @@ export class GuldHeader extends HTMLElement {
       const items = [];
       const id = getLocalIdentity();
       if (id.hasKey && id.name) {
-        for (const tab of WALLET_TABS) {
-          items.push({ href: walletAccountHref(id.name, tab.id), label: tab.label });
-        }
+        items.push({ href: walletAccountHref(id.name), label: "Wallet" });
       }
       items.push(...HEADER_NAV);
       if (isGatewayConfigured(loadGatewaySettings())) {

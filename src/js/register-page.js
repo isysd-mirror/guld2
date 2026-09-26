@@ -221,8 +221,10 @@ function renderStepKeys() {
           <input name="threshold" type="number" min="1" value="2" required />
         </label>
         <p class="wallet__meta" data-fee-preview>Fee updates after continue…</p>
-        <button type="submit" class="btn btn--primary">Continue</button>
-        <button type="button" class="btn btn--outline" data-back style="margin-left:0.5rem">Back</button>
+        <p class="wallet__actions wallet__actions--flush">
+          <button type="submit" class="btn btn--primary">Continue</button>
+          <button type="button" class="btn btn--outline" data-back>Back</button>
+        </p>
       </form>
     </article>
   `;
@@ -267,10 +269,14 @@ function renderStepKeys() {
 
 function renderStepPassphrase() {
   setStep(2);
+  const existing = keyring.load().accounts.length > 0;
+  const passHint = existing
+    ? "Enter the passphrase for your existing keyring on this browser (same one you used before)."
+    : "Choose a passphrase to encrypt your key in this browser. It never leaves your device.";
   hostEl.innerHTML = `
     <article class="wallet__card">
       <p class="wallet__name">${escapeHtml(state.name)}</p>
-      <p class="wallet__meta">Choose a passphrase to encrypt your key in this browser. It never leaves your device.</p>
+      <p class="wallet__meta">${escapeHtml(passHint)}</p>
       ${
         isGroup
           ? `<p class="wallet__meta">${state.threshold}-of-${1 + state.extraPubs.length} · you hold keys[0]</p>`
@@ -279,10 +285,12 @@ function renderStepPassphrase() {
       <form class="wallet__form" data-key-form>
         <label>
           Passphrase
-          <input name="pass" type="password" autocomplete="new-password" minlength="8" required />
+          <input name="pass" type="password" autocomplete="${existing ? "current-password" : "new-password"}" minlength="8" required />
         </label>
-        <button type="submit" class="btn btn--primary">Generate keys &amp; continue</button>
-        <button type="button" class="btn btn--outline" data-back style="margin-left:0.5rem">Back</button>
+        <p class="wallet__actions wallet__actions--flush">
+          <button type="submit" class="btn btn--primary">Generate keys &amp; continue</button>
+          <button type="button" class="btn btn--outline" data-back>Back</button>
+        </p>
       </form>
     </article>
   `;
@@ -292,7 +300,7 @@ function renderStepPassphrase() {
   });
   hostEl.querySelector("[data-key-form]")?.addEventListener("submit", async (ev) => {
     ev.preventDefault();
-    setStatus("Generating keys…");
+    setStatus("Generating keys…", "pending");
     try {
       const fd = new FormData(/** @type {HTMLFormElement} */ (ev.target));
       const pass = String(fd.get("pass") || "");
@@ -300,7 +308,11 @@ function renderStepPassphrase() {
       const priv = await randomPrivateKey();
       const pubHex = await pubkeyHex(priv);
       const privHex = toHex(priv);
-      await keyring.unlock(pass);
+      if (keyring.isUnlocked()) {
+        /* already unlocked this session — keep current passphrase */
+      } else {
+        await keyring.unlock(pass);
+      }
       const keys = isGroup ? [pubHex, ...state.extraPubs] : [pubHex];
       const threshold = isGroup ? state.threshold : 1;
       const request = await buildRequest(state.name, privHex, keys, threshold);
@@ -323,7 +335,7 @@ function renderStepPassphrase() {
 }
 
 function renderStepConfirm() {
-  setStep(2);
+  setStep(3);
   const req = /** @type {Record<string, unknown>} */ (state.request || {});
   const regFeeGuld = quantaToGuld(String(req.registration_fee || "0"));
   const keys = /** @type {string[]} */ (req.keys || []);
@@ -341,14 +353,16 @@ function renderStepConfirm() {
       <label class="wallet__meta">Registration request (friend sponsor)
         <textarea readonly rows="6" data-req-json>${escapeHtml(JSON.stringify(req, null, 2))}</textarea>
       </label>
-      <p style="margin-top:0.5rem">
+      <p class="wallet__actions wallet__spacer--sm">
         <button type="button" class="btn btn--outline" data-copy-req>Copy request JSON</button>
       </p>
       <p class="wallet__note">Your encrypted key stays on this device. GULD has no fixed USD price — any off-chain desk fee is set by that operator, not the protocol.</p>
       <p data-faucet-slot></p>
-      <button type="button" class="btn btn--outline" data-confirm-register>Continue with paid desk</button>
-      <button type="button" class="btn btn--outline" data-friend-only style="margin-left:0.5rem">Friend sponsor only</button>
-      <button type="button" class="btn btn--outline" data-back style="margin-left:0.5rem">Back</button>
+      <p class="wallet__actions">
+        <button type="button" class="btn btn--outline" data-confirm-register>Continue with paid desk</button>
+        <button type="button" class="btn btn--outline" data-friend-only>Friend sponsor only</button>
+        <button type="button" class="btn btn--outline" data-back>Back</button>
+      </p>
     </article>
   `;
   const faucetSlot = hostEl.querySelector("[data-faucet-slot]");
@@ -408,7 +422,7 @@ function renderStepConfirm() {
         <label class="wallet__meta">Request JSON
           <textarea readonly rows="8">${escapeHtml(JSON.stringify(req, null, 2))}</textarea>
         </label>
-        <p style="margin-top:1rem">
+        <p class="wallet__actions">
           <a class="btn btn--outline" href="/wallet/#/account/${encodeURIComponent(state.name)}">Open wallet</a>
         </p>
       </article>`;
@@ -500,9 +514,9 @@ function renderStep3(checkout, desk) {
           : `<p class="wallet__meta">Payment is matched by this Order ID automatically when using the gateway API.</p>`
       }
       <p class="wallet__note">On-chain registration is still paid in GULD by the sponsoring account after payment clears.</p>
-      <p style="margin-top:1rem">
+      <p class="wallet__actions">
         <a class="btn btn--primary" href="${escapeHtml(state.paymentUrl)}" rel="noopener" target="_blank" data-pay>Open payment link</a>
-        <button type="button" class="btn btn--outline" data-paid style="margin-left:0.5rem">I’ve paid — continue</button>
+        <button type="button" class="btn btn--outline" data-paid>I’ve paid — continue</button>
       </p>
     </article>
   `;
@@ -519,7 +533,7 @@ function renderStep4() {
       <p class="wallet__name">${escapeHtml(state.name)}</p>
       <p class="wallet__meta">Order <code>${escapeHtml(state.orderId)}</code></p>
       <p class="wallet__meta" data-wait-detail>Polling for payment and on-chain registration…</p>
-      <p style="margin-top:1rem">
+      <p class="wallet__actions">
         <a class="btn btn--outline" href="/wallet/#/account/${encodeURIComponent(state.name)}">Open wallet</a>
       </p>
     </article>
@@ -550,7 +564,7 @@ async function pollNameOnly() {
         if (detail) detail.textContent = "Registered on-chain.";
         hostEl.insertAdjacentHTML(
           "beforeend",
-          `<p style="margin-top:1rem">
+          `<p class="wallet__actions">
             <a class="btn btn--primary" href="/wallet/#/account/${encodeURIComponent(state.name)}">Open wallet</a>
           </p>`,
         );
@@ -579,7 +593,7 @@ async function pollUntilRegistered() {
         if (detail) detail.textContent = "Registered on-chain.";
         hostEl.insertAdjacentHTML(
           "beforeend",
-          `<p class="wallet__note" style="margin-top:1rem">
+          `<p class="wallet__note wallet__spacer">
             Next: open <a href="/settings/">Settings</a> to link <strong>your</strong> Paymento store
             and sell GULD to friends (OTC desk). Then share your invite link from Settings.
           </p>`,

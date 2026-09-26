@@ -87,19 +87,38 @@ export const keyring = {
    */
   async unlock(pass) {
     const raw = loadRaw();
+    const prevUnlocked = unlocked;
+    const prevPass = passphrase;
+    const prevMem = new Map(mem);
+    unlocked = false;
+    passphrase = null;
     mem.clear();
-    for (const acct of raw.accounts) {
-      let privHex = null;
-      if (acct.enc) {
-        privHex = await decryptPriv(acct.enc, pass);
-      } else if (acct.privHex) {
-        privHex = acct.privHex;
+    try {
+      for (const acct of raw.accounts) {
+        let privHex = null;
+        if (acct.enc) {
+          try {
+            privHex = await decryptPriv(acct.enc, pass);
+          } catch {
+            throw new Error(
+              "Wrong passphrase for your existing keyring. Use the same passphrase as when you first saved a key on this browser.",
+            );
+          }
+        } else if (acct.privHex) {
+          privHex = acct.privHex;
+        }
+        if (privHex) mem.set(acct.name, privHex);
       }
-      if (privHex) mem.set(acct.name, privHex);
+      unlocked = true;
+      passphrase = pass;
+      await persistEncryptedAccounts(raw.accounts, raw.activeName);
+    } catch (err) {
+      mem.clear();
+      for (const [k, v] of prevMem) mem.set(k, v);
+      unlocked = prevUnlocked;
+      passphrase = prevPass;
+      throw err;
     }
-    unlocked = true;
-    passphrase = pass;
-    await persistEncryptedAccounts(raw.accounts, raw.activeName);
   },
 
   lock() {

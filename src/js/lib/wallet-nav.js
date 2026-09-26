@@ -1,35 +1,24 @@
-/** Wallet hash routes and header tab links (spec 14). */
-
-/** @typedef {"send" | "receive" | "history" | "advanced"} WalletTabId */
-
-/** @type {{ id: WalletTabId, label: string }[]} */
-export const WALLET_TABS = [
-  { id: "send", label: "Send" },
-  { id: "receive", label: "Receive" },
-  { id: "history", label: "History" },
-  { id: "advanced", label: "Advanced" },
-];
-
-/** @type {WalletTabId[]} */
-export const WALLET_TAB_IDS = WALLET_TABS.map((t) => t.id);
+/** Wallet hash routes (spec 14). Single account page — no tab chrome. */
 
 /**
  * @param {string} name
- * @param {WalletTabId} [tab]
  */
-export function walletAccountHref(name, tab = "send") {
+export function walletAccountHref(name) {
   const n = encodeURIComponent(name.trim().toLowerCase());
-  return `/wallet/#/account/${n}/${tab}`;
+  return `/wallet/#/account/${n}`;
 }
 
 /**
  * @param {string | undefined} hash
- * @returns {WalletTabId | null}
+ * @returns {string | null} account name, or null
  */
-export function walletTabFromHash(hash) {
+export function walletNameFromHash(hash) {
   const raw = (hash || "").replace(/^#/, "");
   const parts = raw.split("/").filter(Boolean);
   if (parts[0] !== "account" || !parts[1]) return null;
-  const tab = parts[2];
-  return WALLET_TAB_IDS.includes(/** @type {WalletTabId} */ (tab)) ? /** @type {WalletTabId} */ (tab) : null;
+  try {
+    return decodeURIComponent(parts[1]).trim().toLowerCase();
+  } catch {
+    return null;
+  }
 }
