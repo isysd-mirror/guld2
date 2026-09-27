@@ -4,7 +4,7 @@ Status: open
 Priority: normal (raise to **high** before mainnet; after [009](./009-bare-wire-implementation.md))
 GIP: ../gips/gip-26.md
 Spec: ../specs/01-cryptography.md, ../schemas/README.md
-Depends: ./009-bare-wire-implementation.md, ./014-enforce-difficulty-on-import.md
+Depends: ./009-bare-wire-implementation.md, ../done/2026-09/014-enforce-difficulty-on-import.md
 
 ## Problem
 

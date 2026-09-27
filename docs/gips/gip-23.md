@@ -3,8 +3,8 @@ gip: 23
 title: Consensus-Enforced Difficulty Schedule
 description: Validators MUST reject headers whose difficulty does not match next_difficulty.
 author: Guld contributors
-discussions-to: ../tasks/open/014-enforce-difficulty-on-import.md
-status: Draft
+discussions-to: ../tasks/done/2026-09/014-enforce-difficulty-on-import.md
+status: Accepted
 type: Standards
 category: Core
 created: 2026-09-26
@@ -75,9 +75,10 @@ Bit-difficulty coarseness (each step doubles work) is unchanged; this GIP does n
 
 ## Reference Implementation
 
-- Task: [014-enforce-difficulty-on-import.md](../tasks/open/014-enforce-difficulty-on-import.md)
-- Likely touch: `guld-consensus::check_header` / `import_block`, `guld-node` seal path (already uses `next_difficulty`), unit tests in `guld-consensus`.
+- Task: [014-enforce-difficulty-on-import.md](../tasks/done/2026-09/014-enforce-difficulty-on-import.md)
+- Shipped: `guld-consensus::check_header` / `import_block` (`BadDifficulty`); `guld-node` period-start load on import/reorg/seal.
 
 ## History
 
 - 2026-09-26: Drafted from external project review (`.guld-data/reviews/external-project-review-2026-09-26.md`, finding C1).
+- 2026-09-26: **Accepted** — `check_header` / `import_block` enforce schedule (`BadDifficulty`); seal always uses `next_difficulty`; task [014](../tasks/done/2026-09/014-enforce-difficulty-on-import.md).

@@ -35,8 +35,9 @@ Operators must not rely on empty-datadir mint or post-hoc `--import-ledger`.
 
 ## Pins
 
-- **tip_hash:** `0xc4a0171e5afd7ecd425b0ef8a7e57cc737226e4a992aecaa05324257c6adb3f0`
-- **state_root (post home):** `0xcd380447a4513c7736a178ab83c506f956552e239dd9c25c56699f1ae7b6064d`
+- **tip_hash:** `0xadbff5409912ffa96fee913b3775b471eaca58b26323465ec41a400f86a1cd96`
+- **state_root (post home):** `0x67988785b8f6a3cc9f3e188a00df1e8b51cd1bbb5f48d3ddc0cb8edcb9997ff1`
+- **import_manifest_hash:** `0x59a39af461d66fa1ef892708f8fa8838684d812cccfbe253816a34f448980e70`
 - Artifacts: `blocks/0.json`, `pins.json`
 
 ## Notes
@@ -44,4 +45,5 @@ Operators must not rely on empty-datadir mint or post-hoc `--import-ledger`.
 ```
 2026-09-26: Opened — A7 done; G1 full ledger documented; ceremony output still open.
 2026-09-26: Committed blocks/0.json + tip pins; datadir verifies pins on artifact genesis; G4 = one more reset OK.
+2026-09-26: Regenesis for task 016 (hyphen remaps + x = sum(rows)); prior tip 0xc4a017… obsolete.
 ```

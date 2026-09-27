@@ -10,7 +10,11 @@ No. **Guld 2.0 is a hard fork** from a Guld 1.0 ledger snapshot. The **1.0 chain
 
 ### How do 1.0 balances appear on 2.0?
 
-Positive 1.0 `Assets` balances import into 2.0 genesis as a disclosed pre-mine. They stay **legacy-locked** until the holder completes a **key upgrade** (`ClaimLegacy`) — prove 1.0 control, register 2.0 keys. See [spec 15](specs/15-ledger-import.md) and the [/claim/](/claim/) flow.
+Positive 1.0 `Assets` balances import into 2.0 genesis as a disclosed pre-mine. They stay **legacy-locked** until the holder completes a **key upgrade** (`ClaimLegacy`) — prove 1.0 control, register 2.0 keys. See [spec 15](specs/15-ledger-import.md) and the [/claim/](/claim/) flow. Full account / Equity / grant narrative and Simba numbers: [legacy distribution brief](fragments/legacy-distribution.md) ([GIP-24](gips/gip-24.md)).
+
+### How concentrated is the premine?
+
+Very, by design of 1.0 history: top ~10 names hold ~63% of imported Simba supply; ~2,016 flat **100 GULD** Equity / package-manager grants are ~21%. Many reserved names (e.g. `satoshi`) may never claim — users can treat those as effectively out of circulation. Details and unlock-path split (PGP vs `isysd` attestation): [legacy distribution brief](fragments/legacy-distribution.md).
 
 ### Why move from 1.0 stake to 2.0 PoW?
 

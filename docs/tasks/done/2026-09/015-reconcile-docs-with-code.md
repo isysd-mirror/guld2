@@ -1,6 +1,6 @@
 # Task: Reconcile docs/tasks with consensus code
 
-Status: open
+Status: done
 Priority: **high** (ops / readiness signal)
 GIP:
 Spec: ../specs/06-blocks-and-consensus.md, ../specs/README.md
@@ -23,7 +23,7 @@ External operators following docs alone **mis-assess** Simba risk. That is itsel
 ## Goals
 
 1. Update spec 06 §2.3 / open lists for reorg + timestamps + GIP-22 status.
-2. Rewrite task 007 §C to match reality; move closed blockers out; add [014](./014-enforce-difficulty-on-import.md).
+2. Rewrite task 007 §C to match reality; move closed blockers out; add [014](./014-enforce-difficulty-on-import.md) (done).
 3. Refresh whitepaper §12.1–12.2 shipped/gaps tables (reorg: “core landed, adversarial tests open”).
 4. Update [011](./011-gip-22-miner-rewards.md) / [013](./013-chain-reorg-implementation.md) problem statements and checklists.
 5. Refresh `docs/specs/README.md` implementation matrix + `docs/tasks/README.md` priority table.
@@ -36,13 +36,14 @@ External operators following docs alone **mis-assess** Simba risk. That is itsel
 
 ## Done when
 
-- [ ] Spec 06, whitepaper §12, task 007 §C, specs README matrix, tasks README agree with code
-- [ ] 010 archived under `done/` (already Status: done)
-- [ ] 011 / 013 notes reflect landed vs remaining work
-- [ ] UPGRADE_FROM_1 stale VM goal corrected or clearly marked historical
+- [x] Spec 06, whitepaper §12, task 007 §C, specs README matrix, tasks README agree with code
+- [x] 010 archived under `done/` (already Status: done)
+- [x] 011 / 013 notes reflect landed vs remaining work
+- [x] UPGRADE_FROM_1 stale VM goal corrected or clearly marked historical
 
 ## Notes
 
 ```
 2026-09-26: Opened from external review finding C6 / D5 (doc drift).
+2026-09-26: Spec 06 / whitepaper §12 / UPGRADE_FROM_1 / matrices refreshed; 014 → done.
 ```

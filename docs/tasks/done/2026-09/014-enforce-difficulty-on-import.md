@@ -1,6 +1,6 @@
 # Task: Enforce difficulty schedule on import (GIP-23)
 
-Status: open
+Status: done
 Priority: **high** (Simba beta blocker — add to task 007 §C)
 GIP: ../gips/gip-23.md
 Spec: ../specs/06-blocks-and-consensus.md §2.4–§3
@@ -27,13 +27,15 @@ External review (2026-09-26) rated this **critical**: retarget is miner policy, 
 
 ## Done when
 
-- [ ] Import rejects off-schedule difficulty
-- [ ] Spec 06 updated; GIP-23 → Accepted (or Final when shipped)
-- [ ] Tests green; task 007 §C row closed
+- [x] Import rejects off-schedule difficulty
+- [x] Spec 06 updated; GIP-23 → Accepted
+- [x] Tests green; task 007 §C row closed
 - [ ] Golden vector stub for bad difficulty linked from [021](./021-consensus-golden-vectors.md) (optional until BARE)
 
 ## Notes
 
 ```
 2026-09-26: Opened from external review finding C1 / GIP-23.
+2026-09-26: Shipped — BadDifficulty in check_header/import_block; seal uses next_difficulty;
+  immature ClaimReward skipped at select; seal_block_app lock fix; GIP-23 Accepted.
 ```

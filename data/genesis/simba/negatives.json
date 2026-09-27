@@ -1,0 +1,118 @@
+{
+  "version": 1,
+  "network": "simba",
+  "source": "archives/guld-ledger-all.dat",
+  "measured": "ledger bal --flat Assets",
+  "rule": "imported_balance = max(0, quantity(name:Assets)); names listed here import 0 and remain ClaimLegacy-eligible",
+  "count": 15,
+  "sum_guld": "-1028.2000000000",
+  "sum_quanta": "-10282000000000",
+  "rows": [
+    {
+      "name": "spartan",
+      "assets_guld": "-1000.0000000000",
+      "assets_quanta": "-10000000000000",
+      "pattern": "group_fee_10pct_residue",
+      "note": "Group fee 10,000 − rebate 9,000"
+    },
+    {
+      "name": "hodlmybeer",
+      "assets_guld": "-25.0000000000",
+      "assets_quanta": "-250000000000",
+      "pattern": "group_fee_10pct_residue",
+      "note": "Group fee 250 − rebate 225"
+    },
+    {
+      "name": "300e",
+      "assets_guld": "-2.0000000000",
+      "assets_quanta": "-20000000000",
+      "pattern": "group_fee_10pct_residue",
+      "note": "Group fee 20 − rebate 18"
+    },
+    {
+      "name": "mozilla1",
+      "assets_guld": "-0.1000000000",
+      "assets_quanta": "-1000000000",
+      "pattern": "individual_fee_10pct_residue",
+      "note": "Individual fee 1 − rebate 0.9"
+    },
+    {
+      "name": "w1ll1am",
+      "assets_guld": "-0.1000000000",
+      "assets_quanta": "-1000000000",
+      "pattern": "individual_fee_10pct_residue",
+      "note": "Individual fee 1 − rebate 0.9"
+    },
+    {
+      "name": "ira",
+      "assets_guld": "-0.1000000000",
+      "assets_quanta": "-1000000000",
+      "pattern": "individual_fee_10pct_residue",
+      "note": "Individual fee 1 − rebate 0.9"
+    },
+    {
+      "name": "annawanderer",
+      "assets_guld": "-0.1000000000",
+      "assets_quanta": "-1000000000",
+      "pattern": "individual_fee_no_rebate",
+      "note": "Individual fee 0.1, no rebate"
+    },
+    {
+      "name": "ayayay",
+      "assets_guld": "-0.1000000000",
+      "assets_quanta": "-1000000000",
+      "pattern": "individual_fee_no_rebate",
+      "note": "Individual fee 0.1, no rebate"
+    },
+    {
+      "name": "babybeatrice",
+      "assets_guld": "-0.1000000000",
+      "assets_quanta": "-1000000000",
+      "pattern": "individual_fee_no_rebate",
+      "note": "Individual fee 0.1, no rebate"
+    },
+    {
+      "name": "defrancod",
+      "assets_guld": "-0.1000000000",
+      "assets_quanta": "-1000000000",
+      "pattern": "individual_fee_no_rebate",
+      "note": "Individual fee 0.1, no rebate"
+    },
+    {
+      "name": "ganguskhan",
+      "assets_guld": "-0.1000000000",
+      "assets_quanta": "-1000000000",
+      "pattern": "individual_fee_no_rebate",
+      "note": "Individual fee 0.1, no rebate"
+    },
+    {
+      "name": "hnathan",
+      "assets_guld": "-0.1000000000",
+      "assets_quanta": "-1000000000",
+      "pattern": "individual_fee_no_rebate",
+      "note": "Individual fee 0.1, no rebate"
+    },
+    {
+      "name": "jaimec",
+      "assets_guld": "-0.1000000000",
+      "assets_quanta": "-1000000000",
+      "pattern": "individual_fee_no_rebate",
+      "note": "Individual fee 0.1, no rebate"
+    },
+    {
+      "name": "lucerogray94",
+      "assets_guld": "-0.1000000000",
+      "assets_quanta": "-1000000000",
+      "pattern": "individual_fee_no_rebate",
+      "note": "Individual fee 0.1, no rebate"
+    },
+    {
+      "name": "melmanci",
+      "assets_guld": "-0.1000000000",
+      "assets_quanta": "-1000000000",
+      "pattern": "individual_fee_no_rebate",
+      "note": "Individual fee 0.1, no rebate"
+    }
+  ],
+  "brief": "../../../docs/fragments/legacy-distribution.md#41-negative-assets-appendix-simba--live-journal"
+}

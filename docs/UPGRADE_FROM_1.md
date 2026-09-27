@@ -34,7 +34,7 @@ External tokens may still be useful later as **bridges or optional settlement**,
 Goals:
 
 - Lean validators (no multi-identity / email archaeology per block)
-- First-class **cosign** + **gas-metered** rules VM
+- First-class **cosign** + **fixed tx vocabulary** (weight fees; **no** on-chain app/rules VM — leaf logic off-L0; see whitepaper §4 / §8.2)
 - Preserve **historical balances** 1:1 via import from `ledger-guld`; unlock spend with **key upgrade** (`ClaimLegacy`)
 - BTC/ETH/SOL-class security bar; differentiate on signed personal trees and identity-first witness hub (cross-chain = dapp-layer — spec 13 informative)
 

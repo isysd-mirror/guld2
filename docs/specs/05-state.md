@@ -65,7 +65,7 @@ trait StateBackend {
 Genesis MUST:
 
 1. Create account `guld` with initial `master_hash` pointing at genesis protocol tree.  
-2. Apply the 1.0 import manifest ([`15-ledger-import.md`](15-ledger-import.md)): every positive member `name:Assets` as a **legacy-locked** balance; **omit** ERC20 protocol buckets; pin `import_manifest_hash`. Supply **x = 959,947.19527052 GULD** (Simba locked — A7).  
+2. Apply the 1.0 import manifest ([`15-ledger-import.md`](15-ledger-import.md)): every positive member `name:Assets` as a **legacy-locked** balance; **omit** ERC20 protocol buckets; pin `import_manifest_hash`. Supply **x = 960,975.39527052 GULD** (Simba — A7 / task 016).  
 3. Set `chain_id`, initial weight params, fee params, subsidy schedule digest (**(2/3)^(y−1)** floored at **4%**, 10-min blocks), **10** decimal places.
 
 Spend from imported names is disabled until `ClaimLegacy`.

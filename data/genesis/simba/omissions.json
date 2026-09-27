@@ -1,0 +1,31 @@
+{
+  "version": 1,
+  "network": "simba",
+  "source": "archives/guld-ledger-all.dat",
+  "measured": "ledger bal --flat Assets",
+  "rule": "Not imported into circulating 2.0 premine; do not double-count into member Assets roots",
+  "buckets": [
+    {
+      "account": "guld:Assets:ERC20",
+      "guld": "100000.0000000000",
+      "quanta": "1000000000000000",
+      "treatment": "omit",
+      "reason": "Foreign-mirror / ERC20 protocol bucket; not member *:Assets"
+    },
+    {
+      "account": "mizim:Assets:Credit:bitcoin",
+      "guld": "1000.0000000000",
+      "quanta": "10000000000000",
+      "treatment": "omit",
+      "reason": "Credit subtree under Assets; root mizim:Assets already imported separately"
+    },
+    {
+      "account": "mizim:Assets:Credit:ethereum",
+      "guld": "1000.0000000000",
+      "quanta": "10000000000000",
+      "treatment": "omit",
+      "reason": "Credit subtree under Assets; root mizim:Assets already imported separately"
+    }
+  ],
+  "brief": "../../../docs/fragments/legacy-distribution.md#7-omitted-buckets"
+}

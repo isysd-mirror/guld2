@@ -35,8 +35,8 @@ Peers that share the **same height-0 artifacts** can already run a consistent Si
 ### Not yet ready to **lock block 0** (implementation)
 
 - [x] Acknowledged — **A1–A11 decisions** recorded in specs + GIPs ([GIP-9](../gips/gip-9.md) Final, [GIP-14](../gips/gip-14.md) Accepted)
-- [ ] Acknowledged — **Section C blockers** still open — [014](./014-enforce-difficulty-on-import.md), [009](./009-bare-wire-implementation.md), [012](./012-simba-genesis-ceremony.md), [019](./019-dual-miner-reorg-integration-test.md), [015](./015-reconcile-docs-with-code.md), [016](./016-reconcile-genesis-x-vs-manifest.md); timestamps **done**; reorg/GIP-22 **core landed**
-- [ ] Acknowledged — Genesis ceremony **G2–G4 landed** — [012](./012-simba-genesis-ceremony.md) (tip `0xc4a017…`; one more reset OK)
+- [ ] Acknowledged — **Section C blockers** still open — [009](./009-bare-wire-implementation.md), [012](./012-simba-genesis-ceremony.md); timestamps / difficulty / docs / **`x` reconcile** / **dual-miner reorg** **done**
+- [ ] Acknowledged — Genesis ceremony **G2–G4 landed** — [012](./012-simba-genesis-ceremony.md) (tip `0xadbff540…`; one more reset OK)
 - [ ] Acknowledged — Operators must use artifact genesis only on Simba (no post-hoc `--import-ledger`)
 - [ ] Acknowledged — Remaining reset triggers: **G2** ceremony output, BARE `TxId` cutover, GIP-22 activation height
 
@@ -58,7 +58,7 @@ Consensus / genesis — each row needs a **decision**, spec update, and implemen
 | A4 | Account / tx codec freeze | [02](../specs/02-identity-and-accounts.md), [03](../specs/03-transactions.md) | **Locked:** BARE wire (A2); dual-wire P2P v1 JSON + v2 BARE ([009](./009-bare-wire-implementation.md)); JSON HTTP-only at boundary | [x] | [x] | [x] |
 | A5 | `LegacyOwnershipProof` packet profile | [15](../specs/15-ledger-import.md), [03](../specs/03-transactions.md) | **Normative v1:** `pgp_cleartext_v1`, `isysd_attestation_v1`, `dev_unlock_v1` (spec 15 §5.1) | [x] | [x] | [x] |
 | A6 | Empty-key locked accounts: `threshold=0` vs explicit flag | [15](../specs/15-ledger-import.md) | **Locked v1:** `keys=[]`, `threshold=0` on import; authoritative lock = `legacy.status=locked` (spec 15 §8) | [x] | [x] | [x] |
-| A7 | Final-ish **x** / import manifest hash | [15](../specs/15-ledger-import.md), [07](../specs/07-fees-and-tokenomics.md) | **Locked:** manifest hash `0xd5f12f6df4ab2b802ed6957b08d7c104d9eae0878decb10728f7e20975e2df27`; **x ≈ 959,947.19527052 GULD** (maintainer confirmed) | [x] | [x] | [x] |
+| A7 | Final-ish **x** / import manifest hash | [15](../specs/15-ledger-import.md), [07](../specs/07-fees-and-tokenomics.md) | **Locked:** manifest hash `0x59a39af461d66fa1ef892708f8fa8838684d812cccfbe253816a34f448980e70`; **x = 960,975.39527052 GULD** (= row sum; task 016) | [x] | [x] | [x] |
 | A8 | `L_cap` / premium table | [07](../specs/07-fees-and-tokenomics.md) | **Locked:** `L_cap = 6`; `F_user(L)` letter table; `F_group(L,n) = F_user(L) × (2+n)` (spec 07 §3.1) | [x] | [x] | n/a |
 | A9 | Genesis embeds `import_manifest_hash` | [15](../specs/15-ledger-import.md) | Set in artifact genesis build | [x] | [x] | [x] |
 | A10 | Timestamp drift bounds | [06](../specs/06-blocks-and-consensus.md) | **Locked:** MTP (11-block median) + max **+2 h** future skew — [010](../done/2026-09/010-header-timestamp-validation.md) **done** | [x] | [x] | n/a |
@@ -96,19 +96,18 @@ Track here so they do not block beta.
 
 | Blocker | Impact | Task |
 |---------|--------|------|
-| **Difficulty schedule** not enforced on import | Retarget is miner policy; peers can diverge | [014](./014-enforce-difficulty-on-import.md) ([GIP-23](../gips/gip-23.md)) |
 | **A4 BARE wire** dual-wire landed; W7 datadir JSON remains | Datadir still JSON; TS vectors deferred | [009](./009-bare-wire-implementation.md) |
 | **Genesis ceremony** G2–G4 landed (one more reset OK) | Operators must wipe datadir on next reset | [012](./012-simba-genesis-ceremony.md) |
-| **Dual-miner reorg** unproven | Core reorg landed; no adversarial P2P test | [019](./019-dual-miner-reorg-integration-test.md) + [013](./013-chain-reorg-implementation.md) / [006](./006-chain-lifecycle-tests.md) phase 4 |
-| **Docs ≠ code** | Operators mis-assess readiness | [015](./015-reconcile-docs-with-code.md) |
-| **`x` ≠ manifest sum** | A7 “locked” pin off by **+328.2 GULD** | [016](./016-reconcile-genesis-x-vs-manifest.md) ([GIP-24](../gips/gip-24.md)) |
 
 ### C — closed or largely landed (keep visible)
 
 | Item | Status | Task |
 |------|--------|------|
 | **A10 timestamps** | **Done** — MTP + 2 h enforced | [010](../done/2026-09/010-header-timestamp-validation.md) |
-| **Chain reorg core** | Landed (`chain_reorg.rs`); tests open | [013](./013-chain-reorg-implementation.md) → [019](./019-dual-miner-reorg-integration-test.md) |
+| **GIP-23 difficulty schedule** | **Done** — import rejects off-schedule | [014](../done/2026-09/014-enforce-difficulty-on-import.md) |
+| **Docs ↔ code** | **Done** — spec 06 / §12 / matrices refreshed | [015](../done/2026-09/015-reconcile-docs-with-code.md) |
+| **`x` = manifest sum** | **Done** — remapped 7 names; tip `0xadbff540…` | [016](../done/2026-09/016-reconcile-genesis-x-vs-manifest.md) |
+| **Chain reorg** | **Done** — core + dual-miner P2P test | [013](../done/2026-09/013-chain-reorg-implementation.md), [019](../done/2026-09/019-dual-miner-reorg-integration-test.md) |
 | **GIP-22 rewards** | Commit/claim path in consensus; checklist / footguns remain | [011](./011-gip-22-miner-rewards.md), [020](./020-remove-credit-miner-footguns.md) |
 
 ## C2. Other gaps (track; do not over-promise)
@@ -118,8 +117,8 @@ Track here so they do not block beta.
 | **Mempool not persisted** | Pending txs lost on restart | [008](./008-mempool-persistence.md) |
 | Specs **draft** banner | Cosmetic until A1–A11 locked | Promote specs as rows complete |
 | Node RPC lifecycle tests partial | Register + transfer only on dev smoke | Extend 006 |
-| Omitted ERC20 size / negatives appendix | Premine disclosure incomplete | [018](./018-publish-omitted-buckets-and-negatives.md) |
-| Peer-security rhetoric | Overclaim vs parameter-class PoW | [017](./017-whitepaper-risks-and-rhetoric.md) |
+| Omitted ERC20 size / negatives appendix | **Done** — `negatives.json` + `omissions.json` | [018](../done/2026-09/018-publish-omitted-buckets-and-negatives.md) |
+| Peer-security rhetoric | Overclaim vs parameter-class PoW | [017](../done/2026-09/017-whitepaper-risks-and-rhetoric.md) **done** |
 | Golden vectors | Multi-impl credibility | [021](./021-consensus-golden-vectors.md) ([GIP-26](../gips/gip-26.md)) |
 | Attestation centralization | Unbound supply gated on `isysd` | [GIP-25](../gips/gip-25.md) Draft (no impl task yet) |
 
@@ -143,7 +142,7 @@ When A-section decisions are **good enough for testnet** (not necessarily mainne
 ## Done when
 
 - [ ] Every **A1–A11** row has a decision recorded (in spec or genesis README) — decisions done; **A4 code** still open; **A10 code done**
-- [ ] **Section C Simba blockers** closed (difficulty enforce, BARE, genesis ceremony, dual-miner reorg test, docs sync, `x` reconcile)
+- [ ] Section C Simba blockers closed (BARE, genesis ceremony) — difficulty + docs + **`x` reconcile** + **dual-miner reorg** **done**
 - [ ] **G1–G4** genesis ceremony complete or explicitly waived with published reset policy
 - [ ] **D1–D6** comms/ops checklist complete
 - [ ] Task moved to `done/YYYY-MM/` with link to announced beta (or closed as “blocked on A_”)
@@ -154,18 +153,19 @@ _Use this section as you go — date, decision, link to commit/spec._
 
 ```
 2026-09-26: A1 locked — SHA256d PoW + **2016-block** retarget + **leading-zero bits** (not `nBits`; see pow-nbits-vs-leading-bits.md). Comparison chart: bitcoin-guld-comparison.md. A10 bounds in spec 06 §3; **enforcement done** ([010](../done/2026-09/010-header-timestamp-validation.md)).
-2026-09-26: **Coinbase maturity = 100 blocks** locked (spec 06 §4) — same game theory as Bitcoin; implementation deferred with reorg.
+2026-09-26: **Coinbase maturity = 100 blocks** locked (spec 06 §4) — same game theory as Bitcoin; GIP-22 commit/claim **landed**; maturity enforced on `ClaimReward` inclusion; remaining hygiene [011](./011-gip-22-miner-rewards.md) / [020](./020-remove-credit-miner-footguns.md).
 2026-09-26: **A2 locked — BARE** wire codec (see wire-codec-comparison.md, schemas/README.md). Implementation + `.bare` files + vectors pending.
 2026-09-26: **A3 locked** — `AccountId` preimages promoted from `guld-state` (spec 02 §3.1).
 2026-09-26: **A11 locked** — no reserved foreign names at genesis; cross-chain = dapp/leaf research (spec 13 informative).
 2026-09-26: **A5 normative** — LegacyOwnershipProof profiles frozen in spec 15 §5.1.
 2026-09-26: **A4 implementation** — tracked in [009-bare-wire-implementation.md](./009-bare-wire-implementation.md).
 2026-09-26: **A6 locked** — empty keys + threshold 0 on legacy import; lock bit is `legacy.status` (spec 15 §8).
-2026-09-26: **A7 locked** — full 1.0 manifest approved; hash 0xd5f12…; x ≈ 959,947.19527052 GULD.
+2026-09-26: **A7 locked** — full 1.0 manifest; hash 0x59a39af…; **x = 960,975.39527052 GULD** (= row sum after task 016 remap). Prior net-x pin 959,947… obsolete.
 2026-09-26: **A8 locked** — L_cap=6 letter table; F_group = F_user × (2+n).
 2026-09-26: **A10 locked** — MTP + 2 h future bound; **code done** ([010](../done/2026-09/010-header-timestamp-validation.md)).
 2026-09-26: **Reorg** = Simba blocker (not acceptable gap); [013](./013-chain-reorg-implementation.md) + [006](./006-chain-lifecycle-tests.md) phase 4.
 2026-09-26: Doc sync — GIP-9 Final, GIP-14 Accepted + Simba pin; gip-4/11/12/13; spec 01/06/07 open-params.
 2026-09-26: Spec review — tasks [011](./011-gip-22-miner-rewards.md), [012](./012-simba-genesis-ceremony.md), [013](./013-chain-reorg-implementation.md); matrix in specs/README.md + tasks/README.md.
 2026-09-26: External review → GIP-23..26; tasks 014–021; §C refreshed (timestamps done; difficulty/`x`/docs/reorg-test = blockers); 010 → done/2026-09/.
+2026-09-26: **GIP-23 shipped** ([014](../done/2026-09/014-enforce-difficulty-on-import.md)); **docs sync** ([015](../done/2026-09/015-reconcile-docs-with-code.md)).
 ```

@@ -89,7 +89,7 @@ For each header, `work(header) = 2^difficulty` (saturating at `u128` limits).
 choose_tip(candidates) -> tip with max cumulative_work, then height, then hash
 ```
 
-Reorgs MUST replay the heavier chain once rewind is implemented in `guld-node` (today: forward sync only).
+Reorgs MUST rewind to the common ancestor and replay the heavier fork under [`choose_tip`](#23-chain-work-and-fork-choice). Reference implementation: `guld-node` `chain_reorg.rs` (max depth **2016**). Dual-miner adversarial coverage: [task 019](../tasks/done/2026-09/019-dual-miner-reorg-integration-test.md) (**done**).
 
 ### 2.4 Difficulty retarget (locked v1 — Bitcoin 2016-block window)
 
@@ -134,16 +134,17 @@ A block header is valid if:
 
 1. Links to parent under fork choice (single `prev_hash` in v1).  
 2. PoW meets `difficulty` (§2), except height 0.  
-3. **Timestamp (Bitcoin-inspired, locked v1 — task 007 A10):**  
+3. **Difficulty schedule (locked — [GIP-23](../gips/gip-23.md)):** for `height ≥ 1`, `header.difficulty` MUST equal `next_difficulty(height, parent, period_start)` (§2.4). At retarget boundaries (`height % 2016 == 0`), `period_start` MUST be the header at `height - 2016`. Full nodes MUST reject mismatches with a distinct error (e.g. `BadDifficulty`) on import, seal, and P2P relay.  
+4. **Timestamp (Bitcoin-inspired, locked v1 — task 007 A10):**  
    - MUST be **greater** than the median timestamp of the prior up-to-**11** blocks (median-time-past).  
    - MUST NOT be more than **2 hours** ahead of local wall clock at validation.  
-   - Full nodes MUST reject headers violating (3) on import and P2P relay. Implementation: [task 010](../tasks/open/010-header-timestamp-validation.md).  
-4. All txs valid and apply cleanly.  
-5. Roots match post-state.  
-6. Coinbase amount = `subsidy(height) + inclusion_fees + vested_registration_fees(height)`.  
-7. `guld_rules_hash` matches the rule bundle active at this height ([`17-protocol-upgrades.md`](17-protocol-upgrades.md)).
+   - Full nodes MUST reject headers violating (4) on import and P2P relay. Implementation: [task 010](../tasks/done/2026-09/010-header-timestamp-validation.md) (**done**).  
+5. All txs valid and apply cleanly.  
+6. Roots match post-state.  
+7. Coinbase amount = `subsidy(height) + inclusion_fees + vested_registration_fees(height)`.  
+8. `guld_rules_hash` matches the rule bundle active at this height ([`17-protocol-upgrades.md`](17-protocol-upgrades.md)).
 
-Full block validity includes (3)–(7) on the body; header-only sync checks (1)–(3) + PoW.
+Full block validity includes (4)–(8) on the body; header-only sync checks (1)–(4) + PoW.
 
 Registration/settle protocol fees vest over **8** blocks ([`07-fees-and-tokenomics.md`](07-fees-and-tokenomics.md) §3).
 
@@ -169,11 +170,11 @@ reward_commit(h).amount = subsidy(h) + inclusion_fees + vested_registration_fees
 
 **Inclusion fees in block `h`:** summed from `txs[1..]` only; included in `reward_commit(h).amount` and minted when block **`h`**’s claim is included (~`h + 100`). **`ClaimReward.inclusion_fee`** in block **`B`** accrues to **`B`’s** miner via **`B`’s** `inclusion_fees` / future `RewardCommit` — not retroactively to block **`h`**.
 
-**Why (game theory):** deferred mint avoids issuing on orphaned blocks before reorg support exists; maturity is an **inclusion** rule on `ClaimReward`, not a mempool ban.
+**Why (game theory):** deferred mint avoids issuing spendable subsidy on blocks that may later be orphaned by reorg; maturity is an **inclusion** rule on `ClaimReward`, not a mempool ban.
 
 **Miner operations:** pre-sign claims at seal time (often via subaccount `parent.rewards`); retain ~**100** pending claims; persist across restarts ([task 008](../tasks/open/008-mempool-persistence.md)).
 
-**Activation:** GIP-22 is **Accepted** in specs; reference code MUST switch from legacy `credit_miner()` at the rule bundle **`activation_height`** ([`17-protocol-upgrades.md`](17-protocol-upgrades.md)). Chains already running implicit coinbase require a migration cutover GIP if not reset.
+**Activation:** GIP-22 is **Accepted**; reference code uses `RewardCommit` / `ClaimReward` on Simba (no legacy `credit_miner` on the consensus path). Remaining hygiene: drop/gate dead `credit_miner` ([task 020](../tasks/open/020-remove-credit-miner-footguns.md)). Chains that still ran implicit coinbase require a migration cutover GIP or reset.
 
 ## 5. Subsidy
 
@@ -194,8 +195,9 @@ trait Consensus {
 
 ## 7. Open parameters (post–PoW freeze)
 
-- **GIP-22 implementation** (`RewardCommit`, `ClaimReward`, drop `credit_miner`) + spec-17 activation height  
-- Timestamp drift enforcement rollout in `check_header`  
+- Drop/gate dead `credit_miner` + document activation ([task 020](../tasks/open/020-remove-credit-miner-footguns.md))  
+- Dual-miner adversarial reorg test — **done** ([task 019](../tasks/done/2026-09/019-dual-miner-reorg-integration-test.md))  
 - DAG-PoW / multi-parent headers (research — not v1)  
 - Merged-mining witness format (future GIP)  
 - Rules activation margins per network ([`17-protocol-upgrades.md`](17-protocol-upgrades.md))
+- Consensus golden vectors ([task 021](../tasks/open/021-consensus-golden-vectors.md) / [GIP-26](../gips/gip-26.md))

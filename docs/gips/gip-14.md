@@ -46,26 +46,28 @@ Optional later: bridges to external tokens for settlement, after the native ledg
 | Item | Value |
 |------|--------|
 | Journal period | 2016-06-01 → 2018-12-09 |
-| Member circulating (`*:Assets` roots) = **x** | **959,947.19527052** GULD (locked — task 007 A7) |
+| Member circulating (imported rows) = **x** | **960,975.39527052** GULD (locked — task 007 A7 / 016); see [legacy distribution](../fragments/legacy-distribution.md) |
 | ERC20 / protocol mirrors | **omitted** from import |
-| Positive holders | ≈ 2,217 |
+| Positive holders | **2,217** |
+| Distribution disclosure | [GIP-24](gip-24.md) / [`../fragments/legacy-distribution.md`](../fragments/legacy-distribution.md) |
 | Max decimal places in amounts | **10** → freeze 2.0 decimals at 10 |
 | Block time | **10 minutes** |
 | Inflation | `max(0.04, (2/3)^(y-1))` — year 1 **100%**, then two-thirds decay to **4%** |
 
-## Simba genesis pin (A7 — 2026-09-26)
+## Simba genesis pin (A7 / 016 — 2026-09-26)
 
-Full 1.0 ledger in committed manifest:
+Full 1.0 ledger in committed manifest (hyphen names remapped):
 
 | Field | Value |
 |-------|--------|
 | Artifact | [`data/genesis/simba/import-manifest.json`](../../data/genesis/simba/import-manifest.json) |
-| `import_manifest_hash` | `0xd5f12f6df4ab2b802ed6957b08d7c104d9eae0878decb10728f7e20975e2df27` |
-| **x** | **959,947.19527052 GULD** |
-| Holders | ≈ 2,217 positive member roots |
+| `import_manifest_hash` | `0x59a39af461d66fa1ef892708f8fa8838684d812cccfbe253816a34f448980e70` |
+| **x** | **960,975.39527052 GULD** (= sum of rows) |
+| Holders | **2,217** positive import rows |
+| Tip | `0xadbff5409912ffa96fee913b3775b471eaca58b26323465ec41a400f86a1cd96` |
 | Omitted | ERC20 / foreign-mirror buckets |
 
-Mainnet MAY re-audit before its own genesis ceremony; Simba testnet treats this pin as locked.
+Mainnet MAY re-audit before its own genesis ceremony; Simba testnet treats this pin as locked (one more reset OK per G4).
 
 ## Normative claim profiles (spec 15 §5.1)
 
@@ -75,7 +77,7 @@ Mainnet MAY re-audit before its own genesis ceremony; Simba testnet treats this 
 | `isysd_attestation_v1` | Unbound names only |
 | `dev_unlock_v1` | Local dev — never mainnet |
 
-Legacy import: `keys = []`, `threshold = 0` until claim; lock enforced by `legacy.status = locked` (spec 15 §8). **ClaimLegacy** keeps the imported name unchanged (no rename).
+Legacy import: `keys = []`, `threshold = 0` until claim; lock enforced by `legacy.status = locked` (spec 15 §8). **ClaimLegacy** keeps the **imported** (post-remap) name unchanged.
 
 ## Acceptance
 

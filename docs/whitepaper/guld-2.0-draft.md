@@ -1,6 +1,6 @@
 # Guld 2.0 Whitepaper
 
-**Version:** 0.25  
+**Version:** 0.26  
 **Date:** 2026-09-26  
 **Token:** GULD (native)  
 **Specifications:** [`../specs/README.md`](../specs/README.md) · **Glossary:** [§14](#14-glossary)
@@ -11,11 +11,11 @@
 
 ## Abstract
 
-Guld 2.0 is a **global, identity-focused DeFi layer-0**: a **PoW-anchored namespace and witness substrate** where people, groups, and unbounded dapps share one address space of **usernames**, **content hashes**, and **enumerated proofs**. The chain records that an account achieved consensus on a new **head** (master hash). It does not interpret why they signed, run their private scripts, or adjudicate their disputes.
+Guld 2.0 is a **global, identity-focused layer-0**: a **PoW-anchored namespace and witness substrate** where people, groups, and unbounded dapps share one address space of **usernames**, **content hashes**, and **enumerated proofs**. Named accounts settle **transfers and grants** under a fixed tx vocabulary (identity-addressed settlement — not a general DeFi VM). The chain records that an account achieved consensus on a new **head** (master hash). It does not interpret why they signed, run their private scripts, or adjudicate their disputes.
 
-**Cross-chain and foreign-chain witnessing are not built into Simba v1.** Bridge builders, indexers, and exchange dapps **register ordinary names** (pay letter fees like anyone else) and ship **leaves** that MAY coordinate with Bitcoin, Ethereum, Solana, or other networks off-chain. A hypothetical **guldex** or lightning-style channel dapp **could** read foreign state, build application proofs, and settle by advancing **its** name’s tip—or by posting ordinary Guld txs—but that is **dapp capability**, not a protocol guarantee. The network is **not a general VM**: it validates fixed transaction schemas, checks hashes and signatures, and applies a small set of built-in state updates. **Everything else**—games, exchanges, rollups-as-leaves, agents—lives in **leaves**, on custom domains. Clients talk to full nodes only over the node’s **HTTP API** or **JSON-RPC** (or a proxy in front)—not consensus opcodes. Between leaves, dapps coordinate however they choose (HTTPS, IPC, in-process, …). Validators stay lean on keys, tips, and balances. Optional git and PGP remain **leaf** tools, not the consensus bus.
+**Cross-chain and foreign-chain witnessing are not built into Simba v1.** Bridge builders, indexers, and exchange dapps **register ordinary names** (pay letter fees like anyone else) and ship **leaves** that MAY coordinate with Bitcoin, Ethereum, Solana, or other networks off-chain. A hypothetical **guldex** or lightning-style channel dapp **could** read foreign state, build application proofs, and settle by advancing **its** name’s tip—or by posting ordinary Guld txs—but that is **dapp capability**, not a protocol guarantee ([§3.4](#34-addressing-referencing-and-cross-chain-dapp-patterns)). The network is **not a general VM**: it validates fixed transaction schemas, checks hashes and signatures, and applies a small set of built-in state updates. **Everything else**—games, exchanges, rollups-as-leaves, agents—lives in **leaves**, on custom domains. Clients talk to full nodes only over the node’s **HTTP API** or **JSON-RPC** (or a proxy in front)—not consensus opcodes. Between leaves, dapps coordinate however they choose (HTTPS, IPC, in-process, …). Validators stay lean on keys, tips, and balances. Optional git and PGP remain **leaf** tools, not the consensus bus.
 
-Fees follow a **Bitcoin-style weight market** (GULD per virtual byte), not an EVM gas ISA. Emission and **double-SHA256 PoW** align open membership with scarce block space (DAG-PoW remains a research upgrade path). Each account is responsible for what it **witnesses** and **cowitnesses**.
+Fees follow a **Bitcoin-style weight market** (GULD per virtual byte), not an EVM gas ISA. Emission uses **double-SHA256 PoW** with Bitcoin-**parameter** timing (≈10 min blocks, 2016-block retarget) — that is a **parameter class**, not a claim of Bitcoin-class **security budget** ([§11](#11-security-notes-and-risks)). Each account is responsible for what it **witnesses** and **cowitnesses**.
 
 ---
 
@@ -46,11 +46,11 @@ Guld 2.0 is an **L0 witness hub** for **registered identities**: settlement of f
 | Goal | Meaning |
 |------|---------|
 | **L0 substrate** | Names + proofs + PoW anchoring under people and groups |
-| Identity-first DeFi | Transfers, grants, and permissions bind to **usernames / groups** |
+| Identity-first settlement | Transfers, grants, and permissions bind to **usernames / groups** (not a general DeFi VM) |
 | Flexible leaves / dapps | **No app ceiling** — leaves run any stack; Guld only witnesses heads |
 | Cross-chain (dapp layer) | **Theoretical** bridge/indexer/exchange patterns — not reserved L0 names ([`../specs/13-foreign-chains.md`](../specs/13-foreign-chains.md) informative) |
 | Network as witness | Verifies **Guld** proofs and records heads — does not re-execute app or foreign VM logic |
-| PoW security class | Open membership and scarce block space in the BTC/ETH/SOL security conversation |
+| PoW **parameter** class | SHA256d, ≈10 min blocks, 2016-block / 14-day retarget ([spec 06](../specs/06-blocks-and-consensus.md)) — open membership and scarce space; **not** a peer-class hashrate / rewrite-cost claim ([§11](#11-security-notes-and-risks)) |
 | Lean validators | No requirement to index social graphs or execute leaf interpreters |
 
 ### 1.4 Target user story
@@ -69,7 +69,7 @@ Steps 6–7 are **ecosystem UX** (extension and dapp conventions). They are not 
 
 ### 1.5 Ecosystem comparison (draft)
 
-Comparative sketch for positioning — not a feature checklist or investment advice. Guld 2.0 is an **L0 witness hub** (names, tips, balances, PoW headers) — not a general VM L1. It uses **Bitcoin-class SHA256d PoW** ([spec 06](../specs/06-blocks-and-consensus.md)); cross-chain is **dapp-layer** in v1 ([spec 13](../specs/13-foreign-chains.md) informative). Hard fork / 1.0 continuity: [`../FAQ.md`](../FAQ.md).
+Comparative sketch for positioning — not a feature checklist or investment advice. Guld 2.0 is an **L0 witness hub** (names, tips, balances, PoW headers) — not a general VM L1. It uses **Bitcoin-parameter PoW** (SHA256d, ≈10 min, 2016-block retarget — [spec 06](../specs/06-blocks-and-consensus.md)); early-network **security budget** (hashrate × depth) is **not** Bitcoin-class ([§11](#11-security-notes-and-risks)). Cross-chain is **dapp-layer** in v1 ([spec 13](../specs/13-foreign-chains.md) informative). Hard fork / 1.0 continuity: [`../FAQ.md`](../FAQ.md).
 
 **Thesis in one row:** address by **name**, commit by **hash**, authorize by **proof** — leaves stay unbounded; the chain witnesses heads rather than re-running leaf politics.
 
@@ -463,7 +463,7 @@ The network has a **fixed transaction vocabulary**. There is no user-defined opc
 |-----|-------------|
 | **Transaction fees** | Weight-priced inclusion fees → **miners** |
 | **Registration fees** | `F_user(L)` / `F_group(L, n)` / `F_sub` → **block miner** (§8.7; anti-spam lottery) |
-| **Transfers / DeFi** | Settlements between named identities |
+| **Transfers / named settlement** | Settlements between named identities |
 | **Miner rewards** | Block subsidy (PoW issuance) + inclusion fees + registration fees |
 
 Hard fork from 1.0: import every positive `*:Assets` balance from `archives/ledger-guld` as genesis pre-mine **x**, then unlock per name via **key upgrade** (spec: [`../specs/15-ledger-import.md`](../specs/15-ledger-import.md); GIP: [`../gips/gip-14.md`](../gips/gip-14.md)). See §8.6.
@@ -502,13 +502,13 @@ If average tip update ≈ 300 vB and block weight limit = 4 M:
 | 1 | ~13 000 |
 | (DAG parallel blocks) | higher; specify in client |
 
-Sig-heavy tips consume more weight → self-limit. Target remains **PoW base-layer class**, not Visa.
+Sig-heavy tips consume more weight → self-limit. Target remains **scarce PoW block space** (Bitcoin-**parameter** interval and weight caps), not Visa-class payment rails.
 
 ### 8.6 Supply, pre-mine, and issuance
 
 #### Pre-existing GULD as genesis pre-mine
 
-Guld 2.0 is a **hard fork** that respects 1.0 balances: every positive member `name:Assets` from the `ledger-guld` snapshot is imported **1:1** at genesis as disclosed pre-mine **x** (~**960k GULD**, **≈ 2,217** holders). ERC20 / protocol mirror buckets are **omitted**. Amounts use **10** decimal places. Genesis embeds a verifiable **import manifest hash** ([GIP-14](../gips/gip-14.md), [`../specs/15-ledger-import.md`](../specs/15-ledger-import.md) §2.1) — network-specific pins live in genesis artifacts, not in this document.
+Guld 2.0 is a **hard fork** that respects 1.0 balances: every positive member `name:Assets` from the `ledger-guld` snapshot is imported **1:1** at genesis as disclosed pre-mine **x** (~**960k GULD**, **≈ 2,217** holders). ERC20 / protocol mirror buckets are **omitted**. Amounts use **10** decimal places. Genesis embeds a verifiable **import manifest hash** ([GIP-14](../gips/gip-14.md), [`../specs/15-ledger-import.md`](../specs/15-ledger-import.md) §2.1) — network-specific pins live in genesis artifacts, not in this document. **Distribution disclosure** (concentration, Equity / package-manager grants, fee negatives, unlock-path split, `x` reconciliation): [`../fragments/legacy-distribution.md`](../fragments/legacy-distribution.md) ([GIP-24](../gips/gip-24.md)). Continuity is **1:1 historical balances**, not peer-fair initial allocation.
 
 #### Respect balances; unlock via key upgrade
 
@@ -518,9 +518,9 @@ Import creates **legacy-locked** accounts: balance is on-chain, but spend and ti
 
 #### Block time and inflation **shape**
 
-**~10 minute** blocks, Bitcoin-class retarget ([spec 06](../specs/06-blocks-and-consensus.md)). Annual inflation **i(y)** decays by **two-thirds each year**, floored at **4%** from year 9 — year 1 opens at **100%** (strong bootstrap), then cools. Subsidy steps every **2016 blocks** (aligned with retarget). Starting supply **S(0) = x**.
+**~10 minute** blocks, Bitcoin-**parameter** retarget (2016 blocks / 14-day window, 4× clamp — [spec 06](../specs/06-blocks-and-consensus.md); schedule enforced on import — [GIP-23](../gips/gip-23.md)). Annual inflation **i(y)** decays by **two-thirds each year**, floored at **4%** from year 9 — year 1 opens at **100%** (strong bootstrap), then cools. Subsidy steps every **2016 blocks** (aligned with retarget). Starting supply **S(0) = x**.
 
-**Why (2/3) decay:** slower paths stay too hot for a decade; this reaches a **4%** security tail without a cliff.
+**Why (2/3) decay:** slower paths stay too hot for a decade; this reaches a **4%** issuance tail without a cliff. That is an **issuance** design toward a long-run miner budget — not a promise that early hashrate matches large PoW networks.
 
 **Exact formulas, epoch math, and per-block tables:** [`../specs/07-fees-and-tokenomics.md`](../specs/07-fees-and-tokenomics.md) §5–§6.
 
@@ -560,7 +560,7 @@ New humans and new named identities continually join. Registration fees fund min
 |------|-----------|-----------|
 | 1.0 `*:Assets` → genesis | Pre-mine **x** (locked until key upgrade) | Continuity; respect every balance |
 | Key upgrade (`ClaimLegacy`) | Unlock spend/tip under new keys | Port 1.0 → 2.0 without moving coins |
-| Block subsidy | Commit at `h`, mint via `ClaimReward` ~`h+100` | PoW security + distribution ([GIP-22](../gips/gip-22.md)) |
+| Block subsidy | Commit at `h`, mint via `ClaimReward` ~`h+100` | PoW issuance + distribution ([GIP-22](../gips/gip-22.md)) |
 | Inclusion (weight) fee | User → miner (via commit/claim path) | Pay for block space |
 | Registration `F_*` | User → **miners (8-block vest → commit/claim)** | Anti-spam + lottery without same-block self-deal |
 
@@ -633,7 +633,7 @@ Scalability of **content** is orthogonal: tips scale with accounts; blobs scale 
 | Guld L0 witness (fixed txs) | Keys + tips + balances | Schema + proof verify + writes |
 | Git mega-repo consensus | Explodes with history | Merge/social metadata |
 
-**Conclusion:** identity-scale state is feasible; throughput is gated by **block weight**, **proof size**, and **PoW/DAG rate**—Bitcoin-class levers—not by leaf language choice.
+**Conclusion:** identity-scale state is feasible; throughput is gated by **block weight**, **proof size**, and **PoW/DAG rate**—the same *kinds* of levers Bitcoin uses (weight cap, proof size, block interval)—not by leaf language choice. That is an engineering analogy, not a peer-class security claim.
 
 ---
 
@@ -661,12 +661,13 @@ Scalability of **content** is orthogonal: tips scale with accounts; blobs scale 
 - Under congestion, users raise **inclusion fee rate** (GULD/vB); low-fee tips wait.  
 - Miners maximize **inclusion + registration protocol** fees under the weight limit (Bitcoin-like).  
 - **Registration lottery** (§8.7): `F_*` vests over 8 blocks — incentivizes inclusion of the first share without letting a single-block self-deal recover the full fee.  
-- High early **subsidy** (year 1 doubles supply; then rapid cool-down) pulls hashpower and redistributes away from pure pre-mine dominance; long-run **4%** keeps a security budget as identity demand grows.
+- High early **subsidy** (year 1 doubles supply; then rapid cool-down) aims to attract hashpower and dilute pure pre-mine dominance over time; long-run **4%** is an **issuance** floor toward a sustained miner budget — realized security still depends on actual hashrate and markets ([§11](#11-security-notes-and-risks)).
 
 ### 10.4 PoW security
 
-- Cost of rewrite ≈ energy × depth; same family as Bitcoin.  
-- DAG-PoW changes throughput and topology, not the “work is scarce” principle.  
+- **Parameter class:** SHA256d, ≈10 min spacing, 2016-block retarget with 4× clamp ([spec 06](../specs/06-blocks-and-consensus.md)); claimed difficulty MUST match schedule on import ([GIP-23](../gips/gip-23.md)).  
+- **Security budget ≠ parameter class.** Cost of a deep rewrite scales with energy × depth **at the hashrate that actually exists**. Early Simba / mainnet bootstraps MUST NOT be described as Bitcoin-class rewrite resistance.  
+- DAG-PoW (research) would change throughput and topology, not the “work is scarce” principle.  
 - **Nothing-at-stake** is primarily a PoS issue; pure PoW proposers still risk orphaned work (wasted energy).
 
 ### 10.5 Username scarcity and registration cost
@@ -696,7 +697,7 @@ Scalability of **content** is orthogonal: tips scale with accounts; blobs scale 
 | Don’t spam tips | Weight-priced inclusion fees |
 | Don’t spam identities | `F_user(L)` / `F_group(L, n)` / `F_sub` to miner (§8.7) |
 | Don’t forge tips | Unforgeable sigs under registered keys |
-| Provide security | PoW subsidy + inclusion + registration fees |
+| Provide PoW scarcity | PoW subsidy + inclusion + registration fees (budget = empirical hashrate) |
 | Dilute pre-mine fairly | `(2/3)^(y−1)` inflation floored at 4% (hot year 1, cool early) |
 | Keep important bytes | Self-host / forge mirrors / **leaf** retention contracts |
 | Don’t underpay large multisig | `W_sig × n` ongoing + higher group registration |
@@ -704,12 +705,29 @@ Scalability of **content** is orthogonal: tips scale with accounts; blobs scale 
 
 ---
 
-## 11. Security notes
+## 11. Security notes and risks
+
+### 11.1 Cryptography and upgrades
 
 - **Cryptography:** SHA-256 commitments; Ed25519 (or hybrid PQ) account sigs; **AES-256 for wallet key encryption only** (not a leaf/CAS protocol feature).  
 - **Quantum:** signature migration plan required; PoW hash enlargement optional.  
 - **Privacy:** names are public; tree contents are opaque (leaf owners may encrypt off-protocol); tip timing can leak graph metadata.  
 - **Upgrades:** height-activated rule bundles + matching node releases ([`../specs/17-protocol-upgrades.md`](../specs/17-protocol-upgrades.md))—not silent leaf reinterpretation. Optional tx `memo` is weight-priced metadata, not a contract ISA.
+
+### 11.2 Risks (honest limitations)
+
+These are product and ops risks — not exhaustive threat models.
+
+| Risk | Why it matters | Mitigation / status |
+|------|----------------|---------------------|
+| **Low early hashrate** | Parameter-class PoW ≠ peer-class **security budget**. Shallow reorgs or cheap deep rewrites remain possible until hashpower grows. | Honest disclosure; GIP-23 schedule enforcement; dual-miner reorg tests ([019](../tasks/done/2026-09/019-dual-miner-reorg-integration-test.md) **done**); expect slow trust accretion. |
+| **Premine concentration + attestation gate** | Imported supply is top-heavy; most unlock paths still depend on **`isysd` attestation** when unbound ([GIP-24](../gips/gip-24.md) brief). | Publish concentration / unlock split ([`../fragments/legacy-distribution.md`](../fragments/legacy-distribution.md)); diversify attestation ([GIP-25](../gips/gip-25.md) Draft); PGP-bound claims where possible. |
+| **Tip ≠ data availability** | Headers and account tips do **not** guarantee CAS bytes exist on every peer. Missing blobs break contentful leaves even when GULD tips are final. | Self-host / mirror / leaf retention; mandatory `guld` rule bytes when fetched; do not market tip finality as content permanence. |
+| **Single reference client** | One Rust stack + interim JSON hashing / dual wire raises monoculture and identity-drift risk until BARE + golden vectors land. | [009](../tasks/open/009-bare-wire-implementation.md), [021](../tasks/open/021-consensus-golden-vectors.md) / [GIP-26](../gips/gip-26.md); prefer BARE `TxId` on the mesh. |
+| **Testnet reset policy** | Simba **may reset once** before durable beta lock; tip hashes before a ceremony are not forever. | Publish pins + reset notices ([`../deploy/SIMBA.md`](../deploy/SIMBA.md)); wipe datadir on regenesis. |
+| **Wire / codec freeze incomplete** | HTTP stays JSON; P2P dual-wire JSON+BARE; datadir may still carry JSON artifacts while BARE lands. | Treat JSON as boundary convenience; consensus identities migrate to BARE ([GIP-4](../gips/gip-4.md)). |
+
+**Do not claim:** “Bitcoin-class security,” “peer L1 security class,” or rewrite cost comparable to BTC/ETH/SOL **hashrate**. Prefer: *Bitcoin-**parameter** PoW; security budget is an empirical market outcome.*
 
 ---
 
@@ -723,10 +741,10 @@ Status snapshot (**2026-09**). Live **tx × API × UI** matrix: [`../specs/14-re
 
 | Layer | Today |
 |-------|--------|
-| **Consensus** | Single-lane SHA256d PoW (locked v1; retarget ~600 s); fixed tx vocabulary; weight fees + registration protocol fees (8-block vest) |
+| **Consensus** | Single-lane SHA256d PoW (locked v1; retarget ~600 s; **GIP-23** schedule enforced on import); MTP + 2 h timestamps; **GIP-22** `RewardCommit` / `ClaimReward`; fixed tx vocabulary; weight fees + registration protocol fees (8-block vest) |
 | **State** | fjall KV — accounts, balances, tips, names; **10** decimal GULD |
 | **Genesis** | Committed artifacts ([`../data/genesis/simba/`](../data/genesis/simba/)); keyless `guld` shell; `isysd` genesis-claim; 1.0 balances **legacy-locked** until `ClaimLegacy` |
-| **P2P** ([GIP-15](../gips/gip-15.md)) | libp2p Hello, tx gossip, block/header sync, CAS objects, ban scoring — **no chain reorg yet** (competing forks need reset or HTTP catch-up) |
+| **P2P** ([GIP-15](../gips/gip-15.md)) | libp2p Hello, tx gossip, block/header sync, CAS objects, ban scoring — **heavier-tip reorg** via `chain_reorg` (max depth 2016); dual-miner adversarial test still open |
 | **Node** | `guld-node`: JSON-RPC + HTTP `/api/v1`; continuous miner with `--miner`; testnet faucet |
 | **Reference UI** | PWA wallet (register individual/group/sub, send, cosign workstation, claim), explorer (blocks, txs, mempool SSE), docs browser, software catalog, optional Paymento registrar ([GIP-8](../gips/gip-8.md)) |
 
@@ -738,7 +756,7 @@ Implemented GIPs include **5–13, 15–17, 19** (PWA, docs, software browser, r
 |------|------------|-----|
 | **Wallet** | Group `Transfer` (threshold > 1); contacts / typeahead polish | spec 14 §3.1; [GIP-20](../gips/gip-20.md) draft |
 | **Explorer** | Block-by-hash search UI; fee-hint UX on send | spec 14 §3.3 |
-| **Sync** | Longest-chain **reorg**; fork-safe P2P height index | specs 06, 09 |
+| **Sync** | Fork-safe P2P height index polish; ops: mempool wipe + full-genesis replay cost (see SIMBA.md) | specs 06, 09; [019](../tasks/done/2026-09/019-dual-miner-reorg-integration-test.md) **done** |
 | **1.0 → 2.0** | Mainnet import manifest audit + published pin | [GIP-14](../gips/gip-14.md) draft, spec 15 |
 | **Extension** | Browser extension site-login | spec 14 §3.4, [GIP-5](../gips/gip-5.md) |
 | **Foreign / cross-chain** | Dapp-layer only in v1 (A11); optional SPV/light proof kinds = future GIP | spec 13 informative |
@@ -749,7 +767,7 @@ Account schema, `threshold_cosign_v1`, weight table, and **10 decimals** are **l
 
 ### 12.3 Near term (testnet hardening)
 
-1. **Sync hygiene** — reorg on heavier work; harden P2P against fork pollution; Simba HTTP catch-up for stuck peers.  
+1. **Sync hygiene** — dual-miner reorg covered ([019](../tasks/done/2026-09/019-dual-miner-reorg-integration-test.md)); fork pollution / HTTP catch-up for stuck peers remain.  
 2. **Wallet UX** — send guards, contacts/recents, group transfer via cosign path ([tasks](../tasks/README.md)).  
 3. **Human-first site copy** — landing and docs aligned with §1.4 (wallet-first, not operator jargon).  
 4. **Peer QA** — multi-node Simba soaks; document fork recovery.
@@ -772,7 +790,7 @@ Account schema, `threshold_cosign_v1`, weight table, and **10 decimals** are **l
 
 ## 13. Conclusion
 
-Guld 2.0 is an **L0** where **identity is the product** and **leaves are unlimited**: a PoW-anchored namespace for people and groups, with **dapps that can literally do anything**—including **theoretical** cross-chain indexers, guldex-style settlement, and lightning-/personal-chain hash commits—while the network remains a **witness for registered Guld identities**, not a VM that re-executes leaf politics or mandatory foreign-chain verification. DeFi settles between names under a **Bitcoin-style weight fee** market. Legacy supply **x ≈ 9.6×10⁵ GULD** is a disclosed pre-mine from the 1.0 ledger (ERC20 bucket omitted), unlocked per user by **key upgrade**; PoW issuance follows **`i(y) = max(0.04, (2/3)^(y−1))`** at **10-minute** blocks; **registration fees** (§8.7: letter-based / group / sub) go to miners over an 8-block vest. Scalability follows from keeping validators on keys and hashes; content retention and app logic stay in **leaves**; incentives follow from attributable cosign, fee-rate bidding, registration lottery, and PoW security.
+Guld 2.0 is an **L0** where **identity is the product** and **leaves are unlimited**: a PoW-anchored namespace for people and groups, with **dapps that can literally do anything**—including **theoretical** cross-chain indexers, guldex-style settlement, and lightning-/personal-chain hash commits—while the network remains a **witness for registered Guld identities**, not a VM that re-executes leaf politics or mandatory foreign-chain verification. Named-account settlement uses a **Bitcoin-style weight fee** market (not a general DeFi VM). Legacy supply **x ≈ 9.6×10⁵ GULD** is a disclosed pre-mine from the 1.0 ledger (ERC20 bucket omitted), unlocked per user by **key upgrade** ([GIP-24](../gips/gip-24.md)); PoW issuance follows **`i(y) = max(0.04, (2/3)^(y−1))`** at **10-minute** blocks under Bitcoin-**parameter** retarget; **registration fees** (§8.7) go to miners over an 8-block vest. Scalability follows from keeping validators on keys and hashes; content retention and app logic stay in **leaves**; incentives follow from attributable cosign, fee-rate bidding, registration lottery, and PoW — with security budget treated honestly ([§11](#11-security-notes-and-risks)).
 
 Users join via **sponsored registration**; any funded peer can onboard the next — free (friend) or paid (third-party gateway). The everyday path is whitepaper **§1.4**: PWA wallet on device → extension → many dapps, one name.
 

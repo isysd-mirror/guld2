@@ -64,8 +64,8 @@ Empty `--network simba` datadirs load height-0 from `data/genesis/simba/`:
 | `--miner` | **No default.** Required only to seal blocks; omit for validating peers |
 | Tip pin | `pins.json` + `blocks/0.json` — node refuses to start if rebuilt tip drifts |
 
-**Genesis tip (pinned):** `0xc4a0171e5afd7ecd425b0ef8a7e57cc737226e4a992aecaa05324257c6adb3f0`  
-Ceremony / refresh: [`data/genesis/simba/README.md`](../data/genesis/simba/README.md).
+**Genesis tip (pinned):** `0xadbff5409912ffa96fee913b3775b471eaca58b26323465ec41a400f86a1cd96`  
+Ceremony / refresh: [`data/genesis/simba/README.md`](../data/genesis/simba/README.md). Prior tip `0xc4a017…` is obsolete — wipe datadir on upgrade.
 
 Do **not** pass `--import-ledger` or `--dev` on Simba — the manifest and block 0 are already in artifacts.
 
@@ -91,6 +91,14 @@ Do **not** pass `--import-ledger` or `--dev` on Simba — the manifest and block
 
 **`--dev` (not Simba):** keyless `guld` + local `alice` premine for smoke tests only. Pass `--miner alice` if sealing.
 
+
+## GIP-23 difficulty schedule (activation)
+
+**Rule:** every imported header with `height ≥ 1` MUST claim `difficulty == next_difficulty(...)` ([GIP-23](../gips/gip-23.md), spec 06 §3).
+
+**Activation on Simba:** prefer **regenesis** at the next ceremony ([task 012](../tasks/open/012-simba-genesis-ceremony.md)) so historical tips mined under soft policy do not need a height-activated soft fork. Until that reset, peers running this binary will **reject** off-schedule headers — wipe datadir and resync from artifact genesis if the public tip was mined off-schedule.
+
+**`--dev` / `--difficulty`:** seal always follows `next_difficulty` (post-genesis starts at **1** from a difficulty-0 genesis). The CLI `--difficulty` flag is status/legacy only and MUST NOT under-claim the schedule. Rapid `--dev-empty-blocks` may raise bits at retarget boundaries (Bitcoin-class); that is consensus-correct.
 
 ## Paths (conventions)
 
@@ -199,7 +207,22 @@ Force a block (usually unnecessary once the loop is running):
 ```bash
 curl -s http://127.0.0.1:8545/ -H 'content-type: application/json' \
   -d '{"jsonrpc":"2.0","id":1,"method":"guld_mineBlock","params":[]}'
-```## 5. Replace deprecated API unit
+```
+
+## Fork recovery / reorg
+
+Simba peers follow the **heavier valid tip** (cumulative work → height → hash). On a competing fork:
+
+1. The losing tip is abandoned; state is rebuilt by **replaying from the genesis snapshot** through the common ancestor, then applying the winning fork segment (`guld-node` `chain_reorg`, max depth **2016**).
+2. The **mempool is wiped** on reorg — pending txs must be re-submitted or re-gossiped.
+3. Deeper than `MAX_REORG_DEPTH` is rejected cleanly (`ReorgTooDeep`); wipe + resync from a trusted peer if that ever happens.
+4. Orphaned `RewardCommit` blocks are **not** claimable: `ClaimReward.ref_hash` must match the canonical block at `ref_height` (GIP-22).
+
+**Ops expectation:** shallow reorgs are cheap; deep ones pay full genesis-replay cost. Prefer staying near the public tip.
+
+**Automated test:** `cargo test -p guld-node --test dual_miner_reorg` (task 019 / lifecycle phase 4). Unit coverage: `cargo test -p guld-node chain_reorg`.
+
+## 5. Replace deprecated API unit
 
 guld.io still has [`guld-api.service`](guld-api.service) (Python). Prefer:
 

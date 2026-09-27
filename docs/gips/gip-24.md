@@ -3,7 +3,7 @@ gip: 24
 title: Legacy Distribution Transparency
 description: Publish concentration, unlock-path, and x-reconciliation facts for 1.0 import.
 author: Guld contributors
-discussions-to: ../tasks/open/016-reconcile-genesis-x-vs-manifest.md
+discussions-to: ../tasks/done/2026-09/016-reconcile-genesis-x-vs-manifest.md
 status: Draft
 type: Informational
 created: 2026-09-26
@@ -16,17 +16,17 @@ Require a **public distribution brief** for every network that imports Guld 1.0 
 
 ## Motivation
 
-GIP-14 and spec 15 disclose **x ≈ 959,947.19527052 GULD** and a manifest hash. External review (2026-09-26) measured from `data/genesis/simba/import-manifest.json`:
+GIP-14 and spec 15 disclose **x = 960,975.39527052 GULD** (= sum of Simba manifest rows after task 016 remap) and manifest hash `0x59a39af…`. External review (2026-09-26) originally measured a **+328.2** gap vs an older net-`x` pin; that gap is closed — see [`../fragments/legacy-distribution.md`](../fragments/legacy-distribution.md).
+
+Post-016 concentration (same brief):
 
 | Fact | Approx. value |
 |------|----------------|
-| Row sum | **960,275.39527052** GULD (**+328.2** vs documented `x`) |
-| Top 1 / top 5 / top 10 | **37.5% / 56.5% / 63.3%** of row sum |
-| Exact 100 GULD accounts | **2,016** (~21% of sum) |
-| PGP-bound rows | **60 / 2,210**; bound supply ~**18.7%** |
+| Row sum / **x** | **960,975.39527052** GULD |
+| Top 1 / top 5 / top 10 | **37.4% / 56.5% / 63.3%** of row sum |
+| Exact 100 GULD accounts | **2,023** (~21% of sum) |
+| PGP-bound rows | **60 / 2,217**; bound supply ~**18.7%** |
 | Unbound supply (attestation path) | ~**81%**, including largest holder |
-
-These facts are discoverable from the committed manifest but are **not** surfaced in the whitepaper economics section or GIP-14 tables. Framing the import as “respect every balance / no hidden inflation” without concentration and unlock-gate disclosure understates trust dependencies (especially `isysd_attestation_v1`).
 
 ## Specification
 
@@ -68,9 +68,13 @@ Transparency reduces surprise; it does not remove the `isysd` attestation depend
 
 ## Reference Implementation
 
-- Tasks: [016](../tasks/open/016-reconcile-genesis-x-vs-manifest.md), [018](../tasks/open/018-publish-omitted-buckets-and-negatives.md)
-- Data: `data/genesis/simba/import-manifest.json`
+- **Brief:** [`../fragments/legacy-distribution.md`](../fragments/legacy-distribution.md) (Simba numbers + 1.0 account / Equity / fee narrative)
+- Tasks: [016](../tasks/done/2026-09/016-reconcile-genesis-x-vs-manifest.md) (**done**), [018](../tasks/done/2026-09/018-publish-omitted-buckets-and-negatives.md) (**done**)
+- Data: `data/genesis/simba/import-manifest.json`, [`negatives.json`](../../data/genesis/simba/negatives.json), [`omissions.json`](../../data/genesis/simba/omissions.json)
+- Genesis pointer: [`../../data/genesis/simba/README.md`](../../data/genesis/simba/README.md)
 
 ## History
 
 - 2026-09-26: Drafted from external project review (economic under-disclosure findings).
+- 2026-09-26: Published first Simba distribution brief under `docs/fragments/legacy-distribution.md`.
+- 2026-09-26: Task 018 — committed machine-readable `negatives.json` + `omissions.json`.

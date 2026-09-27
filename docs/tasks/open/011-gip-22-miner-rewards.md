@@ -14,7 +14,7 @@ Specs and [GIP-22](../gips/gip-22.md) are **Accepted**. Reference code now seals
 2. Mempool persistence for pending claims ([008](./008-mempool-persistence.md)).
 3. Explorer/RPC surfacing of committed vs claimed rewards (minimal).
 4. Document Simba activation / regenesis choice in `deploy/SIMBA.md`.
-5. Close task 007 “GIP-22” landed row once footguns + docs match.
+5. Close task 007 “GIP-22” landed row once footguns + docs match ([015](../done/2026-09/015-reconcile-docs-with-code.md) docs side done).
 
 *(Original problem statement assumed `credit_miner`-only apply — that is stale as of 2026-09-26 external review.)*
 
@@ -35,12 +35,12 @@ Specs and [GIP-22](../gips/gip-22.md) are **Accepted**. Reference code now seals
 
 - [ ] No production `credit_miner` mint path ([020](./020-remove-credit-miner-footguns.md))
 - [ ] Immature claims in mempool; mature claims mine successfully (covered by existing tests + 008)
-- [ ] Task 007 landed-row acknowledged; docs synced via [015](./015-reconcile-docs-with-code.md)
+- [x] Task 007 landed-row acknowledged; docs synced via [015](../done/2026-09/015-reconcile-docs-with-code.md)
 - [ ] [008](./008-mempool-persistence.md) updated to mention claim pool (or done together)
 
 ## Notes
 
 ```
-2026-09-26: Opened from spec review — Simba blocker; pairs with reorg ([013](./013-chain-reorg-implementation.md)).
+2026-09-26: Opened from spec review — Simba blocker; pairs with reorg ([013](../done/2026-09/013-chain-reorg-implementation.md)).
 2026-09-26: External review — core RewardCommit/ClaimReward path present; demote from P0; track footguns in 020.
 ```

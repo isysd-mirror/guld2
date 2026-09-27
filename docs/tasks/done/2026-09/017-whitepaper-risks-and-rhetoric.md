@@ -1,6 +1,6 @@
 # Task: Soften peer-security rhetoric; add Risks section
 
-Status: open
+Status: done
 Priority: normal
 GIP:
 Spec:
@@ -11,11 +11,11 @@ Whitepaper: ../whitepaper/guld-2.0-draft.md
 Whitepaper design bar and comparison text place Guld in the “BTC/ETH/SOL **security conversation**” and imply Bitcoin-class rewrite cost, while:
 
 - Hashrate / economic security budget are not peer-class
-- Difficulty schedule was not consensus-enforced (GIP-23)
+- Difficulty schedule was not consensus-enforced (GIP-23) — **now enforced**
 - Wire identities still JSON; Simba not frozen
 - Premine unlock authority is concentrated
 
-§11 Security notes are thin relative to §§8–10. External review called the peer-class language an **overclaim**.
+§11 Security notes were thin relative to §§8–10. External review called the peer-class language an **overclaim**.
 
 ## Goals
 
@@ -31,12 +31,14 @@ Whitepaper design bar and comparison text place Guld in the “BTC/ETH/SOL **sec
 
 ## Done when
 
-- [ ] No unqualified “Bitcoin-class security” / peer security-class claims remain
-- [ ] Risks section (or expanded §11) merged
-- [ ] Abstract vs §3.4 wording consistent
+- [x] No unqualified “Bitcoin-class security” / peer security-class claims remain
+- [x] Risks section (or expanded §11) merged
+- [x] Abstract vs §3.4 wording consistent
 
 ## Notes
 
 ```
 2026-09-26: Opened from external review §5 / §8 overclaim findings.
+2026-09-26: Whitepaper v0.26 — parameter-class PoW language; §11 Security notes and risks;
+           Abstract/§1.4/§10.4/conclusion aligned; GIP-24 already linked from §8.6.
 ```

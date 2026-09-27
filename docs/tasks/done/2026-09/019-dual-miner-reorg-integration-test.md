@@ -1,10 +1,10 @@
 # Task: Dual-miner adversarial reorg integration test
 
-Status: open
+Status: done
 Priority: **high** (Simba honesty — pairs with 013 / 006 phase 4)
 GIP:
 Spec: ../specs/06-blocks-and-consensus.md, ../specs/09-p2p.md
-Related: ./013-chain-reorg-implementation.md, ./006-chain-lifecycle-tests.md
+Related: ../done/2026-09/013-chain-reorg-implementation.md, ../open/006-chain-lifecycle-tests.md
 
 ## Problem
 
@@ -31,12 +31,17 @@ Without this test, “reorg works” is an implementation claim, not a verified 
 
 ## Done when
 
-- [ ] Dual-miner reorg test green in CI or documented lifecycle script
-- [ ] 006 phase 4 + 013 test boxes checked
-- [ ] SIMBA.md fork-recovery section mentions automated test
+- [x] Dual-miner reorg test green — `cargo test -p guld-node --test dual_miner_reorg`
+- [x] Unit: heavier fork depth > 1, orphan ClaimReward rejected, `MAX_REORG_DEPTH` via `fork_segment`
+- [x] 006 phase 4 + 013 test boxes checked
+- [x] SIMBA.md fork-recovery section mentions automated test
+- [x] P2P headers sync requests unknown hashes at height ≤ tip (unblocks adversarial reconnect)
 
 ## Notes
 
 ```
 2026-09-26: Opened from external review finding C4 / D4; narrows 006 phase 4 into an actionable ticket.
+2026-09-26: Closed — dual_miner_reorg.rs (bootnode, offline diverge, heavier tip wins);
+           chain_reorg unit tests; IncomingHeaders + orphan drain fix; SIMBA.md section;
+           scripts/chain-lifecycle/dual-miner-reorg.sh wrapper.
 ```

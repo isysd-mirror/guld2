@@ -123,7 +123,7 @@ Legend: **Match** = same or intentional Bitcoin-class; **Diverge** = different b
 | Parameter | Simba | Notes |
 |-----------|-------|-------|
 | `chain_id` | 2 | Bitcoin: network magic / chain params |
-| Import manifest | **x = 959,947.19527052 GULD** (A7 locked); hash `0xd5f12…` | Bitcoin: no legacy ledger |
+| Import manifest | **x = 960,975.39527052 GULD** (A7/016); hash `0x59a39af…` | Bitcoin: no legacy ledger |
 | `import_manifest_hash` in state | Yes | A9 |
 | Foreign names at genesis | **None** (A11) — dapps register like anyone else | N/A |
 

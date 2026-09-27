@@ -140,7 +140,7 @@ Miner block rewards (subsidy + inclusion + vested registration share) MUST NOT m
 
 ## 6. Issuance (locked v1)
 
-Let `x = genesis_premine_supply` = **959,947.19527052** GULD (member `*:Assets` only; ERC20 omitted — [`15-ledger-import.md`](15-ledger-import.md) A7 locked).
+Let `x = genesis_premine_supply` = **960,975.39527052** GULD (sum of imported member `*:Assets` rows; ERC20 omitted — [`15-ledger-import.md`](15-ledger-import.md) A7 / task 016).
 
 Decimals: **10** (mandatory for exact 1.0 import).
 

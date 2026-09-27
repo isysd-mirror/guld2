@@ -21,16 +21,18 @@ Guld 2.0 **MUST** respect every positive Guld 1.0 member `Assets` balance in the
 | Balance rule | For each 1.0 **name** (except omitted protocol mirrors), `imported_balance = max(0, quantity(name:Assets))` at the `Assets` **root** |
 | Commodity | `GULD` only for genesis balances |
 
-### 2.1 Import totals (locked for Simba — task 007 A7)
+### 2.1 Import totals (locked for Simba — task 007 A7 / 016)
 
 | Quantity | GULD |
 |----------|------|
-| **x** = sum of positive member `name:Assets` roots | **959,947.19527052** |
-| **`import_manifest_hash`** (Simba) | `0xd5f12f6df4ab2b802ed6957b08d7c104d9eae0878decb10728f7e20975e2df27` |
-| Positive member holders | **≈ 2,217** |
-| Negative `Assets` names (anomaly) | **≈ 15** (sum ≈ **−1,028**); import **0**, list in manifest appendix |
+| **x** = sum of imported positive member `name:Assets` rows | **960,975.39527052** |
+| **`import_manifest_hash`** (Simba) | `0x59a39af461d66fa1ef892708f8fa8838684d812cccfbe253816a34f448980e70` |
+| Positive member holders (manifest rows) | **2,217** |
+| Negative `Assets` names (anomaly) | **15** (sum **−1,028.2**); import **0** — [`../../data/genesis/simba/negatives.json`](../../data/genesis/simba/negatives.json) + brief §4 |
 
-**Explicitly omitted from import:** `guld:Assets:ERC20` and any other ERC20 / foreign-mirror protocol buckets (barely used on 1.0; not part of circulating 2.0 pre-mine).
+**Rule:** `x := sum(manifest rows)`. Illegal 1.0 names MUST be remapped via `LEGACY_NAME_REMAP` at preprocess (fail closed — no silent drops). Remap table: [`data/genesis/simba/README.md`](../../data/genesis/simba/README.md).
+
+**Explicitly omitted from import:** `guld:Assets:ERC20` (**100,000 GULD**) plus credit subtrees — sizes in [`omissions.json`](../../data/genesis/simba/omissions.json). Distribution narrative: [`../fragments/legacy-distribution.md`](../fragments/legacy-distribution.md).
 
 Genesis MUST embed `import_manifest_hash = SHA-256(canonical_manifest)` so operators can re-verify.
 
