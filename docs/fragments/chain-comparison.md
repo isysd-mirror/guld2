@@ -1,4 +1,8 @@
-Comparative sketch for positioning — not a feature checklist or investment advice. **Cosmos Hub** stands in for the widely deployed **IBC interoperability hub** (Polkadot relay and Avalanche subnets follow similar L0 patterns). Guld 2.0 uses Bitcoin-class **double-SHA256 PoW** on headers ([spec 06](../specs/06-blocks-and-consensus.md)); DAG-PoW and optional foreign proof kinds remain future research ([spec 13](../specs/13-foreign-chains.md) informative). Hard fork / 1.0 continuity: [FAQ](../FAQ.md).
+# Ecosystem comparison
+
+Comparative sketch for positioning — not a feature checklist or investment advice. See also whitepaper [§1.5](../whitepaper/guld-2.0-draft.md#1-5-ecosystem-comparison-draft).
+
+**Cosmos Hub** stands in for the widely deployed **IBC interoperability hub** (Polkadot relay and Avalanche subnets follow similar L0 patterns). Guld 2.0 uses Bitcoin-class **double-SHA256 PoW** on headers ([spec 06](../specs/06-blocks-and-consensus.md)); DAG-PoW and optional foreign proof kinds remain future research ([spec 13](../specs/13-foreign-chains.md) informative). Hard fork / 1.0 continuity: [FAQ](../FAQ.md).
 
 | Dimension | Guld 2.0 | Guld 1.0 | Bitcoin | Ethereum | Solana | Cosmos Hub |
 |-----------|----------|----------|---------|----------|--------|------------|

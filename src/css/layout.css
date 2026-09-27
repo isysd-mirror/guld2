@@ -561,19 +561,6 @@ guld-footer {
   background: var(--guld-mist);
 }
 
-.landing-comparison .doc-prose {
-  max-width: none;
-}
-
-.landing-comparison .doc-table-wrap,
-.landing-comparison table {
-  font-size: 0.82rem;
-}
-
-.landing-comparison .doc-status {
-  margin: 0.5rem 0;
-}
-
 .faq-list {
   margin: 1.25rem 0 0;
   max-width: 42rem;

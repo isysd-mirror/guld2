@@ -73,7 +73,7 @@ Comparative sketch for positioning — not a feature checklist or investment adv
 
 **Thesis in one row:** address by **name**, commit by **hash**, authorize by **proof** — leaves stay unbounded; the chain witnesses heads rather than re-running leaf politics.
 
-Full comparison table (Guld vs Bitcoin, Ethereum, Solana, Cosmos Hub, …): [`../fragments/chain-comparison.md`](../fragments/chain-comparison.md) · [landing page](/#compare).
+Full comparison table (Guld vs Bitcoin, Ethereum, Solana, Cosmos Hub, …): [`../fragments/chain-comparison.md`](../fragments/chain-comparison.md) ([browse](/docs/?doc=fragments%2Fchain-comparison.md)).
 
 ### 1.6 Incumbent L1 pathologies (and Guld’s response)
 
