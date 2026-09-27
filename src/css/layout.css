@@ -46,11 +46,11 @@ guld-header {
   box-sizing: border-box;
 }
 
-/* Overlay header floats over the hero without taking flow space. */
 guld-header:has(.site-header--overlay) {
-  position: relative;
+  position: absolute;
+  inset: 0 0 auto;
   z-index: 20;
-  height: 0;
+  width: 100%;
 }
 
 guld-header:has(.site-header--solid) {
@@ -90,7 +90,7 @@ guld-header:has(.site-header--solid) {
 .site-header__actions {
   display: flex;
   align-items: center;
-  gap: 1.75rem;
+  gap: 1.25rem;
 }
 
 .site-header__auth {
@@ -131,264 +131,42 @@ guld-header:has(.site-header--solid) {
   color: #fff;
 }
 
-/* Links + CTA group: inline on wide screens, a dropdown panel below lg. */
-.site-header__menu {
-  display: flex;
-  align-items: center;
-  gap: 1.75rem;
-}
-
-.site-header__toggle,
-.site-header__menu-mark,
-.site-header__menu-net {
-  display: none;
-}
-
-/* Collapse to a hamburger at the lg breakpoint (64rem = 1024px, Tailwind `lg`),
-   the same cut where the hero's activity log hides. */
-@media (max-width: 64rem) {
-  .site-header__toggle {
-    position: relative;
-    display: inline-grid;
-    place-content: center;
-    gap: 0.32rem;
-    width: 2.3rem;
-    height: 2.3rem;
-    padding: 0;
-    border: 1px solid rgba(255, 255, 255, 0.18);
-    border-radius: 999px;
-    background: rgba(255, 255, 255, 0.04);
-    cursor: pointer;
-  }
-
-  .site-header__toggle span {
-    display: block;
-    width: 0.9rem;
-    height: 1.5px;
-    border-radius: 1px;
-    background: #fff;
-    transition: transform 0.25s ease;
-  }
-
-  /* Two bars → an X when open. */
-  .site-header__toggle[aria-expanded="true"] span:first-child {
-    transform: translateY(0.2rem) rotate(45deg);
-  }
-
-  .site-header__toggle[aria-expanded="true"] span:last-child {
-    transform: translateY(-0.2rem) rotate(-45deg);
-  }
-
-  .site-header__toggle:focus-visible {
-    outline: 2px solid var(--guld-gold-bright);
-    outline-offset: 3px;
-  }
-
-  .site-header__actions {
-    position: relative;
-  }
-
-  /* The toggle stays above the drawer so it doubles as the close button. */
-  .site-header__toggle {
-    z-index: 32;
-  }
-
-  /* backdrop-filter would trap the fixed drawer inside the header box. */
-  .site-header--solid {
-    backdrop-filter: none;
-  }
-
-  /* Full-height drawer that slides in from the right, on top of the page;
-     the giant shadow dims everything behind it. */
-  .site-header__menu {
-    position: fixed;
-    inset: 0 0 0 auto;
-    z-index: 31;
-    display: flex;
-    flex-direction: column;
-    align-items: stretch;
-    gap: 0.2rem;
-    width: min(20rem, 86vw);
-    height: 100vh;
-    height: 100dvh;
-    padding: 5.5rem 1rem 1.5rem; /* links start below the close (X) button */
-    overflow-y: auto;
-    background: rgba(9, 13, 28, 0.98);
-    box-shadow: -1px 0 0 rgba(255, 255, 255, 0.08), 0 0 0 100vmax rgba(3, 5, 12, 0);
-    transform: translateX(100%);
-    visibility: hidden;
-    transition: transform 0.32s cubic-bezier(0.2, 0.8, 0.2, 1), box-shadow 0.32s ease, visibility 0s linear 0.32s;
-  }
-
-  .site-header__menu[data-open] {
-    transform: none;
-    visibility: visible;
-    box-shadow: -1px 0 0 rgba(255, 255, 255, 0.08), 0 0 0 100vmax rgba(3, 5, 12, 0.6);
-    transition: transform 0.32s cubic-bezier(0.2, 0.8, 0.2, 1), box-shadow 0.32s ease, visibility 0s;
-  }
-
-  .site-header__menu .site-nav__list {
-    flex-direction: column;
-    gap: 0.2rem;
-  }
-
-  .site-header__menu .site-nav a,
-  .site-header__menu .site-header__login {
-    display: block;
-    padding: 0.8rem 0.85rem;
-    border-radius: 0.7rem;
-    font-size: 0.95rem;
-  }
-
-  .site-header__menu .site-nav a:hover,
-  .site-header__menu .site-header__login:hover {
-    background: rgba(255, 255, 255, 0.06);
-  }
-
-  .site-header__menu .site-nav a::after,
-  .site-header__menu .site-header__login::after {
-    display: none;
-  }
-
-  /* Quiet network echo in the drawer (footer remains the switcher). */
-  .site-header__menu-net {
-    display: block;
-    order: -1;
-    margin: 0 0 0.75rem;
-    padding: 0.45rem 0.85rem;
-    border-radius: 0.5rem;
-    background: rgba(2, 4, 10, 0.55);
-    white-space: nowrap;
-    overflow: hidden;
-    text-overflow: ellipsis;
-    font-size: 0.62rem;
-    line-height: 1.5;
-    letter-spacing: 0.04em;
-    color: rgba(255, 255, 255, 0.42);
-  }
-
-  .site-header__menu-net[data-mode="testnet"] {
-    color: rgba(240, 178, 122, 0.75);
-  }
-
-  .site-header__menu-net[data-mode="mainnet"] {
-    color: rgba(143, 212, 181, 0.75);
-  }
-
-  .site-header__menu .site-header__register {
-    justify-content: center;
-    margin-top: auto; /* CTA anchored at the bottom of the drawer */
-    padding: 0.85rem 1rem;
-    font-size: 0.8rem;
-  }
-
-  /* Shield top-left of the drawer, on the same row as the close (X) button. */
-  .site-header__menu-mark {
-    display: block;
-    position: absolute;
-    top: calc(var(--menu-row-y, 0px) - 1.3rem);
-    left: 1.85rem;
-    width: auto;
-    height: 2.6rem;
-    filter: brightness(0) invert(1);
-  }
-
-  html.is-menu-open {
-    overflow: hidden; /* no scrolling the page behind the drawer */
-  }
-}
-
-@media (max-width: 64rem) and (prefers-reduced-motion: reduce) {
-  .site-header__menu,
-  .site-header__menu[data-open] {
-    transition: none;
-  }
-}
-
-/* Top-right menu: quiet text links, then one CTA. */
 .site-nav__list {
   display: flex;
   flex-wrap: wrap;
-  gap: 0.35rem 1.75rem;
+  gap: 0.35rem 1.25rem;
   margin: 0;
   padding: 0;
   list-style: none;
 }
 
-.site-nav a,
-.site-header__login {
-  position: relative;
-  color: rgba(255, 255, 255, 0.72);
+.site-nav a {
+  color: rgba(255, 255, 255, 0.88);
   text-decoration: none;
-  font-size: 0.74rem;
+  font-size: 0.95rem;
   font-weight: 500;
-  letter-spacing: 0.02em;
-  transition: color 0.2s ease;
-}
-
-/* Hairline underline that draws in on hover / marks the current page. */
-.site-nav a::after,
-.site-header__login::after {
-  content: "";
-  position: absolute;
-  left: 0;
-  right: 0;
-  bottom: -0.3rem;
-  height: 1px;
-  background: currentColor;
-  transform: scaleX(0);
-  transform-origin: left;
-  transition: transform 0.25s ease;
 }
 
 .site-nav a:hover,
-.site-nav a[aria-current="page"],
-.site-header__login:hover {
+.site-nav a[aria-current="page"] {
   color: #fff;
 }
 
-.site-nav a:hover::after,
-.site-nav a[aria-current="page"]::after,
-.site-header__login:hover::after {
-  transform: scaleX(1);
+.site-header__register {
+  flex-shrink: 0;
+  font-size: 0.88rem;
+  padding: 0.35rem 0.85rem;
+  border-color: rgba(255, 255, 255, 0.45);
+  color: rgba(255, 255, 255, 0.95);
 }
 
-.site-header__login[hidden],
 .site-header__register[hidden] {
   display: none !important;
 }
 
-/* The one call to action: a brand-gold pill that reads first on the dark chrome. */
-.site-header__register {
-  flex-shrink: 0;
-  display: inline-flex;
-  align-items: center;
-  padding: 0.5rem 1.05rem;
-  border-radius: 999px;
-  background: var(--guld-gold);
-  color: var(--guld-on-gold);
-  text-decoration: none;
-  font-size: 0.72rem;
-  font-weight: 600;
-  letter-spacing: 0.02em;
-  box-shadow: 0 1px 0 rgba(255, 255, 255, 0.35) inset, 0 6px 18px rgba(0, 0, 0, 0.35),
-    0 0 0 1px color-mix(in srgb, var(--guld-gold) 60%, transparent);
-  transition: transform 0.2s ease, box-shadow 0.2s ease, background 0.2s ease;
-}
-
 .site-header__register:hover {
-  color: var(--guld-on-gold);
-  background: var(--guld-gold-bright);
-  transform: translateY(-1px);
-  box-shadow: 0 1px 0 rgba(255, 255, 255, 0.5) inset, 0 10px 24px rgba(0, 0, 0, 0.45);
-}
-
-.site-nav a:focus-visible,
-.site-header__login:focus-visible,
-.site-header__register:focus-visible {
-  outline: 2px solid var(--guld-name-1);
-  outline-offset: 4px;
-  border-radius: 999px;
+  border-color: rgba(255, 255, 255, 0.75);
+  color: #fff;
 }
 
 .site-header__profile {
@@ -1320,42 +1098,5 @@ guld-footer {
   .site-header__actions {
     flex-wrap: wrap;
     justify-content: flex-end;
-  }
-}
-
-/* Landing: the oversized centered shield is the mark, so the header brand
-   shows only the "guld" wordmark — the logo image is cropped to its right side. */
-.site-body--landing .site-header__brand img {
-  --wordmark-h: 2.55rem; /* ~28% larger than the site-wide 2rem logo */
-  height: var(--wordmark-h);
-  width: calc(var(--wordmark-h) * 1.175);
-  margin-block: calc((2rem - var(--wordmark-h)) / 2); /* don't grow the nav row */
-  object-fit: cover;
-  object-position: 100% 50%;
-}
-
-/* "2.0 BETA" pill sits beside the wordmark, on the nav row — a quiet tag, not a feature. */
-.site-body--landing .hero--globe .hero__version {
-  padding: 0.16rem 0.45rem 0.13rem;
-  background: rgba(255, 255, 255, 0.04);
-  box-shadow: 0 0 0 1px rgba(255, 255, 255, 0.1);
-  color: rgba(255, 255, 255, 0.5);
-  font-size: 0.44rem;
-  letter-spacing: 0.22em;
-  position: absolute;
-  z-index: 21;
-  top: 2.06rem;
-  left: calc(clamp(1rem, 4vw, 2.5rem) + 2.55rem * 1.175 + 0.55rem); /* after the wordmark */
-  transform: translateY(-50%);
-  margin: 0;
-}
-
-/* Under 500px there's no room beside the wordmark: the pill drops below it,
-   left-aligned with "guld". */
-@media (max-width: 31.25rem) {
-  .site-body--landing .hero--globe .hero__version {
-    top: calc(2.06rem + 2.55rem / 2 + 0.25rem);
-    left: calc(clamp(1rem, 4vw, 2.5rem) + 0.15rem);
-    transform: none;
   }
 }
