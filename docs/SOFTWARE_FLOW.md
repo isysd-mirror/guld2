@@ -22,7 +22,7 @@ Proposals: [`gips/`](gips/) ([GIP-1](gips/gip-1.md)). Entry point: [`../CONTRIBU
 
 Consensus activation (when a Core GIP changes validity): ship matching software first, then publish the next `guld` rule bundle with `activation_height` — [spec 17](specs/17-protocol-upgrades.md).
 
-**Local CI:** `./scripts/install-dev-hooks.sh` once per clone. Pre-commit on `guld-state` / `guld-node` (and umbrella when those gitlinks change) runs lifecycle Phase 1–2 — see [task 006](tasks/open/006-chain-lifecycle-tests.md). No hosted pipeline.
+**Local CI:** `./scripts/install-dev-hooks.sh` once per clone. Pre-commit on `guld-state` / `guld-node` / `guld-p2p` (and umbrella when those gitlinks change) runs lifecycle Phase 1–2 and Simba catch-up (Phase 5) — see [task 006](tasks/open/006-chain-lifecycle-tests.md). No hosted pipeline.
 
 ## Consumers
 

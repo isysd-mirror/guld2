@@ -1,8 +1,10 @@
 #!/usr/bin/env bash
-# pre-commit — Phase 1–2 chain lifecycle (task 006).
-# Fail the commit if state matrix / node smoke regressions land.
+# pre-commit — chain lifecycle gates (task 006).
+# Phase 1–2 always on guld-state / guld-node (and umbrella when those gitlinks change).
+# Phase 5 (Simba catch-up) on guld-node / guld-p2p — catches bootnode ban / sync-stall regressions.
 #
 # Skip (human only; agents MUST NOT): GULD_SKIP_LIFECYCLE=1
+# Skip only Phase 5 (human only): GULD_SKIP_CATCHUP=1
 set -euo pipefail
 
 if [[ "${GULD_SKIP_LIFECYCLE:-}" == "1" ]]; then
@@ -39,10 +41,17 @@ pkg_name() {
 
 run_state=0
 run_node=0
+run_catchup=0
 
 if [[ -f "${TOP}/.gitmodules" ]]; then
-  # Umbrella: only when state/node trees or gitlinks are in the index.
+  # Umbrella: when state/node/p2p trees or gitlinks are in the index.
   if git diff --cached --name-only | grep -qE '^src/guld-(state|node)(/|$)'; then
+    run_state=1
+    run_node=1
+  fi
+  if git diff --cached --name-only | grep -qE '^src/guld-(node|p2p)(/|$)'; then
+    run_catchup=1
+    # Catch-up needs a built node; also run Phase 2 when only p2p moved.
     run_state=1
     run_node=1
   fi
@@ -54,6 +63,12 @@ else
     guld-node)
       run_state=1
       run_node=1
+      run_catchup=1
+      ;;
+    guld-p2p)
+      run_state=1
+      run_node=1
+      run_catchup=1
       ;;
     *)
       exit 0
@@ -61,18 +76,25 @@ else
   esac
 fi
 
-if [[ "$run_state" -eq 0 && "$run_node" -eq 0 ]]; then
+if [[ "$run_state" -eq 0 && "$run_node" -eq 0 && "$run_catchup" -eq 0 ]]; then
   exit 0
 fi
 
 cd "$ROOT"
 
-echo "guld pre-commit: Phase 1 — guld-state lifecycle_matrix" >&2
-cargo test -p guld-state --test lifecycle_matrix
+if [[ "$run_state" -eq 1 ]]; then
+  echo "guld pre-commit: Phase 1 — guld-state lifecycle_matrix" >&2
+  cargo test -p guld-state --test lifecycle_matrix
+fi
 
 if [[ "$run_node" -eq 1 ]]; then
   echo "guld pre-commit: Phase 2 — guld-node dev_smoke" >&2
   cargo test -p guld-node --test dev_smoke
+fi
+
+if [[ "$run_catchup" -eq 1 && "${GULD_SKIP_CATCHUP:-}" != "1" ]]; then
+  echo "guld pre-commit: Phase 5 — guld-node simba_catchup_sync" >&2
+  cargo test -p guld-node --test simba_catchup_sync
 fi
 
 echo "guld pre-commit: lifecycle OK" >&2

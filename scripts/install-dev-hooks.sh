@@ -1,8 +1,8 @@
 #!/usr/bin/env bash
-# Install local pre-commit hooks (lifecycle Phase 1–2) into the umbrella and
-# the guld-state / guld-node working trees. Safe to re-run.
+# Install local pre-commit hooks (lifecycle Phase 1–2 + Simba catch-up) into the
+# umbrella and guld-state / guld-node / guld-p2p working trees. Safe to re-run.
 #
-# This is our CI: commits in those repos fail if lifecycle / dev_smoke fail.
+# This is our CI: commits fail if lifecycle / smoke / catch-up regressions land.
 # See docs/tasks/open/006-chain-lifecycle-tests.md and CONTRIBUTING.md.
 set -euo pipefail
 
@@ -37,6 +37,7 @@ install_one() {
 install_one "$ROOT"
 install_one "${ROOT}/src/guld-state"
 install_one "${ROOT}/src/guld-node"
+install_one "${ROOT}/src/guld-p2p"
 
-echo "Done. Commits in guld / guld-state / guld-node run Phase 1–2 when relevant."
-echo "Escape hatch (humans only): GULD_SKIP_LIFECYCLE=1 git commit …"
+echo "Done. Commits in guld / guld-state / guld-node / guld-p2p run lifecycle gates when relevant."
+echo "Escape hatch (humans only): GULD_SKIP_LIFECYCLE=1  or  GULD_SKIP_CATCHUP=1"

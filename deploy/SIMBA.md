@@ -185,7 +185,7 @@ cargo build -p guld-node --release
   --p2p 0.0.0.0:4001
 ```
 
-Add `--miner <name>` only if this process should seal blocks (e.g. `--miner isysd`). On shared bootstrap hosts always pass `--mine-cpu-percent 1`.
+Add `--miner <name>` only if this process should seal blocks (e.g. `--miner isysd`). **Sealing requires** `datadir/keys/<name>.sk` (Ed25519 secret matching the on-chain account keys) — otherwise `RewardCommit.claim_signature` is empty and peers reject the block with `coinbase mismatch`. On shared bootstrap hosts always pass `--mine-cpu-percent 1`.
 
 `--network simba` sets `chain_id=2`, difficulty, and dials guld.io bootnodes. Do **not** pass `--dev` on shared testnet peers (that soft-caps difficulty for rapid local empty ticks).
 
@@ -200,7 +200,7 @@ curl -s http://127.0.0.1:8545/ -H 'content-type: application/json' \
 
 - **Same as mainnet:** `--miner <name>` starts a **continuous PoW loop** (empty blocks OK). Difficulty retargets toward `TARGET_BLOCK_INTERVAL` (**600 s**).
 - Validating peers omit `--miner` and never seal.
-- Reasonable v1: **only guld.io mines** with `--miner isysd` (after genesis claim); laptops validate.
+- Reasonable v1: **only guld.io mines** with `--miner isysd` **and** `keys/isysd.sk` present (after genesis claim); laptops validate.
 - **Shared hosts:** always `--mine-cpu-percent 1`. Service units under `deploy/` already set this.
 - `auto_mine` may also seal on mempool insert; the miner loop is the source of truth for block time.
 
@@ -222,7 +222,9 @@ Simba peers follow the **heavier valid tip** (cumulative work → height → has
 
 **Ops expectation:** shallow reorgs are cheap; deep ones pay full genesis-replay cost. Prefer staying near the public tip.
 
-**Automated test:** `cargo test -p guld-node --test dual_miner_reorg` (task 019 / lifecycle phase 4). Unit coverage: `cargo test -p guld-node chain_reorg`.
+**Automated tests:**
+- Reorg: `cargo test -p guld-node --test dual_miner_reorg` (task 019 / lifecycle phase 4). Unit: `cargo test -p guld-node chain_reorg`.
+- Tall-tip catch-up (miner + late peer, no bootnode ban): `cargo test -p guld-node --test simba_catchup_sync` (lifecycle phase 5) or `./scripts/chain-lifecycle/simba-catchup-sync.sh`.
 
 ## 5. Replace deprecated API unit
 

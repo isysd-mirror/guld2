@@ -13,7 +13,8 @@ Spec: ../specs/06-blocks-and-consensus.md, ../specs/16-sponsored-registration.md
 | **2** | Single-node dev smoke (RPC + subprocess) | **Done** — mine, register, transfer |
 | **3** | Two-node forward sync (P2P) | **Done** — Rust test + shell script (mDNS on `--dev`) |
 | **4** | Fork / reorg | **Done** — `dual_miner_reorg` + `chain_reorg` unit tests (task 019) |
-| **CI** | Pre-commit Phase 1–2 on `guld-state` / `guld-node` | **Done** — `scripts/githooks/pre-commit` + `scripts/install-dev-hooks.sh` |
+| **5** | Simba tall-tip catch-up (no ban) | **Done** — `simba_catchup_sync` + shell wrapper |
+| **CI** | Pre-commit Phase 1–2 + 5 | **Done** — `scripts/githooks/pre-commit` + `scripts/install-dev-hooks.sh` |
 
 Node RPC smoke covers a **subset** of the matrix today (register + transfer). Rotate, group/sub over RPC, and full parity with the state matrix are follow-ups under this task while it stays open.
 
@@ -24,9 +25,10 @@ Guld has strong **unit** coverage in `guld-state/tests/apply_tx.rs` and `guld-co
 1. Spins a **disposable chain** (fast PoW / on-demand mining),
 2. Exercises **every transaction type** in realistic order (register → operate → rotate → repeat),
 3. Runs **multiple nodes** with distinct datadirs and checks P2P forward sync,
-4. Intentionally creates **forks** and verifies **reorgs** match spec 06.
+4. Intentionally creates **forks** and verifies **reorgs** match spec 06,
+5. Mirrors **Simba topology**: continuous miner + late validating peer catching a tall tip without banning the bootnode (signed `RewardCommit`, multi-page headers).
 
-Today `guld-node` implements rewind + heavier-tip switch (`chain_reorg.rs`). Phase 4 dual-miner coverage: [`dual_miner_reorg.rs`](../../../src/guld-node/tests/dual_miner_reorg.rs) ([019](../done/2026-09/019-dual-miner-reorg-integration-test.md)).
+Today `guld-node` implements rewind + heavier-tip switch (`chain_reorg.rs`). Phase 4 dual-miner coverage: [`dual_miner_reorg.rs`](../../../src/guld-node/tests/dual_miner_reorg.rs) ([019](../done/2026-09/019-dual-miner-reorg-integration-test.md)). Phase 5: [`simba_catchup_sync.rs`](../../../src/guld-node/tests/simba_catchup_sync.rs).
 
 ## Transaction matrix
 
@@ -38,6 +40,7 @@ Today `guld-node` implements rewind + heavier-tip switch (`chain_reorg.rs`). Pha
 | D — legacy | ClaimLegacy (`dev_unlock_v1`, attestation) | existing | `--dev` only | — | — |
 | E — sync | mine + mempool gossip | — | — | two-node script/test | — |
 | F — forks | competing tips | `choose_tip` + `chain_reorg` | — | — | **done** (019) |
+| G — Simba catch-up | signed RewardCommit + tall tip | — | — | **done** (`simba_catchup_sync`) | — |
 
 ## Phased delivery
 
@@ -68,6 +71,12 @@ Run: `cargo test -p guld-node --test dev_smoke`
 - Wrapper: [`scripts/chain-lifecycle/dual-miner-reorg.sh`](../../../scripts/chain-lifecycle/dual-miner-reorg.sh).
 - Closed under [019](../done/2026-09/019-dual-miner-reorg-integration-test.md).
 
+### Phase 5 — Simba tall-tip catch-up (done)
+
+- `src/guld-node/tests/simba_catchup_sync.rs`: continuous miner (`--miner alice`, `--mine-cpu-percent 1`) builds height ≥150 with signed `RewardCommit`; tip frozen; late validating peer dials bootnode and catches up without banning.
+- Covers multi-page `GetHeaders` (spec 09 §3.3) and the live Simba failure mode (unsigned coinbase / sync-gap bans).
+- Wrapper: [`scripts/chain-lifecycle/simba-catchup-sync.sh`](../../../scripts/chain-lifecycle/simba-catchup-sync.sh).
+
 ## Done when
 
 - [x] Task doc (this file) with matrix and phases
@@ -75,12 +84,13 @@ Run: `cargo test -p guld-node --test dev_smoke`
 - [x] Phase 2: `dev_smoke` RPC harness
 - [x] Phase 3: `two_node_sync.rs` + `two-node-sync.sh` + `scripts/chain-lifecycle/README.md`
 - [x] Phase 4: reorg tests ([019](../done/2026-09/019-dual-miner-reorg-integration-test.md))
-- [x] Pre-commit runs Phase 1–2 on `guld-state` / `guld-node` (and umbrella when those gitlinks change) — `./scripts/install-dev-hooks.sh`
+- [x] Phase 5: `simba_catchup_sync` + shell wrapper
+- [x] Pre-commit runs Phase 1–2 (+ Phase 5 on node/p2p) — `./scripts/install-dev-hooks.sh`
 
 ## Running locally
 
 ```bash
-# One-time: install pre-commit hooks (umbrella + guld-state + guld-node)
+# One-time: install pre-commit hooks (umbrella + guld-state + guld-node + guld-p2p)
 ./scripts/install-dev-hooks.sh
 
 # State matrix (fast, no subprocess)
@@ -94,6 +104,10 @@ cargo test -p guld-node --test dev_smoke
 
 # Dual-miner reorg
 cargo test -p guld-node --test dual_miner_reorg
+
+# Simba catch-up (tall tip + no ban; ~20–30s)
+cargo test -p guld-node --test simba_catchup_sync -- --nocapture
+# or: ./scripts/chain-lifecycle/simba-catchup-sync.sh
 ```
 
-Pre-commit runs Phase 1 on every `guld-state` commit, and Phase 1+2 on every `guld-node` commit (and on umbrella commits that touch those gitlinks). Humans may set `GULD_SKIP_LIFECYCLE=1` only in emergencies; agents must not.
+Pre-commit runs Phase 1 on every `guld-state` commit; Phase 1+2+5 on every `guld-node` / `guld-p2p` commit (and on umbrella commits that touch those gitlinks). Humans may set `GULD_SKIP_LIFECYCLE=1` or `GULD_SKIP_CATCHUP=1` only in emergencies; agents must not.

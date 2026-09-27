@@ -26,7 +26,7 @@ There is no hosted CI. After clone / submodule update:
 ./scripts/install-dev-hooks.sh
 ```
 
-That installs [`scripts/githooks/pre-commit`](scripts/githooks/pre-commit) into the umbrella, `src/guld-state`, and `src/guld-node`. Commits then run chain lifecycle Phase 1–2 ([task 006](docs/tasks/open/006-chain-lifecycle-tests.md)) when those trees change — failed tests block the commit. Do not use `--no-verify` or `GULD_SKIP_LIFECYCLE=1` unless you are the human maintainer and know why.
+That installs [`scripts/githooks/pre-commit`](scripts/githooks/pre-commit) into the umbrella, `src/guld-state`, `src/guld-node`, and `src/guld-p2p`. Commits then run chain lifecycle Phase 1–2 and (on node/p2p) Phase 5 Simba catch-up ([task 006](docs/tasks/open/006-chain-lifecycle-tests.md)) when those trees change — failed tests block the commit. Do not use `--no-verify`, `GULD_SKIP_LIFECYCLE=1`, or `GULD_SKIP_CATCHUP=1` unless you are the human maintainer and know why.
 ## Hosting and layout
 
 - [`docs/HOSTING.md`](docs/HOSTING.md) — node-first HTTP
