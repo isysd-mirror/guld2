@@ -23,7 +23,10 @@ test("index has brand-level logo and signup/login CTAs", () => {
   assert.match(html, /guld-footer/);
   assert.match(html, /Sign up/);
   assert.match(html, /Log in/);
+  assert.match(html, /id="developers"/);
   assert.match(html, /id="operators"/);
+  assert.match(html, /\/demo\/ttt\//);
+  assert.match(html, /Build a Guld dapp/i);
   assert.match(html, /cargo run -p guld-node/);
   const actions = html.match(/<div class="hero__actions">([\s\S]*?)<\/div>/);
   assert.ok(actions, "hero actions present");
@@ -65,8 +68,9 @@ test("header nav is product; docs live in footer", () => {
   );
   assert.deepEqual(
     FOOTER_NAV.map((i) => i.label),
-    ["Install", "Legacy claim", "Whitepaper", "Specs", "Software", "Docs"],
+    ["Build", "Install", "Legacy claim", "Whitepaper", "Specs", "Software", "Docs"],
   );
+  assert.equal(FOOTER_NAV.find((i) => i.label === "Build")?.href, "/#developers");
   assert.equal(FOOTER_NAV.find((i) => i.label === "Install")?.href, "/#operators");
   assert.equal(FOOTER_NAV.find((i) => i.label === "Docs")?.href, "/docs/");
   assert.equal(
@@ -122,9 +126,12 @@ test("explorer lists blocks and links legacy block 0", () => {
   const html = readFileSync(join(root, "explorer/index.html"), "utf8");
   assert.match(html, /explorer-page\.js/);
   assert.match(html, /data-explorer-host/);
-  assert.match(html, /\/explorer\/legacy\//);
+  assert.match(html, /data-explorer-lookup/);
   assert.match(html, /connect-src[^"]*http:/);
   assert.doesNotMatch(html, /Claim state/i);
+  assert.doesNotMatch(html, /data-explorer-rpc/);
+  const js = readFileSync(join(root, "src/js/explorer-page.js"), "utf8");
+  assert.match(js, /\/explorer\/legacy\//);
 });
 
 test("legacy block 0 details and snapshot exist", () => {

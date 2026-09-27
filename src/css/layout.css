@@ -649,6 +649,24 @@ guld-footer {
   align-items: center;
 }
 
+.section__callout {
+  margin: 1.25rem 0 0;
+  padding: 0.9rem 1.1rem;
+  max-width: 42rem;
+  border-left: 3px solid var(--guld-primary);
+  background: color-mix(in srgb, var(--guld-primary) 8%, var(--guld-white));
+  border-radius: 0 0.3rem 0.3rem 0;
+}
+
+.section__callout p {
+  margin: 0;
+  max-width: none;
+}
+
+.section--alt .section__callout {
+  background: color-mix(in srgb, var(--guld-primary) 10%, var(--guld-mist));
+}
+
 .faq-list {
   margin: 1.25rem 0 0;
   max-width: 42rem;

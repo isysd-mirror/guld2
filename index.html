@@ -55,6 +55,8 @@
               <a class="btn btn--ghost" href="/login/">Log in</a>
             </div>
             <p class="hero__aside">
+              <a href="#developers">Build a dapp</a>
+              <span aria-hidden="true"> · </span>
               <a href="#operators">Run a peer</a>
               <span aria-hidden="true"> · </span>
               <a href="/explorer/">Explore the chain</a>
@@ -102,7 +104,61 @@
         </p>
       </section>
 
-      <section id="operators" class="section section--alt">
+      <section id="developers" class="section section--alt">
+        <p class="section__eyebrow">For developers</p>
+        <h2>Build a Guld dapp</h2>
+        <p>
+          Early Guld is a <strong>developer protocol</strong>: register a name, keep
+          app state in a leaf (files + hashes), and tip the chain with
+          <code>UpdateMaster</code> when keys agree. Validators never run your
+          game logic — they witness that the right people authorized the new head.
+        </p>
+        <aside class="section__callout">
+          <p>
+            <strong>Working proof of concept:</strong>
+            <a href="/demo/ttt/">Witnessed tic-tac-toe</a>
+            on Simba — each move advances the published
+            <code>ttt-demo</code> group tip. Open the board, play on-chain, then
+            confirm the tips in the
+            <a href="/explorer/#/account/ttt-demo">explorer</a>.
+          </p>
+        </aside>
+        <ol class="flow-steps">
+          <li>
+            <h3>Use the JS SDK</h3>
+            <p>
+              <code>@guld/js</code> covers HTTP client, cosign, site-login, txs, and
+              leaf <code>master_hash</code> helpers —
+              <a href="/docs/?src=/src/guld-js/README.md">guld-js README</a>.
+            </p>
+          </li>
+          <li>
+            <h3>Ship a leaf, not a VM contract</h3>
+            <p>
+              Put software and state under a home tree. Tip when parties cosign.
+              Pattern notes:
+              <a href="/docs/?src=/docs/research/reference-dapp.md">reference dapp</a>
+              ·
+              <a href="/docs/?src=/docs/specs/11-leaf-host.md">spec 11</a>.
+            </p>
+          </li>
+          <li>
+            <h3>One name across sites</h3>
+            <p>
+              Extension
+              <a href="/demo/login/">site-login demo</a>
+              shows dapps verifying “log in as <em>alice</em>” without a per-site wallet.
+            </p>
+          </li>
+        </ol>
+        <p class="section__cta">
+          <a class="btn btn--primary" href="/demo/ttt/">Play the demo</a>
+          <a class="btn btn--outline" href="/software/#guld-tic-tac-toe">guld-tic-tac-toe</a>
+          <a class="btn btn--outline" href="/docs/?src=/docs/research/reference-dapp.md">How it works</a>
+        </p>
+      </section>
+
+      <section id="operators" class="section">
         <p class="section__eyebrow">For peer operators</p>
         <h2>Install &amp; run a node</h2>
         <p>
@@ -129,7 +185,7 @@
         </p>
       </section>
 
-      <section id="thesis" class="section">
+      <section id="thesis" class="section section--alt">
         <h2>Authorize by proof. Leave leaf law to the leaf.</h2>
         <p>
           Guld 2.0 is a <strong>hard fork</strong> of Guld 1.0: preserve historical
@@ -154,7 +210,7 @@
         </div>
       </section>
 
-      <section id="faq" class="section section--alt">
+      <section id="faq" class="section">
         <h2>FAQ</h2>
         <dl class="faq-list">
           <div class="faq-list__item">

@@ -28,30 +28,22 @@
     <guld-header></guld-header>
 
     <main class="site-main explorer" id="main">
-      <header class="explorer__head">
-        <h1>Explorer</h1>
-        <p>
-          Live <strong>Simba testnet</strong> blocks, transactions, and accounts
-          from a <code>guld-node</code> endpoint (Guld 2.0 beta — not mainnet).
-          Mempool and tip update over <strong>SSE</strong> when connected.
-          Look up a name, block height, or <code>height:index</code> tx —
-          routes <code>#/account/…</code>, <code>#/block/…</code>, <code>#/tx/…/…</code>,
-          <code>#/mempool</code>.
-          Genesis import balances: <a href="#/block/0">block 0</a> /
-          <a href="/explorer/legacy/">legacy details</a>.
-        </p>
-        <div class="explorer__status-row">
-          <p class="explorer__meta" data-explorer-status data-state="pending">Connecting…</p>
-          <div class="explorer__rpc">
-            <label>
-              RPC
-              <input type="url" data-explorer-rpc spellcheck="false" autocomplete="off" />
-            </label>
-            <button type="button" class="btn btn--outline explorer__refresh" data-explorer-refresh>
-              Refresh
-            </button>
-          </div>
-        </div>
+      <header class="explorer__toolbar">
+        <form data-explorer-lookup class="explorer__search">
+          <label class="visually-hidden" for="explorer-q">Search</label>
+          <input
+            id="explorer-q"
+            name="q"
+            type="search"
+            spellcheck="false"
+            autocomplete="off"
+            placeholder="Name, height, height:index, or 0x…"
+            required
+          />
+          <button type="submit" class="btn btn--outline">Search</button>
+        </form>
+        <div data-explorer-suggest class="explorer__suggest" hidden></div>
+        <p class="explorer__meta" data-explorer-status data-state="pending">Connecting…</p>
       </header>
 
       <div data-explorer-host>

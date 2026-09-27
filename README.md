@@ -24,6 +24,18 @@ Contributing: [`CONTRIBUTING.md`](CONTRIBUTING.md) · process: [GIP-1](docs/gips
 
 Full map: [`docs/REPO_LAYOUT.md`](docs/REPO_LAYOUT.md) · serving git: [`docs/HOSTING.md`](docs/HOSTING.md).
 
+## Build a dapp
+
+Early Guld is aimed at **developers** as much as end users: leaf state + `UpdateMaster` tips, not a shared VM.
+
+| Start here | |
+|------------|--|
+| Landing | [/#developers](https://guld.io/#developers) |
+| Live PoC | [/demo/ttt/](demo/ttt/) — witnessed tic-tac-toe on Simba (`ttt-demo`) |
+| SDK | [`src/guld-js`](src/guld-js/README.md) (`@guld/js`) |
+| Pattern | [`docs/research/reference-dapp.md`](docs/research/reference-dapp.md) · [spec 11](docs/specs/11-leaf-host.md) |
+| Site login | [/demo/login/](demo/login/) |
+
 ## Develop
 
 ```bash

@@ -1,7 +1,7 @@
 # Reference dapp sketch
 
-**Status:** packages shipped — [037](../tasks/done/2026-09/037-guld-tic-tac-toe.md); materialize path [033](../tasks/done/2026-09/033-leaf-host-materialize.md) (**done**).  
-**Related:** [`polyglot-sdk-packages.md`](polyglot-sdk-packages.md) (**Accepted**), [036](../tasks/done/2026-09/036-guld-js-sdk.md), [spec 11](../specs/11-leaf-host.md), [whitepaper §4](../whitepaper/guld-2.0-draft.md), existing `/demo/login/` (extension auth only).
+**Status:** **live proof of concept** on Simba — play [/demo/ttt/](/demo/ttt/); tips under [`ttt-demo`](/explorer/#/account/ttt-demo). Packages: [037](../tasks/done/2026-09/037-guld-tic-tac-toe.md); materialize [033](../tasks/done/2026-09/033-leaf-host-materialize.md) (**done**).  
+**Landing:** [/#developers](/#developers) · **Related:** [`polyglot-sdk-packages.md`](polyglot-sdk-packages.md) (**Accepted**), [036](../tasks/done/2026-09/036-guld-js-sdk.md), [spec 11](../specs/11-leaf-host.md), [whitepaper §4](../whitepaper/guld-2.0-draft.md), `/demo/login/` (extension auth).
 
 ## Goal
 
@@ -180,13 +180,13 @@ Same SDK surface; less visceral than a game for a conference booth.
 
 ## Decision
 
-**Build the turn game first.** It is the smallest artefact that includes:
+**Ship the turn game first** — now done and working on Simba. It is the smallest artefact that includes:
 
 - a **git-backed leaf**,
 - **software that changes a state machine in files**,
 - and an **on-record proof story** (authorized tip sequence) without pretending the chain interprets the game.
 
-Treat on-record chat as the same pattern with a louder social UI — second example, not the reference.
+Treat on-record chat as the same pattern with a louder social UI — second example, not the reference. Developers landing copy points here from [/#developers](/#developers).
 
 ## History
 
@@ -195,3 +195,4 @@ Treat on-record chat as the same pattern with a louder social UI — second exam
 - 2026-09-27: 036 + 037 archived; on-chain Simba cosign e2e remains under 033.
 - 2026-09-27: On-chain path + `guld-node --dev` e2e (register → winning-line tips) in package tests.
 - 2026-09-27: [033](../tasks/done/2026-09/033-leaf-host-materialize.md) closed — faucet `ttt-demo` ensure, `auditGameTip`, Spec 11 §8.
+- 2026-09-27: Called out as live PoC on landing `#developers` + FAQ.

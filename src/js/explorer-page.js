@@ -1,10 +1,9 @@
 import "./chrome.js";
 import { startChainLive } from "./lib/chain-events.js";
+import { blockHashHex } from "../guld-js/src/wire/header.js";
 import {
-  defaultRpcUrl,
   escapeHtml,
   formatTime,
-  persistRpcUrl,
   quantaToGuld,
   resolveRpcUrl,
   rpcCall,
@@ -17,14 +16,15 @@ import {
 import { currencyTicker, loadNetworkInfo } from "./lib/network.js";
 
 const PAGE_SIZE = 20;
+/** Home right-column preview rows (each panel scrolls inside the shared column height). */
+const HOME_TX_LIMIT = 12;
 
 /** @type {string} */
 let ticker = "tGULD";
 
 const statusEl = document.querySelector("[data-explorer-status]");
 const hostEl = document.querySelector("[data-explorer-host]");
-const rpcInput = document.querySelector("[data-explorer-rpc]");
-const refreshBtn = document.querySelector("[data-explorer-refresh]");
+const suggestEl = document.querySelector("[data-explorer-suggest]");
 
 /** @type {string} */
 let rpcUrl = resolveRpcUrl();
@@ -36,27 +36,39 @@ const blockCache = new Map();
 let stopLive = null;
 /** @type {Map<string, object>} */
 let liveMempool = new Map();
+/** Full mempool size (RPC `count`); may exceed rows kept in `liveMempool` on home. */
+let liveMempoolTotal = 0;
 /** @type {"streaming"|"reconnecting"|"polling"|"offline"|""} */
 let liveTransport = "";
 /** @type {ReturnType<typeof setTimeout> | null} */
 let homeBlocksTimer = null;
 
-if (rpcInput instanceof HTMLInputElement) {
-  rpcInput.value = rpcUrl;
-  rpcInput.addEventListener("change", () => {
-    rpcUrl = rpcInput.value.trim() || defaultRpcUrl();
-    persistRpcUrl(rpcUrl);
-    blockCache.clear();
-    route();
-  });
-}
+window.addEventListener("hashchange", () => route());
 
-refreshBtn?.addEventListener("click", () => {
-  blockCache.clear();
-  route();
+document.addEventListener("click", (ev) => {
+  const btn = /** @type {HTMLElement | null} */ (
+    ev.target instanceof Element ? ev.target.closest("[data-copy]") : null
+  );
+  if (!btn) return;
+  const text = btn.getAttribute("data-copy") || "";
+  if (!text) return;
+  void navigator.clipboard.writeText(text).then(
+    () => {
+      btn.dataset.copied = "1";
+      const prev = btn.textContent;
+      btn.textContent = "Copied";
+      window.setTimeout(() => {
+        btn.dataset.copied = "0";
+        btn.textContent = prev || "Copy";
+      }, 1200);
+    },
+    () => {
+      /* clipboard optional */
+    },
+  );
 });
 
-window.addEventListener("hashchange", () => route());
+bindLookupForm();
 
 function haltLive() {
   if (stopLive) {
@@ -89,6 +101,27 @@ function transportLabel() {
   }
 }
 
+/** @param {number} [n] */
+function mempoolCountLabel(n = liveMempoolTotal) {
+  const c = Math.max(0, Number(n) || 0);
+  return c === 1 ? "1 unconfirmed" : `${c} unconfirmed`;
+}
+
+/**
+ * Apply a `guld_getMempool` snapshot — prefer RPC `count` over truncated `txs.length`.
+ * @param {{ count?: number, txs?: unknown[] }} pool
+ */
+function applyMempoolSnapshot(pool) {
+  const txs = Array.isArray(pool?.txs) ? pool.txs : [];
+  const reported = pool?.count != null ? Number(pool.count) : NaN;
+  liveMempoolTotal = Number.isFinite(reported) ? reported : txs.length;
+  liveMempool = new Map();
+  for (const row of txs) {
+    const id = normTxId(/** @type {{ id?: string }} */ (row).id);
+    if (id) liveMempool.set(id, /** @type {object} */ (row));
+  }
+}
+
 function paintLiveMempool(limit) {
   const slot = hostEl?.querySelector("[data-live-mempool]");
   if (!(slot instanceof HTMLElement)) return;
@@ -96,14 +129,13 @@ function paintLiveMempool(limit) {
     .sort((a, b) => Number(b.fee_rate || 0) - Number(a.fee_rate || 0))
     .slice(0, limit);
   const empty =
-    limit <= 12
+    limit <= HOME_TX_LIMIT
       ? "Mempool empty — no unconfirmed transactions."
       : "Mempool empty.";
   slot.innerHTML = mempoolTable(items, { empty });
   const countEl = hostEl?.querySelector("[data-live-mempool-count]");
   if (countEl instanceof HTMLElement) {
-    const n = liveMempool.size;
-    countEl.textContent = n === 1 ? "1 unconfirmed" : `${n} unconfirmed`;
+    countEl.textContent = mempoolCountLabel();
   }
 }
 
@@ -112,7 +144,7 @@ function paintLiveMempool(limit) {
  */
 function attachLive(view) {
   haltLive();
-  const limit = view === "home" ? 12 : 100;
+  const limit = view === "home" ? HOME_TX_LIMIT : 100;
   stopLive = startChainLive(rpcUrl, {
     onTransport(t) {
       liveTransport = t;
@@ -137,7 +169,11 @@ function attachLive(view) {
     onMempoolAdded(row) {
       const id = normTxId(row?.id);
       if (!id) return;
+      const wasCached = liveMempool.has(id);
       liveMempool.set(id, row);
+      // Home keeps a truncated cache; still bump total for true inserts.
+      // Re-delivery of an already-cached row is treated as an update.
+      if (!wasCached) liveMempoolTotal += 1;
       paintLiveMempool(limit);
       refreshStatusLine(view);
     },
@@ -145,6 +181,8 @@ function attachLive(view) {
       const id = normTxId(data?.id);
       if (!id) return;
       liveMempool.delete(id);
+      // Decrement even when the id was outside the home display window.
+      liveMempoolTotal = Math.max(0, liveMempoolTotal - 1);
       paintLiveMempool(limit);
       refreshStatusLine(view);
     },
@@ -152,11 +190,7 @@ function attachLive(view) {
       const info = await rpcCall(rpcUrl, "guld_nodeInfo", []);
       tipHeight = Number(info.height || tipHeight);
       const pool = await rpcCall(rpcUrl, "guld_getMempool", [limit]);
-      liveMempool = new Map();
-      for (const row of pool.txs || []) {
-        const id = normTxId(row.id);
-        if (id) liveMempool.set(id, row);
-      }
+      applyMempoolSnapshot(pool);
       paintLiveMempool(limit);
       refreshStatusLine(view);
       if (view === "home") await refreshHomeBlocks();
@@ -166,7 +200,7 @@ function attachLive(view) {
 
 /** @param {"home"|"mempool"} view */
 function refreshStatusLine(view) {
-  const n = liveMempool.size;
+  const n = liveMempoolTotal;
   if (view === "mempool") {
     setStatus(
       "ok",
@@ -191,9 +225,9 @@ async function refreshHomeBlocks() {
   for (const { height, block } of rows) {
     const txs = Array.isArray(block.txs) ? block.txs : [];
     txs.forEach((tx, index) => {
-      if (recentTxs.length < PAGE_SIZE) recentTxs.push({ height, index, tx });
+      if (recentTxs.length < HOME_TX_LIMIT) recentTxs.push({ height, index, tx });
     });
-    if (recentTxs.length >= PAGE_SIZE) break;
+    if (recentTxs.length >= HOME_TX_LIMIT) break;
   }
   const blocksSlot = hostEl.querySelector("[data-live-blocks]");
   const txsSlot = hostEl.querySelector("[data-live-confirmed-txs]");
@@ -316,7 +350,8 @@ function linkifyTxPrimary(tx, primary) {
     type === "claim_legacy" ||
     type === "update_master" ||
     type === "rotate_keys" ||
-    type === "settle_registration"
+    type === "settle_registration" ||
+    type === "convert_account_kind"
   ) {
     return nameLink(/** @type {string} */ (tx.name));
   }
@@ -422,7 +457,7 @@ async function route() {
       hostEl.innerHTML = `
         <div class="explorer__empty">
           <p>Could not reach the node at <code>${escapeHtml(rpcUrl)}</code>.</p>
-          <p>Local node: <code>http://127.0.0.1:8545</code>. On this site use same-origin <code>/rpc</code> (or clear a stuck loopback URL above).</p>
+          <p>Local node: <code>http://127.0.0.1:8545</code>. On this site use same-origin <code>/rpc</code>.</p>
           <p><a href="/explorer/legacy/">Legacy block 0 import details</a> (static snapshot)</p>
         </div>`;
     }
@@ -455,26 +490,50 @@ async function fetchBlockRange(fromInclusive, toInclusive) {
   return heights.map((h, i) => ({ height: h, block: blocks[i] })).filter((x) => x.block);
 }
 
-function lookupFormHtml(placeholder = "alice · 12 · 12:0 · 0x…") {
-  return `
-    <div class="explorer__lookup">
-      <form data-explorer-lookup>
-        <label>
-          Look up
-          <input name="q" type="text" spellcheck="false" autocomplete="off"
-            placeholder="${escapeHtml(placeholder)}" required />
-        </label>
-        <button type="submit" class="btn btn--outline">Open</button>
-      </form>
-      <p class="explorer__lookup-hint">Name, height, <code>height:index</code>, or block/tx hash</p>
-      <div data-explorer-suggest class="explorer__suggest" hidden></div>
-    </div>`;
+/**
+ * Copyable monospace value for detail views.
+ * @param {string | number | null | undefined} value
+ * @param {{ compact?: boolean }} [opts]
+ */
+function copyable(value, opts = {}) {
+  const v = String(value ?? "");
+  if (!v || v === "—") return escapeHtml(v || "—");
+  const shown = opts.compact && v.length > 40 ? shortHash(v, 14) : v;
+  return `<span class="explorer-copy">
+    <code class="explorer-copy__text" title="${escapeHtml(v)}">${escapeHtml(shown)}</code>
+    <button type="button" class="btn btn--outline btn--small explorer-copy__btn" data-copy="${escapeHtml(v)}">Copy</button>
+  </span>`;
+}
+
+/**
+ * @param {unknown[]} keys
+ * @param {string} [heading]
+ */
+function keysListHtml(keys, heading = "Keys") {
+  if (!Array.isArray(keys) || !keys.length) return "";
+  const items = keys
+    .map((k, i) => {
+      const hex = String(k);
+      return `<li><span class="explorer__meta">[${i}]</span> ${copyable(hex)}</li>`;
+    })
+    .join("");
+  return `<h3 class="explorer__subhead">${escapeHtml(heading)}</h3>
+    <ul class="explorer__keys">${items}</ul>`;
+}
+
+/**
+ * @param {string} label
+ * @param {string} html
+ * @param {{ wide?: boolean }} [opts]
+ */
+function kvRow(label, html, opts = {}) {
+  const wide = opts.wide ? " explorer-kv--wide" : "";
+  return `<div class="explorer-kv${wide}"><dt>${escapeHtml(label)}</dt><dd>${html}</dd></div>`;
 }
 
 function bindLookupForm() {
-  const form = hostEl?.querySelector("[data-explorer-lookup]");
+  const form = document.querySelector("[data-explorer-lookup]");
   const input = form?.querySelector('input[name="q"]');
-  const suggest = hostEl?.querySelector("[data-explorer-suggest]");
   form?.addEventListener("submit", (ev) => {
     ev.preventDefault();
     const fd = new FormData(/** @type {HTMLFormElement} */ (ev.target));
@@ -483,8 +542,14 @@ function bindLookupForm() {
   let suggestTimer = 0;
   input?.addEventListener("input", () => {
     window.clearTimeout(suggestTimer);
-    suggestTimer = window.setTimeout(() => void updateAccountSuggest(input, suggest), 200);
+    suggestTimer = window.setTimeout(() => void updateAccountSuggest(input, suggestEl), 200);
   });
+}
+
+/** @param {number} height */
+async function fetchBlockTxIds(height) {
+  const slim = await rpcCall(rpcUrl, "guld_getBlockByNumber", [height, false]);
+  return Array.isArray(slim?.txs) ? slim.txs.map(String) : [];
 }
 
 /**
@@ -533,42 +598,26 @@ async function renderHome() {
   for (const { height, block } of rows) {
     const txs = Array.isArray(block.txs) ? block.txs : [];
     txs.forEach((tx, index) => {
-      if (recentTxs.length < PAGE_SIZE) recentTxs.push({ height, index, tx });
+      if (recentTxs.length < HOME_TX_LIMIT) recentTxs.push({ height, index, tx });
     });
-    if (recentTxs.length >= PAGE_SIZE) break;
+    if (recentTxs.length >= HOME_TX_LIMIT) break;
   }
 
   let mempool = { count: pending, txs: [] };
   try {
-    mempool = await rpcCall(rpcUrl, "guld_getMempool", [12]);
+    mempool = await rpcCall(rpcUrl, "guld_getMempool", [HOME_TX_LIMIT]);
   } catch (err) {
     console.warn("mempool snapshot", err);
   }
+  applyMempoolSnapshot(mempool);
   const pendingTxs = Array.isArray(mempool.txs) ? mempool.txs : [];
-  liveMempool = new Map();
-  for (const row of pendingTxs) {
-    const id = normTxId(row.id);
-    if (id) liveMempool.set(id, row);
-  }
 
   if (!(hostEl instanceof HTMLElement)) return;
 
   const older = to > 0;
-  const pendingLabel =
-    liveMempool.size === 1 ? "1 unconfirmed" : `${liveMempool.size} unconfirmed`;
+  const pendingLabel = mempoolCountLabel();
 
   hostEl.innerHTML = `
-    ${lookupFormHtml()}
-    <section class="explorer__panel explorer__panel--mempool">
-      <header class="explorer__panel-head">
-        <h2>Mempool</h2>
-        <p><span data-live-mempool-count>${escapeHtml(pendingLabel)}</span> · 0 confirmations · waiting for the next block
-          · <a href="#/mempool">Open full list</a></p>
-      </header>
-      <div data-live-mempool>
-      ${mempoolTable(pendingTxs, { empty: "Mempool empty — no unconfirmed transactions." })}
-      </div>
-    </section>
     <div class="explorer__grid">
       <section class="explorer__panel">
         <header class="explorer__panel-head">
@@ -580,15 +629,27 @@ async function renderHome() {
         ${older ? `<p class="explorer__more">${blockLink(to - 1, `Older block #${to - 1}`)}</p>` : ""}
         </div>
       </section>
-      <section class="explorer__panel">
-        <header class="explorer__panel-head">
-          <h2>Confirmed transactions</h2>
-          <p>From recent blocks</p>
-        </header>
-        <div data-live-confirmed-txs>
-        ${txsTable(recentTxs)}
-        </div>
-      </section>
+      <div class="explorer__col">
+        <section class="explorer__panel explorer__panel--mempool">
+          <header class="explorer__panel-head">
+            <h2>Mempool</h2>
+            <p><span data-live-mempool-count>${escapeHtml(pendingLabel)}</span> · 0 confirmations
+              · <a href="#/mempool">Full list</a></p>
+          </header>
+          <div data-live-mempool>
+          ${mempoolTable(pendingTxs, { empty: "Mempool empty — no unconfirmed transactions." })}
+          </div>
+        </section>
+        <section class="explorer__panel">
+          <header class="explorer__panel-head">
+            <h2>Confirmed transactions</h2>
+            <p>From recent blocks</p>
+          </header>
+          <div data-live-confirmed-txs>
+          ${txsTable(recentTxs)}
+          </div>
+        </section>
+      </div>
     </div>
     <p class="explorer__foot-note">
       Genesis import balances live under
@@ -596,7 +657,6 @@ async function renderHome() {
       <a href="/explorer/legacy/">legacy details</a>.
     </p>
   `;
-  bindLookupForm();
   refreshStatusLine("home");
   attachLive("home");
 }
@@ -607,12 +667,8 @@ async function renderMempool() {
   const pool = await rpcCall(rpcUrl, "guld_getMempool", [100]);
   const weightUsed = pool.weight_used ?? "0";
   const weightLimit = pool.weight_limit ?? "—";
+  applyMempoolSnapshot(pool);
   const txs = Array.isArray(pool.txs) ? pool.txs : [];
-  liveMempool = new Map();
-  for (const row of txs) {
-    const id = normTxId(row.id);
-    if (id) liveMempool.set(id, row);
-  }
 
   if (!(hostEl instanceof HTMLElement)) return;
   hostEl.innerHTML = `
@@ -624,7 +680,7 @@ async function renderMempool() {
     <section class="explorer__panel">
       <header class="explorer__panel-head">
         <h2>Mempool</h2>
-        <p><span data-live-mempool-count>${liveMempool.size === 1 ? "1 unconfirmed" : `${liveMempool.size} unconfirmed`}</span> · weight ${escapeHtml(String(weightUsed))} / ${escapeHtml(String(weightLimit))}
+        <p><span data-live-mempool-count>${escapeHtml(mempoolCountLabel())}</span> · weight ${escapeHtml(String(weightUsed))} / ${escapeHtml(String(weightLimit))}
           ${pool.truncated ? " · truncated" : ""}</p>
       </header>
       <p class="explorer__meta">Unconfirmed txs stream live via SSE (GIP-19). Fallback polls the snapshot if the stream drops.</p>
@@ -693,13 +749,8 @@ async function renderPendingTx(id) {
 
   const tx = /** @type {Record<string, unknown>} */ (loc.tx || {});
   const s = summarizeTx(tx);
-  setStatus("ok", `Height ${tipHeight.toLocaleString()} · unconfirmed ${shortHash(id, 10)}`);
-
-  const kvRows = txDetailRows(tx)
-    .map(([label, html]) => {
-      return `<div class="explorer-kv"><dt>${escapeHtml(label)}</dt><dd>${html}</dd></div>`;
-    })
-    .join("");
+  const txId = String(loc.tx_id || id);
+  setStatus("ok", `Height ${tipHeight.toLocaleString()} · unconfirmed ${shortHash(txId, 10)}`);
 
   hostEl.innerHTML = `
     <nav class="explorer__crumb">
@@ -710,19 +761,22 @@ async function renderPendingTx(id) {
       <span>Unconfirmed</span>
     </nav>
     <aside class="explorer__banner">
-      <p><strong>Unconfirmed</strong> — in the mempool (0 confirmations). Refresh after the next block.</p>
+      <p><strong>Unconfirmed</strong> — in the mempool (0 confirmations). Watch for the next block.</p>
     </aside>
     <section class="explorer__panel">
       <header class="explorer__panel-head">
         <h2>${escapeHtml(s.type)}</h2>
-        <p><code title="${escapeHtml(String(loc.tx_id || id))}">${escapeHtml(shortHash(loc.tx_id || id, 14))}</code></p>
+        <p>0 confirmations</p>
       </header>
       <p class="explorer__tx-summary">${linkifyTxPrimary(tx, s.primary)}
         ${s.amount !== "—" ? ` · <strong>${escapeHtml(s.amount)}</strong> ${ticker}` : ""}</p>
       <dl class="explorer-kv-grid">
-        <div class="explorer-kv"><dt>Confirmations</dt><dd class="num">0</dd></div>
-        ${kvRows}
+        ${kvRow("Tx id", copyable(txId), { wide: true })}
+        ${kvRow("Confirmations", `<span class="num">0</span>`)}
+        ${kvRow("Status", `<span class="tx-pill tx-pill--pending">Unconfirmed</span>`)}
+        ${txDetailRowsHtml(tx)}
       </dl>
+      ${txExtrasHtml(tx)}
     </section>
   `;
 }
@@ -802,48 +856,52 @@ async function renderBlock(height) {
   const h = block.header || {};
   const txs = Array.isArray(block.txs) ? block.txs : [];
   const isGenesis = height === 0;
+  let blockHash = "";
+  try {
+    blockHash = await blockHashHex(/** @type {import("../guld-js/src/wire/header.js").HeaderJson} */ (h));
+  } catch (err) {
+    console.warn("block hash", err);
+  }
+  let txIds = [];
+  try {
+    txIds = await fetchBlockTxIds(height);
+  } catch (err) {
+    console.warn("block tx ids", err);
+  }
 
-  /** @type {[string, string, "text"|"name"|"hash"|"block"][]} */
-  const fields = [
-    ["Height", String(h.height ?? height), "block"],
-    ["Time", formatTime(h.timestamp), "text"],
-    ["Miner", String(h.miner || "—"), "name"],
-    ["Difficulty", String(h.difficulty ?? "—"), "text"],
-    ["Nonce", String(h.nonce ?? "—"), "text"],
-    ["Inclusion fees", `${quantaToGuld(h.inclusion_fees || "0")} ${ticker}`, "text"],
-    ["Prev hash", String(h.prev_hash || "—"), "hash"],
-    ["State root", String(h.state_root || "—"), "hash"],
-    ["Tx root", String(h.tx_root || "—"), "hash"],
-    ["Receipt root", String(h.receipt_root || "—"), "hash"],
-    ["Rules hash", String(h.guld_rules_hash || "—"), "hash"],
-  ];
-
-  const dl = fields
-    .map(([k, v, kind]) => {
-      if (kind === "name") {
-        return `<div class="explorer-kv"><dt>${escapeHtml(k)}</dt><dd>${nameLink(v)}</dd></div>`;
-      }
-      if (kind === "block") {
-        return `<div class="explorer-kv"><dt>${escapeHtml(k)}</dt><dd class="num">${blockLink(v)}</dd></div>`;
-      }
-      if (kind === "hash") {
-        const prevHint =
-          k === "Prev hash" && height > 0
-            ? ` <span class="explorer__meta">(${blockLink(height - 1, `block ${height - 1}`)})</span>`
-            : "";
-        return `<div class="explorer-kv"><dt>${escapeHtml(k)}</dt><dd><code title="${escapeHtml(v)}">${escapeHtml(shortHash(v, 14))}</code>${prevHint}</dd></div>`;
-      }
-      return `<div class="explorer-kv"><dt>${escapeHtml(k)}</dt><dd>${escapeHtml(v)}</dd></div>`;
-    })
-    .join("");
+  const dl = [
+    kvRow("Height", `<span class="num">${blockLink(h.height ?? height)}</span>`),
+    blockHash ? kvRow("Block hash", copyable(blockHash), { wide: true }) : "",
+    kvRow("Time", escapeHtml(formatTime(h.timestamp))),
+    kvRow("Miner", nameLink(String(h.miner || "—"))),
+    kvRow("Version", escapeHtml(String(h.version ?? "—"))),
+    kvRow("Difficulty", escapeHtml(String(h.difficulty ?? "—"))),
+    kvRow("Nonce", copyable(String(h.nonce ?? "—"))),
+    kvRow("Inclusion fees", `${escapeHtml(quantaToGuld(h.inclusion_fees || "0"))} ${ticker}`),
+    kvRow(
+      "Prev hash",
+      `${copyable(String(h.prev_hash || "—"))}${
+        height > 0
+          ? ` <span class="explorer__meta">(${blockLink(height - 1, `block ${height - 1}`)})</span>`
+          : ""
+      }`,
+      { wide: true },
+    ),
+    kvRow("State root", copyable(String(h.state_root || "—")), { wide: true }),
+    kvRow("Tx root", copyable(String(h.tx_root || "—")), { wide: true }),
+    kvRow("Receipt root", copyable(String(h.receipt_root || "—")), { wide: true }),
+    kvRow("Rules hash", copyable(String(h.guld_rules_hash || "—")), { wide: true }),
+  ].join("");
 
   const txRows = txs.length
     ? txs
         .map((tx, index) => {
           const s = summarizeTx(tx);
           const fee = quantaToGuld(tx.inclusion_fee || "0");
+          const id = txIds[index] || "";
           return `<tr>
             <td class="num">${txLink(height, index, String(index))}</td>
+            <td>${id ? copyable(id, { compact: true }) : "—"}</td>
             <td><a href="${txHref(height, index)}"><span class="tx-pill">${escapeHtml(s.type)}</span></a></td>
             <td>${linkifyTxPrimary(tx, s.primary)}</td>
             <td class="num">${escapeHtml(s.amount)}</td>
@@ -885,7 +943,7 @@ async function renderBlock(height) {
         txs.length
           ? `<div class="explorer__table-wrap"><table class="explorer-table">
               <thead><tr>
-                <th class="num">#</th><th>Type</th><th>Detail</th><th class="num">Amount</th><th class="num">Fee</th>
+                <th class="num">#</th><th>Tx id</th><th>Type</th><th>Detail</th><th class="num">Amount</th><th class="num">Fee</th>
               </tr></thead>
               <tbody>${txRows}</tbody>
             </table></div>`
@@ -929,11 +987,31 @@ async function renderTx(height, index) {
   const confLabel = conf === 1 ? "1 confirmation" : `${conf} confirmations`;
   setStatus("ok", `Height ${tipHeight.toLocaleString()} · tx ${height}:${index} · ${confLabel}`);
 
-  const kvRows = txDetailRows(tx)
-    .map(([label, html]) => {
-      return `<div class="explorer-kv"><dt>${escapeHtml(label)}</dt><dd>${html}</dd></div>`;
-    })
-    .join("");
+  let txId = "";
+  let blockHash = "";
+  try {
+    const ids = await fetchBlockTxIds(height);
+    txId = ids[index] || "";
+  } catch (err) {
+    console.warn("tx id", err);
+  }
+  if (txId) {
+    try {
+      const loc = await rpcCall(rpcUrl, "guld_getTransaction", [txId]);
+      if (loc?.block_hash) blockHash = String(loc.block_hash);
+    } catch {
+      /* optional */
+    }
+  }
+  if (!blockHash) {
+    try {
+      blockHash = await blockHashHex(
+        /** @type {import("../guld-js/src/wire/header.js").HeaderJson} */ (header),
+      );
+    } catch {
+      /* optional */
+    }
+  }
 
   const siblings =
     txs.length > 1
@@ -963,25 +1041,26 @@ async function renderTx(height, index) {
       <p class="explorer__tx-summary">${linkifyTxPrimary(tx, s.primary)}
         ${s.amount !== "—" ? ` · <strong>${escapeHtml(s.amount)}</strong> ${ticker}` : ""}</p>
       <dl class="explorer-kv-grid">
-        <div class="explorer-kv"><dt>Confirmations</dt><dd class="num">${escapeHtml(String(conf))}</dd></div>
-        ${kvRows}
+        ${txId ? kvRow("Tx id", copyable(txId), { wide: true }) : kvRow("Locator", copyable(`${height}:${index}`))}
+        ${blockHash ? kvRow("Block hash", copyable(blockHash), { wide: true }) : ""}
+        ${kvRow("Block", blockLink(height, `block ${height}`))}
+        ${kvRow("Index", `<span class="num">${escapeHtml(String(index))}</span>`)}
+        ${kvRow("Confirmations", `<span class="num">${escapeHtml(String(conf))}</span>`)}
+        ${kvRow("Time", escapeHtml(formatTime(header.timestamp)))}
+        ${header.miner ? kvRow("Miner", nameLink(String(header.miner))) : ""}
+        ${txDetailRowsHtml(tx)}
       </dl>
+      ${txExtrasHtml(tx)}
       ${siblings}
     </section>
   `;
 }
 
 /**
- * Flatten a tx into labeled HTML value rows (with links).
+ * Scalar / name / amount fields as kv rows (keys & sigs via txExtrasHtml).
  * @param {Record<string, unknown>} tx
- * @returns {[string, string][]}
  */
-function txDetailRows(tx) {
-  /** @type {[string, string][]} */
-  const rows = [];
-  const type = String(tx.type || "unknown");
-  rows.push(["Type", `<span class="tx-pill">${escapeHtml(type)}</span>`]);
-
+function txDetailRowsHtml(tx) {
   const nameFields = new Set([
     "from",
     "to",
@@ -996,50 +1075,120 @@ function txDetailRows(tx) {
     "inclusion_fee",
     "registration_fee",
   ]);
-  const skip = new Set(["type", "cosignatures", "keys", "signature", "payer_signature", "registrant_signature", "parent_signature", "sub_signature", "new_key_signature", "legacy_proof"]);
+  const skip = new Set([
+    "type",
+    "cosignatures",
+    "keys",
+    "new_keys",
+    "signature",
+    "payer_signature",
+    "registrant_signature",
+    "parent_signature",
+    "sub_signature",
+    "new_key_signature",
+    "legacy_proof",
+  ]);
+
+  /** @type {string[]} */
+  const rows = [
+    kvRow("Type", `<span class="tx-pill">${escapeHtml(String(tx.type || "unknown"))}</span>`),
+  ];
 
   for (const [key, val] of Object.entries(tx)) {
     if (skip.has(key) || val == null || val === "") continue;
     if (nameFields.has(key)) {
-      rows.push([labelize(key), nameLink(String(val))]);
+      rows.push(kvRow(labelize(key), nameLink(String(val))));
       continue;
     }
     if (key === "label" && tx.parent) {
-      rows.push(["Full name", nameLink(`${tx.parent}.${val}`)]);
-      rows.push(["Label", `<code>${escapeHtml(String(val))}</code>`]);
+      rows.push(kvRow("Full name", nameLink(`${tx.parent}.${val}`)));
+      rows.push(kvRow("Label", copyable(String(val))));
       continue;
     }
     if (amountFields.has(key)) {
-      rows.push([labelize(key), `${escapeHtml(quantaToGuld(/** @type {string} */ (val)))} ${ticker}`]);
+      rows.push(
+        kvRow(labelize(key), `${escapeHtml(quantaToGuld(/** @type {string} */ (val)))} ${ticker}`),
+      );
       continue;
     }
     if (key === "memo") {
-      rows.push(["Memo", `<code>${escapeHtml(String(val))}</code>`]);
+      rows.push(kvRow("Memo", copyable(String(val)), { wide: true }));
+      continue;
+    }
+    if (key === "threshold" || key === "nonce") {
+      rows.push(kvRow(labelize(key), `<span class="num">${escapeHtml(String(val))}</span>`));
+      continue;
+    }
+    if (key === "new_kind" || key === "kind") {
+      rows.push(kvRow(labelize(key), escapeHtml(String(val))));
       continue;
     }
     if (typeof val === "string" || typeof val === "number" || typeof val === "boolean") {
       const s = String(val);
-      const shown = s.length > 48 && /^0x[0-9a-fA-F]+$/.test(s) ? shortHash(s, 14) : s;
-      rows.push([
-        labelize(key),
-        `<code title="${escapeHtml(s)}">${escapeHtml(shown)}</code>`,
-      ]);
+      if (/^(0x)?[0-9a-fA-F]{16,}$/.test(s) || s.length > 40) {
+        rows.push(kvRow(labelize(key), copyable(s), { wide: true }));
+      } else {
+        rows.push(kvRow(labelize(key), `<code>${escapeHtml(s)}</code>`));
+      }
+      continue;
+    }
+    if (typeof val === "object") {
+      const json = JSON.stringify(val, null, 2);
+      rows.push(kvRow(labelize(key), copyable(json), { wide: true }));
     }
   }
 
+  return rows.join("");
+}
+
+/**
+ * Keys, signatures, cosignatures — full values with copy.
+ * @param {Record<string, unknown>} tx
+ */
+function txExtrasHtml(tx) {
+  /** @type {string[]} */
+  const parts = [];
+
   if (Array.isArray(tx.keys) && tx.keys.length) {
-    rows.push([
-      "Keys",
-      `<ul class="explorer__keys">${tx.keys
-        .map((k) => `<li><code>${escapeHtml(shortHash(String(k), 12))}</code></li>`)
-        .join("")}</ul>`,
-    ]);
+    parts.push(keysListHtml(tx.keys, "Keys"));
   }
-  if (tx.threshold != null) {
-    rows.push(["Threshold", `<span class="num">${escapeHtml(String(tx.threshold))}</span>`]);
+  if (Array.isArray(tx.new_keys) && tx.new_keys.length) {
+    parts.push(keysListHtml(tx.new_keys, "New keys"));
   }
 
-  return rows;
+  const sigKeys = [
+    "signature",
+    "payer_signature",
+    "registrant_signature",
+    "parent_signature",
+    "sub_signature",
+    "new_key_signature",
+  ];
+  /** @type {string[]} */
+  const sigRows = [];
+  for (const key of sigKeys) {
+    if (tx[key] == null || tx[key] === "") continue;
+    sigRows.push(kvRow(labelize(key), copyable(String(tx[key])), { wide: true }));
+  }
+  if (Array.isArray(tx.cosignatures) && tx.cosignatures.length) {
+    tx.cosignatures.forEach((sig, i) => {
+      sigRows.push(kvRow(`Cosignature [${i}]`, copyable(String(sig)), { wide: true }));
+    });
+  }
+  if (tx.legacy_proof != null && tx.legacy_proof !== "") {
+    const proof =
+      typeof tx.legacy_proof === "string"
+        ? tx.legacy_proof
+        : JSON.stringify(tx.legacy_proof, null, 2);
+    sigRows.push(kvRow("Legacy proof", copyable(proof), { wide: true }));
+  }
+  if (sigRows.length) {
+    parts.push(`
+      <h3 class="explorer__subhead">Signatures</h3>
+      <dl class="explorer-kv-grid">${sigRows.join("")}</dl>`);
+  }
+
+  return parts.join("");
 }
 
 /** @param {string} key */
@@ -1081,18 +1230,15 @@ async function renderAccount(name) {
   const balanceGuld = quantaToGuld(balance || "0");
   setStatus("ok", `Height ${tipHeight.toLocaleString()} · ${name}`);
 
-  const keys = Array.isArray(account.keys)
-    ? account.keys.map((k) => `<li><code>${escapeHtml(shortHash(String(k), 12))}</code></li>`).join("")
-    : "";
   const legacy = account.legacy
-    ? `<div class="explorer-kv"><dt>Legacy</dt><dd><code>${escapeHtml(JSON.stringify(account.legacy))}</code></dd></div>`
+    ? kvRow("Legacy", copyable(JSON.stringify(account.legacy, null, 2)), { wide: true })
     : account.legacy_locked
-      ? `<div class="explorer-kv"><dt>Legacy</dt><dd>locked</dd></div>`
+      ? kvRow("Legacy", "locked")
       : "";
   const expires =
     account.expires_at_height != null && String(account.expires_at_height) !== "18446744073709551615"
-      ? `<div class="explorer-kv"><dt>Expires at height</dt><dd class="num">${blockLink(account.expires_at_height)}</dd></div>`
-      : "";
+      ? kvRow("Expires at height", `<span class="num">${blockLink(account.expires_at_height)}</span>`)
+      : kvRow("Expires", "never");
 
   const parentName =
     typeof account.parent === "string"
@@ -1125,10 +1271,19 @@ async function renderAccount(name) {
               : escapeHtml(formatTime(row.timestamp));
           let txCell = "—";
           if (unconfirmed && row.tx_id) {
-            txCell = pendingTxLink(String(row.tx_id), shortHash(String(row.tx_id), 8));
+            const id = String(row.tx_id);
+            txCell = `<span class="explorer-copy">
+              <a href="${pendingTxHref(id)}"><code class="explorer-copy__text" title="${escapeHtml(id)}">${escapeHtml(shortHash(id, 10))}</code></a>
+              <button type="button" class="btn btn--outline btn--small explorer-copy__btn" data-copy="${escapeHtml(id)}">Copy</button>
+            </span>`;
           } else if (h && idx != null && Number.isFinite(Number(idx))) {
-            const tip = row.tx_id ? String(row.tx_id) : `${h}:${idx}`;
-            txCell = txLink(h, idx, shortHash(tip, 8));
+            const id = row.tx_id ? String(row.tx_id) : "";
+            txCell = id
+              ? `<span class="explorer-copy">
+                  <a href="${txHref(h, idx)}"><code class="explorer-copy__text" title="${escapeHtml(id)}">${escapeHtml(shortHash(id, 10))}</code></a>
+                  <button type="button" class="btn btn--outline btn--small explorer-copy__btn" data-copy="${escapeHtml(id)}">Copy</button>
+                </span>`
+              : txLink(h, idx, `${h}:${idx}`);
           } else if (h && s.type === "coinbase") {
             txCell = blockLink(h, "coinbase");
           } else if (h) {
@@ -1138,7 +1293,7 @@ async function renderAccount(name) {
             <td><span class="tx-pill${unconfirmed ? " tx-pill--pending" : ""}">${escapeHtml(s.type)}</span></td>
             <td>${linkifyActivityPrimary(rec, s)}</td>
             <td class="num">${escapeHtml(s.amount)}</td>
-            <td class="num">${txCell}</td>
+            <td>${txCell}</td>
             <td class="num">${confCell}</td>
             <td class="num">${when}</td>
           </tr>`;
@@ -1159,15 +1314,18 @@ async function renderAccount(name) {
       </header>
       <p class="explorer__balance"><strong>${escapeHtml(balanceGuld)}</strong> ${ticker}</p>
       <dl class="explorer-kv-grid">
-        <div class="explorer-kv"><dt>Threshold</dt><dd class="num">${escapeHtml(String(account.threshold ?? "—"))}</dd></div>
-        <div class="explorer-kv"><dt>Nonce</dt><dd class="num">${escapeHtml(String(account.nonce ?? "—"))}</dd></div>
-        <div class="explorer-kv"><dt>Account id</dt><dd><code title="${escapeHtml(String(account.account_id || ""))}">${escapeHtml(shortHash(String(account.account_id || "—"), 14))}</code></dd></div>
-        <div class="explorer-kv"><dt>Master hash</dt><dd><code title="${escapeHtml(String(account.master_hash || ""))}">${escapeHtml(shortHash(String(account.master_hash || "—"), 14))}</code></dd></div>
+        ${kvRow("Name", `${nameLink(name)} <button type="button" class="btn btn--outline btn--small" data-copy="${escapeHtml(name)}">Copy</button>`)}
+        ${kvRow("Kind", escapeHtml(String(account.kind || "—")))}
+        ${kvRow("Balance", `${escapeHtml(balanceGuld)} ${ticker}`)}
+        ${kvRow("Threshold", `<span class="num">${escapeHtml(String(account.threshold ?? "—"))}</span>`)}
+        ${kvRow("Nonce", `<span class="num">${escapeHtml(String(account.nonce ?? "—"))}</span>`)}
+        ${kvRow("Account id", copyable(String(account.account_id || "—")), { wide: true })}
+        ${kvRow("Master hash", copyable(String(account.master_hash || "—")), { wide: true })}
         ${expires}
         ${legacy}
-        ${parentName ? `<div class="explorer-kv"><dt>Parent</dt><dd>${nameLink(parentName)}</dd></div>` : ""}
+        ${parentName ? kvRow("Parent", nameLink(parentName)) : ""}
       </dl>
-      ${keys ? `<h3 class="explorer__subhead">Keys</h3><ul class="explorer__keys">${keys}</ul>` : ""}
+      ${keysListHtml(Array.isArray(account.keys) ? account.keys : [])}
       <p class="explorer__foot-note"><a href="/wallet/#/account/${encodeURIComponent(name)}">Open in wallet</a></p>
     </section>
     <section class="explorer__panel">
@@ -1175,7 +1333,7 @@ async function renderAccount(name) {
       ${
         actRows
           ? `<div class="explorer__table-wrap"><table class="explorer-table">
-              <thead><tr><th>Type</th><th>Detail</th><th class="num">Amount</th><th class="num">Tx / block</th><th class="num">Confirmations</th><th class="num">When</th></tr></thead>
+              <thead><tr><th>Type</th><th>Detail</th><th class="num">Amount</th><th>Tx id</th><th class="num">Confirmations</th><th class="num">When</th></tr></thead>
               <tbody>${actRows}</tbody>
             </table></div>`
           : `<p class="explorer__empty">No activity yet.</p>`

@@ -29,3 +29,21 @@ Guld 1.0 used **identity- and contribution-weighted proof of stake**. Over time 
 ### Where is the wallet?
 
 The primary wallet is the **static web UI** in this repo (`/wallet/`), served by `guld-node --http-static`. Keys stay on your device.
+
+## Building dapps
+
+### How do I build a Guld dapp?
+
+Register a name (or group), keep application state in a **leaf** (files hashed into `master_hash`), and advance the tip with **`UpdateMaster`** when the right keys cosign. Validators do **not** run your app logic — they witness authorized heads. Start from:
+
+- Landing: [/#developers](/#developers)
+- SDK: [`@guld/js`](../src/guld-js/README.md)
+- Pattern: [reference dapp](research/reference-dapp.md) · [spec 11](specs/11-leaf-host.md)
+
+### What is the tic-tac-toe demo?
+
+**[/demo/ttt/](/demo/ttt/)** is the shipped **reference dapp** — a working proof of concept on Simba. Each legal move tips the published `ttt-demo` group account; you can follow tips in the [explorer](/explorer/#/account/ttt-demo). Package: [`guld-tic-tac-toe`](../src/guld-tic-tac-toe/) · write-up: [reference-dapp.md](research/reference-dapp.md).
+
+### How do sites log users in with a Guld name?
+
+The browser extension signs a short challenge (`guld1login` / Spec 14 §10.1). Demo: [/demo/login/](/demo/login/).

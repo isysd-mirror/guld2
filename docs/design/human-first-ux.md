@@ -37,16 +37,17 @@ Protocol coverage from Spec 14 remains **complete** in Operator / Advanced paths
 **First viewport only:** brand, one headline, one lede, Sign up / Log in.  
 **Not in first viewport:** cargo install, hard-fork thesis, leaf-law pillars, node flags.
 
-Quiet text links under the CTAs MAY point to `#operators` / explorer — they must not compete with Sign up / Log in.
+Quiet text links under the CTAs MAY point to `#developers` / `#operators` / explorer — they must not compete with Sign up / Log in.
 
 Below fold:
 
 - Short “what is a name” story (`#start`)
+- **Developers** (`#developers`): build a leaf dapp; call out live `/demo/ttt/` PoC + `@guld/js`  
 - **Operators** (`#operators`): install / run a peer  
 - Explorer link  
 - Docs / whitepaper / thesis / FAQ
 
-Rewrite thesis copy for humans. Protocol poetry can live in whitepaper; landing sells the feeling of being addressable.
+Rewrite thesis copy for humans. Protocol poetry can live in whitepaper; landing sells the feeling of being addressable. Early beta still courts **developers** as a primary demographic — the dapp section is below the fold but not buried.
 
 ### 4.2 Register (`/register/`)
 
