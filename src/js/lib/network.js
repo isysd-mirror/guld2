@@ -71,13 +71,13 @@ export const NETWORK_PRESETS = [
 export function bannerText(info) {
   if (info.mode === "mainnet") {
     return {
-      html: `<strong>Guld mainnet.</strong> Real value — verify the peer before sending.`,
+      html: `<span class="site-banner__tag">Mainnet</span> <span class="site-banner__lead"><strong>Guld</strong></span> <span class="site-banner__note">Real value — verify the peer before sending.</span>`,
       label: "Mainnet",
     };
   }
   const net = info.network ? escapeHtml(info.network) : "testnet";
   return {
-    html: `<strong>Guld 2.0 testnet</strong> (<code>${net}</code>, chain ${info.chainId}). Not mainnet — faucets may fund registration and drips.`,
+    html: `<span class="site-banner__tag">Testnet</span> <span class="site-banner__lead"><strong>Guld 2.0</strong> <code>${net}</code> <span aria-hidden="true">·</span> chain ${info.chainId}</span> <span class="site-banner__note">Not mainnet — faucets may fund registration and drips.</span>`,
     label: "Testnet",
   };
 }

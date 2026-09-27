@@ -10,7 +10,7 @@ const root = join(dirname(fileURLToPath(import.meta.url)), "..");
 
 test("index has brand-level logo and signup/login CTAs", () => {
   const html = readFileSync(join(root, "index.html"), "utf8");
-  assert.match(html, /assets\/logo\.svg/);
+  assert.match(html, /assets\/(logo|shield)\.svg/);
   assert.match(html, /Address by name/i);
   assert.match(html, /hard fork/i);
   assert.match(html, /Guld 2\.0|2\.0/);

@@ -6,13 +6,13 @@
     <meta name="theme-color" content="#000000" />
     <meta
       name="description"
-      content="Guld 2.0 beta — a global, identity-focused DeFi layer-0. This site shows Simba testnet data. Address by name. Commit by hash. Authorize by proof."
+      content="Guld 2.0 beta — a global identity layer: names you own, commitments by hash, proofs by signature. Address by name. Commit by hash. Authorize by proof."
     />
     <meta property="og:url" content="https://guld.io/" />
     <meta property="og:title" content="Guld 2.0 beta" />
     <meta
       property="og:description"
-      content="Guld 2.0 is in beta. This site shows Simba testnet data. Identity-focused L0: names, hash-tree homes, threshold proofs."
+      content="Your name is your account. Own it, sign with it, build on it. Guld 2.0 beta on the Simba testnet."
     />
     <meta property="og:image" content="https://guld.io/assets/og.jpg" />
     <meta
@@ -27,33 +27,30 @@
     <link rel="stylesheet" href="/src/css/layout.css" />
     <title>Guld 2.0 beta</title>
   </head>
-  <body class="site-body">
+  <body class="site-body site-body--landing">
     <guld-header variant="overlay"></guld-header>
 
     <main id="main" class="site-main">
-      <section class="hero" aria-label="Guld">
-        <div class="hero__plane" role="presentation"></div>
-        <div class="hero__content">
-          <img
-            class="hero__logo"
-            src="/assets/logo.svg"
-            width="280"
-            height="93"
-            alt="Guld"
-          />
-          <p class="hero__version">2.0 beta</p>
-          <h1 class="hero__title">Address by name. Commit by hash.</h1>
-          <p class="hero__lede">
-            A global, identity-focused DeFi layer-0 — currently in beta on the
-            <strong>Simba testnet</strong>. Run a node, open the wallet, and use
-            names — not opaque key hashes alone.
-          </p>
-          <div class="hero__actions">
-            <a class="btn btn--primary" href="/register/">Sign up</a>
-            <a class="btn btn--ghost" href="/login/">Log in</a>
-            <a class="btn btn--ghost" href="#install">Install &amp; run a node</a>
+      <section class="hero hero--globe" aria-label="Guld" data-phase="intro">
+        <canvas class="hero__globe" aria-hidden="true"></canvas>
+        <div class="hero__stage">
+          <div class="hero__mark">
+            <img class="hero__shield" src="/assets/shield.svg" width="64" height="80" alt="Guld" />
+          </div>
+          <div class="hero__copy">
+            <h1 class="hero__title">Address by name. Commit by hash. <span class="hero__title-proof">Authorize by proof.</span></h1>
+            <p class="hero__lede">
+              <span class="hero__lede-lead">Send to <strong>alice</strong>, not</span>
+              <code class="hero__key">0x7f3a9c2e1b8d4f60a5c3e97b12d8f4a6e0b9c7d53f1a2e84b6c09d7e5f3a1b28</code>
+            </p>
           </div>
         </div>
+        <a class="hero__next" href="#start">
+          <svg viewBox="0 0 16 16" aria-hidden="true"><path d="M8 2.5v10M3.5 8.5 8 13l4.5-4.5" /></svg>
+          Get started
+        </a>
+        <ol class="hero__log" aria-hidden="true"></ol>
+        <p class="hero__version">2.0 beta</p>
       </section>
 
       <section id="start" class="section">
