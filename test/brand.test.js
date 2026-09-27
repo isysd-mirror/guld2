@@ -11,15 +11,20 @@ const root = join(dirname(fileURLToPath(import.meta.url)), "..");
 test("index has brand-level logo and signup/login CTAs", () => {
   const html = readFileSync(join(root, "index.html"), "utf8");
   assert.match(html, /assets\/logo\.svg/);
-  assert.match(html, /Address by name/i);
+  assert.match(html, /Address people by name/i);
   assert.match(html, /hard fork/i);
   assert.match(html, /Guld 2\.0|2\.0/);
   assert.match(html, /guld-header/);
   assert.match(html, /guld-footer/);
   assert.match(html, /Sign up/);
   assert.match(html, /Log in/);
-  assert.match(html, /id="install"/);
+  assert.match(html, /id="operators"/);
   assert.match(html, /cargo run -p guld-node/);
+  const actions = html.match(/<div class="hero__actions">([\s\S]*?)<\/div>/);
+  assert.ok(actions, "hero actions present");
+  assert.match(actions[1], /Sign up/);
+  assert.match(actions[1], /Log in/);
+  assert.doesNotMatch(actions[1], /Install|cargo|guld-node/i);
   assert.doesNotMatch(html, /site-header__nav/);
   assert.doesNotMatch(html, /Coming soon/);
   assert.doesNotMatch(html, /cdn\.jsdelivr|googleapis\.com\/css/i);
@@ -57,7 +62,7 @@ test("header nav is product; docs live in footer", () => {
     FOOTER_NAV.map((i) => i.label),
     ["Install", "Legacy claim", "Whitepaper", "Specs", "Software", "Docs"],
   );
-  assert.equal(FOOTER_NAV.find((i) => i.label === "Install")?.href, "/#install");
+  assert.equal(FOOTER_NAV.find((i) => i.label === "Install")?.href, "/#operators");
   assert.equal(FOOTER_NAV.find((i) => i.label === "Docs")?.href, "/docs/");
   assert.equal(
     FOOTER_NAV.find((i) => i.label === "Whitepaper")?.href,
@@ -87,8 +92,8 @@ test("isNavActive and normalizePath", () => {
   assert.equal(normalizePath("/wallet/index.html"), "/wallet");
   assert.equal(isNavActive("/wallet/", "/wallet/"), true);
   assert.equal(isNavActive("/explorer/", "/explorer/legacy/"), true);
-  assert.equal(isNavActive("/#install", "/", "#install"), true);
-  assert.equal(isNavActive("/#install", "/wallet/"), false);
+  assert.equal(isNavActive("/#operators", "/", "#operators"), true);
+  assert.equal(isNavActive("/#operators", "/wallet/"), false);
   assert.equal(initialsForName("isysd"), "IS");
 });
 

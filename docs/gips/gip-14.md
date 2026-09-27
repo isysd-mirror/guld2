@@ -64,7 +64,7 @@ Full 1.0 ledger in committed manifest (hyphen names remapped):
 | `import_manifest_hash` | `0x59a39af461d66fa1ef892708f8fa8838684d812cccfbe253816a34f448980e70` |
 | **x** | **960,975.39527052 GULD** (= sum of rows) |
 | Holders | **2,217** positive import rows |
-| Tip | `0xadbff5409912ffa96fee913b3775b471eaca58b26323465ec41a400f86a1cd96` |
+| Tip | `0xf4cdc0172082485ae7b77879aedb1706d9bd7fe3da972409a15e415a3638beb4` (GIP-27) |
 | Omitted | ERC20 / foreign-mirror buckets |
 
 Mainnet MAY re-audit before its own genesis ceremony; Simba testnet treats this pin as locked (one more reset OK per G4).
@@ -114,3 +114,6 @@ Legacy import: `keys = []`, `threshold = 0` until claim; lock enforced by `legac
 ## History
 
 Supersedes: `docs/intents/ledger-migration.md`
+
+- 2026-09-27: Legacy settle exemption removed — [GIP-27](gip-27.md) (pay-or-release parity while locked).
+

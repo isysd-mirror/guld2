@@ -30,16 +30,18 @@ Groups and n-of-m signing touch registration fees, dual-sig sponsor flows, multi
 
 ## Implementation slices
 
-Tracked as Phase 3b in [`GIP-5`](gip-5.md). Cosign JSON frozen in spec 14 §9.2.1.
+Tracked as Phase 3b in [`GIP-5`](gip-5.md). Cosign JSON frozen in spec 14 §9.2.1. Threshold **Transfer** shipped ([GIP-29](gip-29.md)).
 
-Still open: group `Transfer` (consensus 1-of-1), extension cosign parity, QR for large cosign blobs.
+Still open: extension cosign parity, QR for large cosign blobs, citizen UX polish ([005](../tasks/open/005-human-first-ux.md); contacts/search shipped in [GIP-20](gip-20.md)).
 
 ## Non-goals
 
-- Changing consensus tx vocabulary  
+- Changing consensus tx vocabulary beyond what GIP-29 already locked  
 - On-chain social graphs  
 - Replacing miner-driven `SettleRegistration` with a mandatory Renew button
 
 ## History
 
 Supersedes: `docs/intents/ui-full-coverage.md`
+
+- 2026-09-27: Group Transfer no longer “1-of-1 only” — see [GIP-29](gip-29.md) / task [028](../tasks/done/2026-09/028-threshold-transfer-cosign.md).

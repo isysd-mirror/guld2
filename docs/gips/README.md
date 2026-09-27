@@ -36,13 +36,16 @@ Small bugs and polish: use [`../tasks/`](../tasks/) instead. Specs remain normat
 | [17](gip-17.md) | UI full coverage | Accepted | Standards | Interface |
 | [18](gip-18.md) | Consumer integration | Draft | Informational | — |
 | [19](gip-19.md) | Mempool visualizer | Accepted | Standards | Interface |
-| [20](gip-20.md) | Wallet contacts and account lookup | Draft | Standards | Application |
+| [20](gip-20.md) | Wallet contacts and account lookup | Accepted | Standards | Application |
 | [21](gip-21.md) | guld.io in guld leaf + miner governance | Draft | Standards | Core |
 | [22](gip-22.md) | Deferred miner rewards (ClaimReward) | Accepted | Standards | Core |
 | [23](gip-23.md) | Consensus-enforced difficulty schedule | Accepted | Standards | Core |
-| [24](gip-24.md) | Legacy distribution transparency | Draft | Informational | — |
+| [24](gip-24.md) | Legacy distribution transparency | Accepted | Informational | — |
 | [25](gip-25.md) | Diversified ClaimLegacy attestation | Draft | Standards | Core |
-| [26](gip-26.md) | Consensus golden vectors | Accepted | Standards | Interface |
+| [26](gip-26.md) | Consensus golden vectors | Final | Standards | Interface |
+| [27](gip-27.md) | Legacy names under pay-or-release | Final | Standards | Core |
+| [28](gip-28.md) | Atomic individual↔group kind conversion | Accepted | Standards | Core |
+| [29](gip-29.md) | Threshold Transfer cosignatures | Accepted | Standards | Core |
 
 ## Migration note
 

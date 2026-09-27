@@ -12,7 +12,7 @@
 
 type Tx = Transfer | UpdateMaster | RotateKeys | SettleRegistration
   | RegisterUsername | RegisterGroup | RegisterSubaccount | ClaimLegacy
-  | RewardCommit | ClaimReward
+  | RewardCommit | ClaimReward | ConvertAccountKind
 
 type Transfer = {
   tag: 0,
@@ -128,4 +128,18 @@ type ClaimReward = {
   amount: u128,
   inclusion_fee: u128,
   signature: string,
+}
+
+# GIP-28: atomic individual↔group kind flip (registration fee for target kind).
+type ConvertAccountKind = {
+  tag: 10,
+  version: u8,
+  name: string,
+  new_kind: string,     # "individual" | "group"
+  new_keys: list<string>,
+  new_threshold: u64,
+  cosignatures: list<{ key_index: u64, signature: string }>,
+  new_key_signature: string,
+  inclusion_fee: u128,
+  memo: optional data,
 }

@@ -48,7 +48,8 @@ For each row in the import manifest with `balance > 0`:
 2. Set `balance = imported_balance` (quanta).  
 3. Set `legacy = { status: locked, binding_hint: … }` (see §4).  
 4. Set `keys = []`, `threshold = 0` — **no spend policy** until `ClaimLegacy` (§8).  
-5. `master_hash` MAY be zero / empty-home until first tip after claim.
+5. Set `expires_at_height = import_height + REGISTRATION_PERIOD` (artifact genesis: `REGISTRATION_PERIOD` from height 0). MUST NOT use `u64::MAX` for legacy-locked imports ([GIP-27](../gips/gip-27.md)).  
+6. `master_hash` MAY be zero / empty-home until first tip after claim.
 
 For network account `guld`:
 
@@ -79,8 +80,9 @@ LegacyState {
 While `status = locked`:
 
 - `Transfer` and ordinary `RotateKeys` MUST fail.  
-- `ClaimLegacy` (§5) is the only transition that unlocks.  
-- Balance still counts toward disclosed supply **x**.
+- `ClaimLegacy` (§5) is the only transition that unlocks **spend**.  
+- Balance still counts toward disclosed supply **x**.  
+- Name control follows ordinary pay-or-release: overdue `SettleRegistration` MUST apply ([GIP-27](../gips/gip-27.md)) — funded renew keeps `legacy.status = locked`; unfunded settle deletes the account.
 
 ## 5. Key upgrade — `ClaimLegacy`
 
@@ -112,7 +114,7 @@ message = tagged_hash(
 | `isysd_attestation_v1` | Ed25519 signature (or threshold cosign JSON) by the live **`isysd`** account over `message`. **Only** when `name` has **no** PGP binding (groups, missed key registration). Custom social proofs (GitHub/npm/notes) are off-consensus context for isysd. |
 | `dev_unlock_v1` | Local-dev only; never for mainnet genesis |
 
-**Rules:** PGP-bound names MUST NOT use `isysd_attestation_v1`. Unbound names MUST NOT use `pgp_cleartext_v1`. Claims stay open indefinitely; settle skips legacy-locked accounts.
+**Rules:** PGP-bound names MUST NOT use `isysd_attestation_v1`. Unbound names MUST NOT use `pgp_cleartext_v1`. `ClaimLegacy` remains available while the account still exists and is locked; settle does **not** skip legacy-locked accounts ([GIP-27](../gips/gip-27.md)).
 
 ### 5.2 Effects (atomic)
 
@@ -121,7 +123,7 @@ message = tagged_hash(
 3. `keys = new_keys`; `threshold = new_threshold`; `master_hash = initial_master_hash`.  
 4. **`name` unchanged**; `account_id` unchanged (legacy id — [02 §3.1](02-identity-and-accounts.md)).  
 5. `legacy.status = claimed`; `claimed_at_height = current`.  
-6. `expires_at_height = height + REGISTRATION_PERIOD` (then yearly `SettleRegistration` like any account).  
+6. `expires_at_height = height + REGISTRATION_PERIOD` (v1; import already started the yearly clock — [GIP-27](../gips/gip-27.md)).  
 7. Pay `inclusion_fee`; increment nonce.  
 8. **Balance unchanged** (aside from inclusion fee).
 
@@ -129,8 +131,7 @@ Want a different public name? That name was never yours in 1.0 — use `Register
 
 ### 5.3 Name conflicts with fresh registration
 
-`RegisterUsername` / `RegisterGroup` MUST reject any `name` present in the import manifest (claimed or locked).
-
+`RegisterUsername` / `RegisterGroup` MUST reject a `name` that **already exists** on-chain (locked or claimed). After an unfunded settle **releases** a former import, that string is free for ordinary registration.
 ## 6. What to import (checklist)
 
 | Artifact | Required |
@@ -173,6 +174,6 @@ Alternative encodings (e.g. a dedicated `no_spend_policy` bit without `threshold
 ## 9. Open parameters
 
 - Canonical manifest encoding (JSON rows + `manifest_hash` SHA-256 — drafted in `guld-legacy`)  
-- Abandonment / recycle of never-claimed names — **deferred**; locked forever is accepted  
 - Mainnet re-audit of **x** if manifest is regenerated (Simba pin locked — A7)  
-- Repair / omit corrupt `.asc` files under `keys-pgp` (loader skips; list in `BindingSet.skipped`)
+- Repair / omit corrupt `.asc` files under `keys-pgp` (loader skips; list in `BindingSet.skipped`)  
+- Never-claimed name recycle: **done via ordinary settle** ([GIP-27](../gips/gip-27.md)) — no separate abandonment ceremony

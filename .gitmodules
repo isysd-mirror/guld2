@@ -47,3 +47,7 @@
 [submodule "guld-wire"]
 	path = src/guld-wire
 	url = https://guld.io/repos/guld-wire.git
+[submodule "guld-tic-tac-toe"]
+	path = src/guld-tic-tac-toe
+	url = https://guld.io/repos/guld-tic-tac-toe.git
+	branch = guld

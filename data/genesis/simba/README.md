@@ -12,13 +12,13 @@ Committed height-0 for `--network simba` (`chain_id = 2`).
 | `pins.json` | Committed tip hash, state root (post guld-home), rules hash |
 | `blocks/0.json` | Matching height-0 header (empty `txs`; import effects live in state KV) |
 
-## Pins (task 012 / 016 regenesis)
+## Pins (task 026 / GIP-27 regenesis)
 
 | Field | Value |
 |-------|--------|
-| `tip_hash` / `block_hash` | `0xadbff5409912ffa96fee913b3775b471eaca58b26323465ec41a400f86a1cd96` |
-| `state_root` (post home) | `0x67988785b8f6a3cc9f3e188a00df1e8b51cd1bbb5f48d3ddc0cb8edcb9997ff1` |
-| `state_root_pre_home` | `0x09a36d03b28b268170e9e1a39f3a7f7e1fd6778bc9f6f1349ea1df689359c9bd` |
+| `tip_hash` / `block_hash` | `0xf4cdc0172082485ae7b77879aedb1706d9bd7fe3da972409a15e415a3638beb4` |
+| `state_root` (post home) | `0xf106710815ffc2d0e543a89a8aa7ddcaf1d9e851fb2ac49d2127a81032af4e39` |
+| `state_root_pre_home` | `0xef8d030f28981193376ab8d6bab0bea1d6c8e13fee176445c3ca35038a5d1533` |
 | `import_manifest_hash` | `0x59a39af461d66fa1ef892708f8fa8838684d812cccfbe253816a34f448980e70` |
 | `guld_rules_hash` | `0x81bebfee4afa6c3f7d22b659eeeeebdf4d320eb9d95a8fa85b8587b9ee62be50` |
 | **x** (`GENESIS_X_QUANTA`) | **960,975.39527052 GULD** (= sum of manifest rows) |
@@ -26,6 +26,7 @@ Committed height-0 for `--network simba` (`chain_id = 2`).
 
 Empty `--network simba` datadirs rebuild height-0 from these artifacts and **fail** if the tip drifts from `pins.json`.
 
+**GIP-27:** legacy-locked imports start with `expires_at_height = REGISTRATION_PERIOD` (pay-or-release). Prior tip `0xadbff540…` is obsolete — wipe datadir and resync.
 ## Design
 
 - **Full 1.0 ledger** in `import-manifest.json` (task 007 **A7**). Supply **x = sum(imported rows)** — ERC20 omitted ([`omissions.json`](./omissions.json)); negatives import **0** ([`negatives.json`](./negatives.json)). Narrative: [`docs/fragments/legacy-distribution.md`](../../../docs/fragments/legacy-distribution.md) ([GIP-24](../../../docs/gips/gip-24.md)).

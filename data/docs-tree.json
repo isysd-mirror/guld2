@@ -1,5 +1,5 @@
 {
-  "generated": "2026-09-26",
+  "generated": "2026-09-27",
   "extras": [
     {
       "name": "README.md",
@@ -44,6 +44,10 @@
         {
           "name": "chain-comparison.md",
           "path": "fragments/chain-comparison.md"
+        },
+        {
+          "name": "legacy-distribution.md",
+          "path": "fragments/legacy-distribution.md"
         }
       ]
     },
@@ -105,6 +109,38 @@
         {
           "name": "gip-21.md",
           "path": "gips/gip-21.md"
+        },
+        {
+          "name": "gip-22.md",
+          "path": "gips/gip-22.md"
+        },
+        {
+          "name": "gip-23.md",
+          "path": "gips/gip-23.md"
+        },
+        {
+          "name": "gip-24.md",
+          "path": "gips/gip-24.md"
+        },
+        {
+          "name": "gip-25.md",
+          "path": "gips/gip-25.md"
+        },
+        {
+          "name": "gip-26.md",
+          "path": "gips/gip-26.md"
+        },
+        {
+          "name": "gip-27.md",
+          "path": "gips/gip-27.md"
+        },
+        {
+          "name": "gip-28.md",
+          "path": "gips/gip-28.md"
+        },
+        {
+          "name": "gip-29.md",
+          "path": "gips/gip-29.md"
         },
         {
           "name": "gip-3.md",
@@ -170,6 +206,10 @@
       "name": "research",
       "children": [
         {
+          "name": "bitcoin-guld-comparison.md",
+          "path": "research/bitcoin-guld-comparison.md"
+        },
+        {
           "name": "block-window-consensus.md",
           "path": "research/block-window-consensus.md"
         },
@@ -182,12 +222,28 @@
           "path": "research/modern-l1-direction.md"
         },
         {
+          "name": "polyglot-sdk-packages.md",
+          "path": "research/polyglot-sdk-packages.md"
+        },
+        {
           "name": "postgres-blockchain.md",
           "path": "research/postgres-blockchain.md"
         },
         {
+          "name": "pow-nbits-vs-leading-bits.md",
+          "path": "research/pow-nbits-vs-leading-bits.md"
+        },
+        {
+          "name": "reference-dapp.md",
+          "path": "research/reference-dapp.md"
+        },
+        {
           "name": "storage-scale-git-postgres.md",
           "path": "research/storage-scale-git-postgres.md"
+        },
+        {
+          "name": "wire-codec-comparison.md",
+          "path": "research/wire-codec-comparison.md"
         }
       ]
     },
@@ -279,6 +335,147 @@
           "name": "done",
           "children": [
             {
+              "name": "2026-09",
+              "children": [
+                {
+                  "name": "002-wallet-send-contacts.md",
+                  "path": "tasks/done/2026-09/002-wallet-send-contacts.md"
+                },
+                {
+                  "name": "003-contact-qr-handshake.md",
+                  "path": "tasks/done/2026-09/003-contact-qr-handshake.md"
+                },
+                {
+                  "name": "004-rpc-search-accounts.md",
+                  "path": "tasks/done/2026-09/004-rpc-search-accounts.md"
+                },
+                {
+                  "name": "006-chain-lifecycle-tests.md",
+                  "path": "tasks/done/2026-09/006-chain-lifecycle-tests.md"
+                },
+                {
+                  "name": "007-simba-beta-public-readiness.md",
+                  "path": "tasks/done/2026-09/007-simba-beta-public-readiness.md"
+                },
+                {
+                  "name": "008-mempool-persistence.md",
+                  "path": "tasks/done/2026-09/008-mempool-persistence.md"
+                },
+                {
+                  "name": "009-bare-wire-implementation.md",
+                  "path": "tasks/done/2026-09/009-bare-wire-implementation.md"
+                },
+                {
+                  "name": "010-header-timestamp-validation.md",
+                  "path": "tasks/done/2026-09/010-header-timestamp-validation.md"
+                },
+                {
+                  "name": "011-gip-22-miner-rewards.md",
+                  "path": "tasks/done/2026-09/011-gip-22-miner-rewards.md"
+                },
+                {
+                  "name": "012-simba-genesis-ceremony.md",
+                  "path": "tasks/done/2026-09/012-simba-genesis-ceremony.md"
+                },
+                {
+                  "name": "013-chain-reorg-implementation.md",
+                  "path": "tasks/done/2026-09/013-chain-reorg-implementation.md"
+                },
+                {
+                  "name": "014-enforce-difficulty-on-import.md",
+                  "path": "tasks/done/2026-09/014-enforce-difficulty-on-import.md"
+                },
+                {
+                  "name": "015-reconcile-docs-with-code.md",
+                  "path": "tasks/done/2026-09/015-reconcile-docs-with-code.md"
+                },
+                {
+                  "name": "016-reconcile-genesis-x-vs-manifest.md",
+                  "path": "tasks/done/2026-09/016-reconcile-genesis-x-vs-manifest.md"
+                },
+                {
+                  "name": "017-whitepaper-risks-and-rhetoric.md",
+                  "path": "tasks/done/2026-09/017-whitepaper-risks-and-rhetoric.md"
+                },
+                {
+                  "name": "018-publish-omitted-buckets-and-negatives.md",
+                  "path": "tasks/done/2026-09/018-publish-omitted-buckets-and-negatives.md"
+                },
+                {
+                  "name": "019-dual-miner-reorg-integration-test.md",
+                  "path": "tasks/done/2026-09/019-dual-miner-reorg-integration-test.md"
+                },
+                {
+                  "name": "020-remove-credit-miner-footguns.md",
+                  "path": "tasks/done/2026-09/020-remove-credit-miner-footguns.md"
+                },
+                {
+                  "name": "021-consensus-golden-vectors.md",
+                  "path": "tasks/done/2026-09/021-consensus-golden-vectors.md"
+                },
+                {
+                  "name": "022-legacy-settle-parity.md",
+                  "path": "tasks/done/2026-09/022-legacy-settle-parity.md"
+                },
+                {
+                  "name": "023-legacy-settle-state.md",
+                  "path": "tasks/done/2026-09/023-legacy-settle-state.md"
+                },
+                {
+                  "name": "024-legacy-import-expiry.md",
+                  "path": "tasks/done/2026-09/024-legacy-import-expiry.md"
+                },
+                {
+                  "name": "025-gip-27-specs-sync.md",
+                  "path": "tasks/done/2026-09/025-gip-27-specs-sync.md"
+                },
+                {
+                  "name": "026-simba-regenesis-gip-27.md",
+                  "path": "tasks/done/2026-09/026-simba-regenesis-gip-27.md"
+                },
+                {
+                  "name": "027-legacy-parity-comms.md",
+                  "path": "tasks/done/2026-09/027-legacy-parity-comms.md"
+                },
+                {
+                  "name": "028-threshold-transfer-cosign.md",
+                  "path": "tasks/done/2026-09/028-threshold-transfer-cosign.md"
+                },
+                {
+                  "name": "029-sync-fork-catchup.md",
+                  "path": "tasks/done/2026-09/029-sync-fork-catchup.md"
+                },
+                {
+                  "name": "030-extension-site-login.md",
+                  "path": "tasks/done/2026-09/030-extension-site-login.md"
+                },
+                {
+                  "name": "032-gip-26-non-rust-vectors.md",
+                  "path": "tasks/done/2026-09/032-gip-26-non-rust-vectors.md"
+                },
+                {
+                  "name": "033-leaf-host-materialize.md",
+                  "path": "tasks/done/2026-09/033-leaf-host-materialize.md"
+                },
+                {
+                  "name": "034-convert-account-kind.md",
+                  "path": "tasks/done/2026-09/034-convert-account-kind.md"
+                },
+                {
+                  "name": "035-group-multisig-lifecycle-e2e.md",
+                  "path": "tasks/done/2026-09/035-group-multisig-lifecycle-e2e.md"
+                },
+                {
+                  "name": "036-guld-js-sdk.md",
+                  "path": "tasks/done/2026-09/036-guld-js-sdk.md"
+                },
+                {
+                  "name": "037-guld-tic-tac-toe.md",
+                  "path": "tasks/done/2026-09/037-guld-tic-tac-toe.md"
+                }
+              ]
+            },
+            {
               "name": "001-explorer-account-lookup.md",
               "path": "tasks/done/001-explorer-account-lookup.md"
             }
@@ -288,20 +485,12 @@
           "name": "open",
           "children": [
             {
-              "name": "002-wallet-send-contacts.md",
-              "path": "tasks/open/002-wallet-send-contacts.md"
-            },
-            {
-              "name": "003-contact-qr-handshake.md",
-              "path": "tasks/open/003-contact-qr-handshake.md"
-            },
-            {
-              "name": "004-rpc-search-accounts.md",
-              "path": "tasks/open/004-rpc-search-accounts.md"
-            },
-            {
               "name": "005-human-first-ux.md",
               "path": "tasks/open/005-human-first-ux.md"
+            },
+            {
+              "name": "031-mainnet-genesis-ceremony.md",
+              "path": "tasks/open/031-mainnet-genesis-ceremony.md"
             }
           ]
         },
@@ -356,6 +545,10 @@
     {
       "name": "REPO_LAYOUT.md",
       "path": "REPO_LAYOUT.md"
+    },
+    {
+      "name": "SIMBA_BETA.md",
+      "path": "SIMBA_BETA.md"
     },
     {
       "name": "SOFTWARE_FLOW.md",

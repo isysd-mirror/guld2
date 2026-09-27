@@ -2,7 +2,7 @@
 
 **Status:** draft  
 **SoT hierarchy:** [**whitepaper**](../whitepaper/guld-2.0-draft.md) (wins all disputes) → **these specs** (normative detail) → implementation  
-**Whitepaper:** v0.25 — [`../whitepaper/guld-2.0-draft.md`](../whitepaper/guld-2.0-draft.md) (product narrative; normative detail in specs)  
+**Whitepaper:** v0.27 — [`../whitepaper/guld-2.0-draft.md`](../whitepaper/guld-2.0-draft.md) (product narrative; normative detail in specs)  
 **Research backdrop:** [`../research/modern-l1-direction.md`](../research/modern-l1-direction.md)
 
 ## Reading order
@@ -18,7 +18,7 @@
 9. [`08-cas-and-homes.md`](08-cas-and-homes.md) — object store, mandatory `guld` **rule bundle**; **no** L0 pin market  
 10. [`09-p2p.md`](09-p2p.md) — peer protocol (libp2p; phase A Hello + tx gossip)  
 11. [`10-node.md`](10-node.md) — full node process & internal APIs  
-12. [`11-leaf-host.md`](11-leaf-host.md) — leaf materialization & client-facing host API  
+12. [`11-leaf-host.md`](11-leaf-host.md) — leaf materialization & client-facing host API (**§8** JS SDK + ttt v1 reference; HTTP daemon still draft)  
 13. [`12-rpc.md`](12-rpc.md) — node API: HTTP `/api/v1` (canonical) + transitional JSON-RPC  
 14. [`13-foreign-chains.md`](13-foreign-chains.md) — **Informative:** cross-chain / witnessing as **dapp** patterns (not L0 v1; A11)  
 15. [`14-reference-ui.md`](14-reference-ui.md) — reference UI: coverage matrix (all tx types + RPC/HTTP), flows, groups + cosign workstation  
@@ -35,12 +35,15 @@
 **GIP (Accepted):** [GIP-13](../gips/gip-13.md) — key change = username transfer via `RotateKeys`.  
 **GIP (Accepted):** [GIP-14](../gips/gip-14.md) — 1.0 import + `ClaimLegacy`; Simba manifest pin (A7).  
 **GIP (Accepted):** [GIP-22](../gips/gip-22.md) — `RewardCommit` + deferred `ClaimReward` (100-block maturity).  
-**GIP (Draft):** [GIP-23](../gips/gip-23.md) — consensus-enforced difficulty schedule.  
-**GIP (Draft):** [GIP-24](../gips/gip-24.md) — legacy distribution transparency.  
+**GIP (Accepted):** [GIP-23](../gips/gip-23.md) — consensus-enforced difficulty schedule.  
+**GIP (Accepted):** [GIP-24](../gips/gip-24.md) — legacy distribution transparency (Informational).  
 **GIP (Draft):** [GIP-25](../gips/gip-25.md) — diversified ClaimLegacy attestation.  
-**GIP (Accepted):** [GIP-26](../gips/gip-26.md) — consensus golden vectors (Rust CI; Final when non-Rust consumer lands).  
+**GIP (Final):** [GIP-26](../gips/gip-26.md) — consensus golden vectors (Rust + JS `@guld/js`).  
+**GIP (Final):** [GIP-27](../gips/gip-27.md) — legacy-locked names under pay-or-release ([022](../tasks/done/2026-09/022-legacy-settle-parity.md)–[027](../tasks/done/2026-09/027-legacy-parity-comms.md)).  
+**GIP (Accepted):** [GIP-28](../gips/gip-28.md) — `ConvertAccountKind` (individual↔group).  
+**GIP (Accepted):** [GIP-29](../gips/gip-29.md) — threshold `Transfer` cosignatures (BARE v2).  
 **Wire codec (A2):** [BARE](https://baremessages.org/) — [`schemas/`](../../schemas/README.md), [research](../research/wire-codec-comparison.md).  
-**GIP (Draft):** [GIP-20](../gips/gip-20.md) — wallet contacts, explorer account pages, prefix search (later).  
+**GIP (Accepted):** [GIP-20](../gips/gip-20.md) — wallet contacts, explorer account pages, prefix search.  
 **Process:** [GIP-1](../gips/gip-1.md) · [GIP index](../gips/README.md).
 
 **Research:** [`../research/jsonrpc-vs-http-api.md`](../research/jsonrpc-vs-http-api.md) — HTTP canonical; P2P vs HTTP reachability.
@@ -48,7 +51,7 @@
 
 ## Implementation matrix (Simba v1)
 
-Normative text is largely **locked** for A1–A11 ([task 007](../tasks/open/007-simba-beta-public-readiness.md)); rows below track **reference code** vs **open tasks**. Update when shipping.
+Normative text is largely **locked** for A1–A11 ([task 007](../tasks/done/2026-09/007-simba-beta-public-readiness.md)); rows below track **reference code** vs **open tasks**. Update when shipping.
 
 | Area | Spec / GIP | Decision | Code | Task |
 |------|------------|----------|------|------|
@@ -59,11 +62,14 @@ Normative text is largely **locked** for A1–A11 ([task 007](../tasks/open/007-
 | GIP-22 RewardCommit / ClaimReward | GIP-22, 03 | Accepted | **yes** | [011](../tasks/done/2026-09/011-gip-22-miner-rewards.md), [020](../tasks/done/2026-09/020-remove-credit-miner-footguns.md) |
 | Fork choice + reorg | 06 §2–3, 10 | Required | **yes** | [013](../tasks/done/2026-09/013-chain-reorg-implementation.md), [019](../tasks/done/2026-09/019-dual-miner-reorg-integration-test.md) done |
 | BARE wire / TxId | 01, 03, GIP-4 | Locked (A2/A4) | **yes** (TxId + dual-wire) | [009](../tasks/done/2026-09/009-bare-wire-implementation.md) done; datadir BARE deferred |
-| Golden vectors | [GIP-26](../gips/gip-26.md) | Accepted | **yes** (Rust) | [021](../tasks/done/2026-09/021-consensus-golden-vectors.md) |
+| Golden vectors | [GIP-26](../gips/gip-26.md) | Final | **yes** (Rust + JS) | [021](../tasks/done/2026-09/021-consensus-golden-vectors.md), [032](../tasks/done/2026-09/032-gip-26-non-rust-vectors.md) |
+| Legacy settle parity | [GIP-27](../gips/gip-27.md) | Final | **yes** | [022](../tasks/done/2026-09/022-legacy-settle-parity.md)–[027](../tasks/done/2026-09/027-legacy-parity-comms.md) |
+| ConvertAccountKind | 03 §3.4b, [GIP-28](../gips/gip-28.md) | Accepted | **yes** | [034](../tasks/done/2026-09/034-convert-account-kind.md) done |
+| Threshold Transfer | 03 §3.6, [GIP-29](../gips/gip-29.md) | Accepted | **yes** | [028](../tasks/done/2026-09/028-threshold-transfer-cosign.md) done |
 | AccountId preimages | 01, 02 | Locked (A3) | **yes** | — |
 | Letter fees `F_user` / `F_group` | 07, GIP-9 | Final (A8) | **yes** | — |
 | 1.0 import + ClaimLegacy | 15, GIP-14 | Locked (A5–A7) | **yes** | [016](../tasks/done/2026-09/016-reconcile-genesis-x-vs-manifest.md) done |
-| Distribution disclosure | [GIP-24](../gips/gip-24.md) | Draft | n/a (docs) | [016](../tasks/done/2026-09/016-reconcile-genesis-x-vs-manifest.md) + [018](../tasks/done/2026-09/018-publish-omitted-buckets-and-negatives.md) done |
+| Distribution disclosure | [GIP-24](../gips/gip-24.md) | Accepted | n/a (docs) | [016](../tasks/done/2026-09/016-reconcile-genesis-x-vs-manifest.md) + [018](../tasks/done/2026-09/018-publish-omitted-buckets-and-negatives.md) done |
 | Attestation diversification | [GIP-25](../gips/gip-25.md) | Draft | **no** | (after Review) |
 | Genesis ceremony / block 0 | 15, 05 §6 | G1–G4 + pre-commit smoke | **yes** | [012](../tasks/done/2026-09/012-simba-genesis-ceremony.md) done |
 | No foreign genesis names | 13, 02 | Locked (A11) | **yes** | — |

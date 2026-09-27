@@ -16,7 +16,7 @@ Spec: ../../specs/06-blocks-and-consensus.md, ../../specs/16-sponsored-registrat
 | **5** | Simba tall-tip catch-up (no ban) | **Done** — `simba_catchup_sync` |
 | **CI** | Pre-commit Phase 1–5 + genesis | **Done** — `scripts/githooks/pre-commit` |
 
-Node RPC smoke still covers a **subset** of the state matrix (register + transfer). Extending RPC parity (rotate / group / sub) is a follow-up ticket, not a blocker for closing this task.
+Node RPC smoke originally covered a **subset** of the state matrix (register + transfer). **Group thr>1 lifecycle + peer accept** shipped as [035](./035-group-multisig-lifecycle-e2e.md) (`group_multisig_lifecycle` + `group_multisig_e2e`).
 
 ## Done when
 

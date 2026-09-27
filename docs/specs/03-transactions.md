@@ -210,9 +210,37 @@ RotateKeys {
 
 Individuals and subaccounts: inclusion fee only (registration fees are not per-signer for those kinds).
 
+### 3.4b `ConvertAccountKind`
+
+Atomic **individual ↔ group** kind flip without releasing the name ([GIP-28](../gips/gip-28.md)). Avoids squat races from settle-then-re-register.
+
+```text
+ConvertAccountKind {
+  name: Name,
+  new_kind: individual | group,   // MUST differ from current
+  new_keys: Vec<Pubkey>,
+  new_threshold: u16,
+  cosignatures: Vec<CosignEntry>, // under OLD keys/threshold
+  new_key_signature: Signature,   // new_keys[0] consent
+  inclusion_fee: Amount,
+  memo: optional bytes,
+}
+```
+
+**Checks:**
+
+- Account exists; root only; not legacy-locked; not lapsed (settle first if due).  
+- Current kind ∈ {individual, group}; `new_kind` is the other.  
+- Dual auth: old threshold cosign + `new_keys[0]` intent (tags `guld/convert_account_kind/*`).  
+- **individual → group** MUST fail if any live `parent.label` subaccount exists.  
+- Protocol fee = registration fee for **target** kind: `F_user(L)` or `F_group(L, n)` (`n = new_keys.len()`). No rebate of prior kind fees.  
+- `balance >= protocol_fee + inclusion_fee`.
+
+**Effects:** set `kind = new_kind`; replace `keys` / `threshold`; debit fees (protocol → 8-block vest); `nonce++`. Preserve `name`, `account_id`, `master_hash`, `expires_at_height`, `legacy`, balance after fees.
+
 ### 3.4a `SettleRegistration`
 
-Permissionless pay-or-release (typically miner-included). Valid when `chain_height >= expires_at_height` and not **network** (`guld`) or **legacy-locked**.
+Permissionless pay-or-release (typically miner-included). Valid when `chain_height >= expires_at_height` and not **network** (`guld`). Legacy-locked imports settle like unlocked peers ([GIP-27](../gips/gip-27.md)).
 
 ```text
 SettleRegistration { name: Name }
@@ -254,13 +282,33 @@ Transfer {
   from: Name,
   to: Name,
   amount: Amount,
-  proof_or_sig: Signature | LeafConsensusProof,  // draft: single spend sig if threshold==1; else proof
+  /// Auth — exactly one of:
+  signature: Signature,              // threshold == 1 only; keys[0] over transfer message
+  cosignatures: Vec<CosignEntry>,    // required when threshold > 1; MAY be used when threshold == 1
   inclusion_fee: Amount,
   memo: Option<Bytes>,      // §2.1 — e.g. payment order id
 }
 ```
 
+**Auth message** (`guld/transfer/v1`):
+
+```text
+tagged_hash("guld/transfer/v1",
+  account_id ‖ nonce_be64 ‖ to_utf8 ‖ 0x00 ‖ amount_be128 ‖ fee_be128
+  [ ‖ u16_be(memo_len) ‖ memo_bytes if memo non-empty ])
+```
+
+**Checks:**
+
+- `from` / `to` exist; `from` not legacy-locked; `from.keys` non-empty and `threshold ≥ 1`.  
+- Balances: `from.balance ≥ amount + inclusion_fee`.  
+- **If `cosignatures` non-empty:** `verify_threshold_cosign` under current keys/threshold over the transfer message.  
+- **Else:** `threshold` MUST be `1` and `signature` MUST verify under `keys[0]`.  
+- `inclusion_fee` sufficient for weight (extra cosignatures increase weight like UpdateMaster).
+
 **Effects:** move `amount` if balances allow; increment `from` nonce. `memo` is recorded in the canonical tx (and thus tx id / receipts explorers may index) but has **no** balance effect.
+
+**Wire (BARE):** Transfer version **1** = single `signature` (backward compatible). Version **2** = `cosignatures` list (no single-signature field). JSON MAY omit empty `signature` / `cosignatures`.
 
 ### 3.7 `ClaimLegacy` (1.0 key upgrade)
 

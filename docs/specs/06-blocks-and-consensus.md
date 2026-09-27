@@ -89,7 +89,7 @@ For each header, `work(header) = 2^difficulty` (saturating at `u128` limits).
 choose_tip(candidates) -> tip with max cumulative_work, then height, then hash
 ```
 
-Reorgs MUST rewind to the common ancestor and replay the heavier fork under [`choose_tip`](#23-chain-work-and-fork-choice). Reference implementation: `guld-node` `chain_reorg.rs` (max depth **2016**). Dual-miner adversarial coverage: [task 019](../tasks/done/2026-09/019-dual-miner-reorg-integration-test.md) (**done**).
+Reorgs MUST rewind to the common ancestor and replay the heavier fork under [`choose_tip`](#23-chain-work-and-fork-choice). Reference implementation: `guld-node` `chain_reorg.rs` (max depth **2016**). Dual-miner adversarial coverage: [task 019](../tasks/done/2026-09/019-dual-miner-reorg-integration-test.md) (**done**). Sync hygiene after live reorg (P2P height-map reseed, no false ban): [task 029](../tasks/done/2026-09/029-sync-fork-catchup.md) (**done**).
 
 ### 2.4 Difficulty retarget (locked v1 — Bitcoin 2016-block window)
 
@@ -200,4 +200,4 @@ trait Consensus {
 - DAG-PoW / multi-parent headers (research — not v1)  
 - Merged-mining witness format (future GIP)  
 - Rules activation margins per network ([`17-protocol-upgrades.md`](17-protocol-upgrades.md))
-- Consensus golden vectors ([task 021](../tasks/done/2026-09/021-consensus-golden-vectors.md) / [GIP-26](../gips/gip-26.md) Accepted)
+- Consensus golden vectors ([task 021](../tasks/done/2026-09/021-consensus-golden-vectors.md) / [GIP-26](../gips/gip-26.md) **Final**)

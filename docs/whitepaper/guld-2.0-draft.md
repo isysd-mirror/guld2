@@ -1,7 +1,7 @@
 # Guld 2.0 Whitepaper
 
-**Version:** 0.26  
-**Date:** 2026-09-26  
+**Version:** 0.27  
+**Date:** 2026-09-27  
 **Token:** GULD (native)  
 **Specifications:** [`../specs/README.md`](../specs/README.md) · **Glossary:** [§14](#14-glossary)
 
@@ -176,7 +176,7 @@ Registering a name consumes **global namespace** and creates durable validator s
 
 **Why scale group fees with signer count:** each additional key enlarges proofs the network must verify for the life of that account (registration now; every threshold tip later). Charging upfront for `n` aligns payment with **proof complexity** the validators will perform.
 
-**Length pricing:** count **letters only** in the root label (`x` = 1, `jorge-luise-gonzalez` = 17 → capped). Short names are scarce and expensive; names with **≥ 6 letters** pay the **1 GULD**/year floor (1.0 continuity for ordinary names). Subaccounts stay cheap so one human can hold multiple custody zones without burning another top-level name. Fees buy **DNS-style pay-or-release** control ([`../gips/gip-11.md`](../gips/gip-11.md)); keep the wallet funded or the name is released. Legacy claims stay open (PGP or isysd attestation). No resale market. See §8.7 and [`../specs/07-fees-and-tokenomics.md`](../specs/07-fees-and-tokenomics.md).
+**Length pricing:** count **letters only** in the root label (`x` = 1, `jorge-luise-gonzalez` = 17 → capped). Short names are scarce and expensive; names with **≥ 6 letters** pay the **1 GULD**/year floor (1.0 continuity for ordinary names). Subaccounts stay cheap so one human can hold multiple custody zones without burning another top-level name. Fees buy **DNS-style pay-or-release** control ([`../gips/gip-11.md`](../gips/gip-11.md)); keep the wallet funded or the name is released. Legacy-locked imports follow the same lease clock ([GIP-27](../gips/gip-27.md)); `ClaimLegacy` unlocks spend while the name remains reserved. No resale market. See §8.7 and [`../specs/07-fees-and-tokenomics.md`](../specs/07-fees-and-tokenomics.md).
 
 **Miner lottery (8-block vest):** `F_user(L)`, `F_group(L, n)`, `F_sub`, and settle renewals/releases are debited in full at apply, then **credited to miners over 8 consecutive blocks** starting at the inclusion height (`REGISTRATION_FEE_VEST_BLOCKS = 8`). The including miner receives only ~1/8 in that block's coinbase; recovering the full fee requires winning all eight. No burn. Inclusion fees stay one-shot to the including miner.
 
@@ -409,8 +409,8 @@ Guld has a **closed vocabulary** — no user-defined opcodes. At a high level:
 
 | Category | Examples |
 |----------|----------|
-| **Names** | Register individual / group / sub; yearly settle (pay-or-release); rotate keys |
-| **Money & tips** | Transfer GULD; update `master_hash` with a leaf-consensus proof |
+| **Names** | Register individual / group / sub; yearly settle (pay-or-release); rotate keys; **convert account kind** ([GIP-28](../gips/gip-28.md)) |
+| **Money & tips** | Transfer GULD (1-of-1 or threshold cosignatures); update `master_hash` with a leaf-consensus proof |
 | **1.0 continuity** | Claim legacy import (key upgrade) |
 | **Miner rewards** | `RewardCommit` + mature `ClaimReward` ([GIP-22](../gips/gip-22.md)) |
 
@@ -508,13 +508,13 @@ Sig-heavy tips consume more weight → self-limit. Target remains **scarce PoW b
 
 #### Pre-existing GULD as genesis pre-mine
 
-Guld 2.0 is a **hard fork** that respects 1.0 balances: every positive member `name:Assets` from the `ledger-guld` snapshot is imported **1:1** at genesis as disclosed pre-mine **x** (~**960k GULD**, **≈ 2,217** holders). ERC20 / protocol mirror buckets are **omitted**. Amounts use **10** decimal places. Genesis embeds a verifiable **import manifest hash** ([GIP-14](../gips/gip-14.md), [`../specs/15-ledger-import.md`](../specs/15-ledger-import.md) §2.1) — network-specific pins live in genesis artifacts, not in this document. **Distribution disclosure** (concentration, Equity / package-manager grants, fee negatives, unlock-path split, `x` reconciliation): [`../fragments/legacy-distribution.md`](../fragments/legacy-distribution.md) ([GIP-24](../gips/gip-24.md)). Continuity is **1:1 historical balances**, not peer-fair initial allocation.
+Guld 2.0 is a **hard fork** that respects 1.0 balances: every positive member `name:Assets` from the `ledger-guld` snapshot is imported **1:1** at genesis as disclosed pre-mine **x** (~**960k GULD**, **≈ 2,217** holders). ERC20 / protocol mirror buckets are **omitted**. Amounts use **10** decimal places. Genesis embeds a verifiable **import manifest hash** ([GIP-14](../gips/gip-14.md), [`../specs/15-ledger-import.md`](../specs/15-ledger-import.md) §2.1) — network-specific pins live in genesis artifacts, not in this document. **Distribution disclosure** (concentration, Equity / package-manager grants, fee negatives, unlock-path split, `x` reconciliation): [`../fragments/legacy-distribution.md`](../fragments/legacy-distribution.md) ([GIP-24](../gips/gip-24.md) Accepted Informational). Continuity is **1:1 historical balances**, not peer-fair initial allocation.
 
 #### Respect balances; unlock via key upgrade
 
 **Invariant:** no haircut, no silent consolidation, no reassignment of names.
 
-Import creates **legacy-locked** accounts: balance is on-chain, but spend and tip authority require **`ClaimLegacy`** (PGP proof when bound; **`isysd` attestation** when unbound). Thereafter the account is a normal 2.0 name with yearly settle. Claims stay open indefinitely. **New** GULD after genesis enters only via **PoW subsidy** ([GIP-22](../gips/gip-22.md) commit/claim path).
+Import creates **legacy-locked** accounts: balance is on-chain, but spend and tip authority require **`ClaimLegacy`** (PGP proof when bound; **`isysd` attestation** when unbound). Name control follows the same **pay-or-release** settle clock as other accounts ([GIP-27](../gips/gip-27.md)) — unfunded overdue imports release; funded ones renew while remaining legacy-locked until claimed. **New** GULD after genesis enters only via **PoW subsidy** ([GIP-22](../gips/gip-22.md) commit/claim path).
 
 #### Block time and inflation **shape**
 
@@ -721,9 +721,9 @@ These are product and ops risks — not exhaustive threat models.
 | Risk | Why it matters | Mitigation / status |
 |------|----------------|---------------------|
 | **Low early hashrate** | Parameter-class PoW ≠ peer-class **security budget**. Shallow reorgs or cheap deep rewrites remain possible until hashpower grows. | Honest disclosure; GIP-23 schedule enforcement; dual-miner reorg tests ([019](../tasks/done/2026-09/019-dual-miner-reorg-integration-test.md) **done**); expect slow trust accretion. |
-| **Premine concentration + attestation gate** | Imported supply is top-heavy; most unlock paths still depend on **`isysd` attestation** when unbound ([GIP-24](../gips/gip-24.md) brief). | Publish concentration / unlock split ([`../fragments/legacy-distribution.md`](../fragments/legacy-distribution.md)); diversify attestation ([GIP-25](../gips/gip-25.md) Draft); PGP-bound claims where possible. |
+| **Premine concentration + attestation gate** | Imported supply is top-heavy; most unlock paths still depend on **`isysd` attestation** when unbound ([GIP-24](../gips/gip-24.md) brief — Accepted Informational). Unclaimed **names** no longer lease forever ([GIP-27](../gips/gip-27.md)). | Publish concentration / unlock split ([`../fragments/legacy-distribution.md`](../fragments/legacy-distribution.md)); diversify attestation ([GIP-25](../gips/gip-25.md) Draft); PGP-bound claims where possible; settle parity **shipped** ([022](../tasks/done/2026-09/022-legacy-settle-parity.md)–[027](../tasks/done/2026-09/027-legacy-parity-comms.md)). |
 | **Tip ≠ data availability** | Headers and account tips do **not** guarantee CAS bytes exist on every peer. Missing blobs break contentful leaves even when GULD tips are final. | Self-host / mirror / leaf retention; mandatory `guld` rule bytes when fetched; do not market tip finality as content permanence. |
-| **Single reference client** | One Rust stack + dual wire; golden vectors still thin for multi-impl bar. | BARE `TxId` shipped ([009](../tasks/done/2026-09/009-bare-wire-implementation.md)); GIP-26 vectors Accepted ([021](../tasks/done/2026-09/021-consensus-golden-vectors.md) / [GIP-26](../gips/gip-26.md)) — Final needs non-Rust consumer. |
+| **Single reference client** | One Rust stack + dual wire; multi-impl bar needs shared fixtures. | BARE `TxId` shipped ([009](../tasks/done/2026-09/009-bare-wire-implementation.md)); GIP-26 vectors **Final** — Rust + JS `@guld/js` consumers ([021](../tasks/done/2026-09/021-consensus-golden-vectors.md) / [032](../tasks/done/2026-09/032-gip-26-non-rust-vectors.md)). |
 | **Testnet reset policy** | Simba **may reset once** before durable beta lock; tip hashes before a ceremony are not forever. | Publish pins + reset notices ([`../deploy/SIMBA.md`](../deploy/SIMBA.md)); wipe datadir on regenesis. |
 | **Wire / codec freeze incomplete** | HTTP stays JSON; P2P dual-wire JSON+BARE; datadir may still carry JSON artifacts while BARE lands. | Treat JSON as boundary convenience; consensus identities migrate to BARE ([GIP-4](../gips/gip-4.md)). |
 
@@ -733,7 +733,7 @@ These are product and ops risks — not exhaustive threat models.
 
 ## 12. Roadmap
 
-Status snapshot (**2026-09**). Live **tx × API × UI** matrix: [`../specs/14-reference-ui.md`](../specs/14-reference-ui.md). GIP index: [`../gips/README.md`](../gips/README.md).
+Status snapshot (**2026-09-27**). Live **tx × API × UI** matrix: [`../specs/14-reference-ui.md`](../specs/14-reference-ui.md). GIP index: [`../gips/README.md`](../gips/README.md). Task queue: [`../tasks/README.md`](../tasks/README.md).
 
 ### 12.1 Shipped — Simba public testnet
 
@@ -744,53 +744,52 @@ Status snapshot (**2026-09**). Live **tx × API × UI** matrix: [`../specs/14-re
 | **Consensus** | Single-lane SHA256d PoW (locked v1; retarget ~600 s; **GIP-23** schedule enforced on import); MTP + 2 h timestamps; **GIP-22** `RewardCommit` / `ClaimReward`; fixed tx vocabulary; weight fees + registration protocol fees (8-block vest) |
 | **State** | fjall KV — accounts, balances, tips, names; **10** decimal GULD |
 | **Genesis** | Committed artifacts ([`../data/genesis/simba/`](../data/genesis/simba/)); keyless `guld` shell; `isysd` genesis-claim; 1.0 balances **legacy-locked** until `ClaimLegacy` |
-| **P2P** ([GIP-15](../gips/gip-15.md)) | libp2p Hello, tx gossip, block/header sync, CAS objects, ban scoring — **heavier-tip reorg** via `chain_reorg` (max depth 2016); dual-miner adversarial test still open |
+| **P2P** ([GIP-15](../gips/gip-15.md)) | libp2p Hello, tx gossip, block/header sync, CAS objects, ban scoring; **heavier-tip reorg** via `chain_reorg` (max depth 2016); dual-miner adversarial reorg covered ([019](../tasks/done/2026-09/019-dual-miner-reorg-integration-test.md)) |
 | **Node** | `guld-node`: JSON-RPC + HTTP `/api/v1`; continuous miner with `--miner`; testnet faucet |
-| **Reference UI** | PWA wallet (register individual/group/sub, send, cosign workstation, claim), explorer (blocks, txs, mempool SSE), docs browser, software catalog, optional Paymento registrar ([GIP-8](../gips/gip-8.md)) |
+| **Wire** | Dual-wire JSON + BARE; BARE `TxId` goldens ([009](../tasks/done/2026-09/009-bare-wire-implementation.md)); GIP-26 vectors **Final** (Rust + JS) |
+| **Reference UI** | PWA wallet (register individual/group/sub, send + contacts/typeahead ([GIP-20](../gips/gip-20.md)), cosign workstation for UpdateMaster/RotateKeys/**Transfer**, claim, ConvertAccountKind), explorer (blocks, txs, hash lookup, mempool SSE), docs browser, software catalog, optional Paymento registrar ([GIP-8](../gips/gip-8.md)); extension site-login ([030](../tasks/done/2026-09/030-extension-site-login.md)); leaf demo (`/demo/ttt/`); landing citizen/operator split (task [005](../tasks/open/005-human-first-ux.md) P0) |
 
-Implemented GIPs include **5–13, 15–17, 19** (PWA, docs, software browser, registrar, fee/name rules, P2P, memo/upgrades, UI matrix, mempool UI). Operator runbook: [`../deploy/SIMBA.md`](../deploy/SIMBA.md).
+Implemented GIPs (see [index](../gips/README.md)): **5–17**, **19**, **22–24**, **26–29** (statuses Accepted/Final as indexed; **2, 7, 9, 10, 15, 16, 26, 27** Final among the shipped set). Operator runbook: [`../deploy/SIMBA.md`](../deploy/SIMBA.md).
 
-### 12.2 Honest gaps (specs vs software)
+**Filled since prior snapshots (not gaps):** dual-miner reorg ([013](../tasks/done/2026-09/013-chain-reorg-implementation.md)/[019](../tasks/done/2026-09/019-dual-miner-reorg-integration-test.md)); sync hygiene ([029](../tasks/done/2026-09/029-sync-fork-catchup.md)); explorer hash lookup; BARE `TxId` + dual-wire; MTP timestamps; mempool persistence; GIP-22/23; Simba beta readiness ([007](../tasks/done/2026-09/007-simba-beta-public-readiness.md)); GIP-27 settle parity; threshold Transfer cosign ([028](../tasks/done/2026-09/028-threshold-transfer-cosign.md) / [GIP-29](../gips/gip-29.md)); ConvertAccountKind ([034](../tasks/done/2026-09/034-convert-account-kind.md) / [GIP-28](../gips/gip-28.md)); extension site-login ([030](../tasks/done/2026-09/030-extension-site-login.md)); JS SDK + ttt ([036](../tasks/done/2026-09/036-guld-js-sdk.md)/[037](../tasks/done/2026-09/037-guld-tic-tac-toe.md)/[033](../tasks/done/2026-09/033-leaf-host-materialize.md)); GIP-26 Final ([032](../tasks/done/2026-09/032-gip-26-non-rust-vectors.md)).
 
-| Area | Still open | SoT |
-|------|------------|-----|
-| **Wallet** | Group `Transfer` (threshold > 1); contacts / typeahead polish | spec 14 §3.1; [GIP-20](../gips/gip-20.md) draft |
-| **Explorer** | Block-by-hash search UI; fee-hint UX on send | spec 14 §3.3 |
-| **Sync** | Fork-safe P2P height index polish; ops: mempool wipe + full-genesis replay cost (see SIMBA.md) | specs 06, 09; [019](../tasks/done/2026-09/019-dual-miner-reorg-integration-test.md) **done** |
-| **1.0 → 2.0** | Mainnet import manifest audit + published pin | [GIP-14](../gips/gip-14.md) draft, spec 15 |
-| **Extension** | Browser extension site-login | spec 14 §3.4, [GIP-5](../gips/gip-5.md) |
-| **Foreign / cross-chain** | Dapp-layer only in v1 (A11); optional SPV/light proof kinds = future GIP | spec 13 informative |
-| **Leaf host** | Dedicated materialization crate / ops path | spec 11 |
-| **Mainnet** | Locked genesis + `data/networks/main.json` | stub today |
+### 12.2 Open gaps (specs vs software)
 
-Account schema, `threshold_cosign_v1`, weight table, and **10 decimals** are **largely frozen** in specs — formal height-activated bundles per [spec 17](../specs/17-protocol-upgrades.md) remain for mainnet.
+| Area | Still open | Task / SoT |
+|------|------------|------------|
+| **Human-first UX** | Citizen/operator chrome beyond landing; cosign Share/QR sessions; backup framing (P1/P4 deferred/cancelled) | [005](../tasks/open/005-human-first-ux.md) |
+| **1.0 → mainnet** | Import manifest audit + locked mainnet genesis | **[031](../tasks/open/031-mainnet-genesis-ceremony.md)**; [GIP-14](../gips/gip-14.md) |
+| **Foreign / cross-chain** | Dapp-layer only in v1 (A11); optional SPV/light proof kinds = future GIP | spec 13 informative; §12.5 |
+
+Account schema, `threshold_cosign_v1` (tips/rotate/**spend**), weight table, and **10 decimals** are **largely frozen** in specs — formal height-activated bundles per [spec 17](../specs/17-protocol-upgrades.md) remain for mainnet.
 
 ### 12.3 Near term (testnet hardening)
 
-1. **Sync hygiene** — dual-miner reorg covered ([019](../tasks/done/2026-09/019-dual-miner-reorg-integration-test.md)); fork pollution / HTTP catch-up for stuck peers remain.  
-2. **Wallet UX** — send guards, contacts/recents, group transfer via cosign path ([tasks](../tasks/README.md)).  
-3. **Human-first site copy** — landing and docs aligned with §1.4 (wallet-first, not operator jargon).  
-4. **Peer QA** — multi-node Simba soaks; document fork recovery.
+1. **Wallet UX** — human-first paths ([005](../tasks/open/005-human-first-ux.md)); contacts/typeahead shipped ([GIP-20](../gips/gip-20.md) Accepted).  
+2. **Peer QA** — multi-node Simba soaks (sync hygiene shipped in [029](../tasks/done/2026-09/029-sync-fork-catchup.md)).  
+3. **ConvertAccountKind PWA polish** — protocol shipped ([034](../tasks/done/2026-09/034-convert-account-kind.md) / [GIP-28](../gips/gip-28.md)); settings UX follow-on only.
 
 ### 12.4 Before mainnet
 
-1. Audit 1.0 import manifest + genesis ceremony ([GIP-14](../gips/gip-14.md)).  
+1. Audit 1.0 import manifest + genesis ceremony ([031](../tasks/open/031-mainnet-genesis-ceremony.md), [GIP-14](../gips/gip-14.md)).  
 2. Lock mainnet genesis; disable faucet; production miner / nginx ops.  
-3. Security pass: registrar webhooks, P2P DoS limits, registration vesting edge cases.
+3. Security pass: registrar webhooks, P2P DoS limits, registration vesting edge cases; optional [GIP-25](../gips/gip-25.md) attestation diversification when out of Draft.  
+4. Formal height-activated rule bundles ([spec 17](../specs/17-protocol-upgrades.md)) for mainnet activation.
 
 ### 12.5 Later
 
 1. **DAG-PoW** / multi-parent headers (research; Simba stays single-lane until activated).  
 2. **Optional foreign proof kinds** (spec 13) if ecosystem needs consensus-enumerated SPV/light verify; settlement dapps as leaves today.  
 3. **`guld` leaf** hosting of reference site bytes + miner-governed gateway roster ([GIP-21](../gips/gip-21.md) draft).  
-4. Leaf SDK polish, optional git remotes, off-consensus indexers.  
-5. Post-quantum signature migration.
+4. Leaf materialize path — JS SDK + tic-tac-toe reference dapp ([033](../tasks/done/2026-09/033-leaf-host-materialize.md) **done**); Rust `--leaf-host` / full spec 11 HTTP later. Optional git remotes, off-consensus indexers.  
+5. Post-quantum signature migration.  
+6. Extension site-login polish (multi-account picker, PWA session via extension) — core path shipped ([030](../tasks/done/2026-09/030-extension-site-login.md)).
 
 ---
 
 ## 13. Conclusion
 
-Guld 2.0 is an **L0** where **identity is the product** and **leaves are unlimited**: a PoW-anchored namespace for people and groups, with **dapps that can literally do anything**—including **theoretical** cross-chain indexers, guldex-style settlement, and lightning-/personal-chain hash commits—while the network remains a **witness for registered Guld identities**, not a VM that re-executes leaf politics or mandatory foreign-chain verification. Named-account settlement uses a **Bitcoin-style weight fee** market (not a general DeFi VM). Legacy supply **x ≈ 9.6×10⁵ GULD** is a disclosed pre-mine from the 1.0 ledger (ERC20 bucket omitted), unlocked per user by **key upgrade** ([GIP-24](../gips/gip-24.md)); PoW issuance follows **`i(y) = max(0.04, (2/3)^(y−1))`** at **10-minute** blocks under Bitcoin-**parameter** retarget; **registration fees** (§8.7) go to miners over an 8-block vest. Scalability follows from keeping validators on keys and hashes; content retention and app logic stay in **leaves**; incentives follow from attributable cosign, fee-rate bidding, registration lottery, and PoW — with security budget treated honestly ([§11](#11-security-notes-and-risks)).
+Guld 2.0 is an **L0** where **identity is the product** and **leaves are unlimited**: a PoW-anchored namespace for people and groups, with **dapps that can literally do anything**—including **theoretical** cross-chain indexers, guldex-style settlement, and lightning-/personal-chain hash commits—while the network remains a **witness for registered Guld identities**, not a VM that re-executes leaf politics or mandatory foreign-chain verification. Named-account settlement uses a **Bitcoin-style weight fee** market (not a general DeFi VM). Legacy supply **x ≈ 9.6×10⁵ GULD** is a disclosed pre-mine from the 1.0 ledger (ERC20 bucket omitted), unlocked per user by **key upgrade** ([GIP-14](../gips/gip-14.md); disclosure [GIP-24](../gips/gip-24.md)); PoW issuance follows **`i(y) = max(0.04, (2/3)^(y−1))`** at **10-minute** blocks under Bitcoin-**parameter** retarget; **registration fees** (§8.7) go to miners over an 8-block vest. Scalability follows from keeping validators on keys and hashes; content retention and app logic stay in **leaves**; incentives follow from attributable cosign, fee-rate bidding, registration lottery, and PoW — with security budget treated honestly ([§11](#11-security-notes-and-risks)).
 
 Users join via **sponsored registration**; any funded peer can onboard the next — free (friend) or paid (third-party gateway). The everyday path is whitepaper **§1.4**: PWA wallet on device → extension → many dapps, one name.
 

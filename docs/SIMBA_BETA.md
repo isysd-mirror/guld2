@@ -6,13 +6,15 @@
 |--|--|
 | **Network** | `simba` |
 | **`chain_id`** | `2` |
-| **Genesis tip** | `0xadbff5409912ffa96fee913b3775b471eaca58b26323465ec41a400f86a1cd96` |
+| **Genesis tip** | `0xf4cdc0172082485ae7b77879aedb1706d9bd7fe3da972409a15e415a3638beb4` |
 | **Bootstrap peer** | [guld.io](https://guld.io/) — HTTP/API + P2P |
 | **P2P listen** | TCP `4001` (`/dns4/guld.io/tcp/4001`) |
 | **Bootnode list** | [`data/p2p-bootnodes.json`](../data/p2p-bootnodes.json) → `https://guld.io/data/p2p-bootnodes.json` |
 | **Reset policy** | **One more reset OK** before durable beta lock (G4) |
 
 Genesis artifacts: [`data/genesis/simba/`](../data/genesis/simba/). Operator runbook: [`deploy/SIMBA.md`](../deploy/SIMBA.md).
+
+**GIP-27 (2026-09-27):** legacy-locked imports share the yearly pay-or-release clock. Wipe any pre-`0xf4cdc017…` datadir. During beta, claim / attestation outreach aims to prepare holders before mainnet.
 
 Site chrome shows **Simba testnet** via `GET /api/v1/chain/status` (`mode=testnet`, `network=simba`). Wallet / explorer / register use the same peer API.
 

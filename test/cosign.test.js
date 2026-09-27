@@ -82,4 +82,47 @@ describe("cosign schema v1", () => {
     assert.equal(keyIndexForPub(keys, "0xbbb"), 1);
     assert.equal(keyIndexForPub(keys, "0xccc"), -1);
   });
+
+  it("round-trips transfer request/response with verify", async () => {
+    const priv0 = await randomPrivateKey();
+    const priv1 = await randomPrivateKey();
+    const pub0 = toHex(await getPublicKey(priv0));
+    const pub1 = toHex(await getPublicKey(priv1));
+    const account = {
+      account_id: `0x${"11".repeat(32)}`,
+      master_hash: `0x${"22".repeat(32)}`,
+      nonce: "7",
+      keys: [pub0, pub1],
+      threshold: 2,
+    };
+    const req = buildCosignRequest({
+      op: "transfer",
+      name: "treasury",
+      account,
+      chainId: 2,
+      inclusionFee: "1000",
+      to: "bob",
+      amount: "5000000000",
+      memo: "pay",
+    });
+    assert.equal(req.op, "transfer");
+    assert.equal(req.to, "bob");
+    const res0 = await signCosignRequest(req, { key_index: 0, privHex: toHex(priv0) });
+    const res1 = await signCosignRequest(req, { key_index: 1, privHex: toHex(priv1) });
+    const merged = await mergeAndVerify(
+      req,
+      new Map([
+        [0, res0.signature],
+        [1, res1.signature],
+      ]),
+    );
+    const tx = buildTxFromCosign(req, merged);
+    assert.equal(tx.type, "transfer");
+    assert.equal(tx.from, "treasury");
+    assert.equal(tx.to, "bob");
+    assert.equal(tx.amount, "5000000000");
+    assert.equal(tx.cosignatures.length, 2);
+    assert.equal(tx.memo, "pay");
+    assert.equal(tx.signature, undefined);
+  });
 });

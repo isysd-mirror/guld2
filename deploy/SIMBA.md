@@ -22,9 +22,12 @@ When `mode=testnet` and a signing key is present:
 
 | Endpoint | Effect |
 |----------|--------|
-| `GET /api/v1/faucet` | Status (`enabled`, drip size, cooldown) |
+| `GET /api/v1/faucet` | Status (`enabled`, drip size, cooldown, `tttDemo`) |
 | `POST /api/v1/faucet/drip` `{ "name": "…" }` | Send **10 GULD** to an existing account |
 | `POST /api/v1/faucet/register` `{ "request": {…} }` | Sponsor registration (6+ letter names) |
+| `POST /api/v1/faucet/ensure-ttt-demo` | Idempotent bootstrap of published `ttt-demo` (1-of-2) |
+
+On startup, a testnet peer with a faucet key also **auto-registers** `ttt-demo` when missing (background; same as `ensure-ttt-demo`). Mainnet never enables the faucet or this path. Demo keys are published throwaways in `guld-tic-tac-toe/lib/demo-keys.js`.
 
 Configure the key (never commit secrets):
 
@@ -66,7 +69,8 @@ Empty `--network simba` datadirs load height-0 from `data/genesis/simba/`:
 | `--miner` | **No default.** Required only to seal blocks; omit for validating peers |
 | Tip pin | `pins.json` + `blocks/0.json` — node refuses to start if rebuilt tip drifts |
 
-**Genesis tip (pinned):** `0xadbff5409912ffa96fee913b3775b471eaca58b26323465ec41a400f86a1cd96`  
+**Genesis tip (pinned):** `0xf4cdc0172082485ae7b77879aedb1706d9bd7fe3da972409a15e415a3638beb4`  
+(GIP-27 regenesis — prior `0xadbff540…` obsolete; wipe datadir.)
 Ceremony / refresh: [`data/genesis/simba/README.md`](../data/genesis/simba/README.md). Prior tip `0xc4a017…` is obsolete — wipe datadir on upgrade.
 
 Do **not** pass `--import-ledger` or `--dev` on Simba — the manifest and block 0 are already in artifacts.
@@ -219,13 +223,26 @@ Simba peers follow the **heavier valid tip** (cumulative work → height → has
 2. The **mempool is wiped** on reorg (RAM + `mempool.jsonl`) — pending txs must be re-submitted or re-gossiped.
 3. Deeper than `MAX_REORG_DEPTH` is rejected cleanly (`ReorgTooDeep`); wipe + resync from a trusted peer if that ever happens.
 4. Orphaned `RewardCommit` blocks are **not** claimable: `ClaimReward.ref_hash` must match the canonical block at `ref_height` (GIP-22).
+5. After a **live** reorg, the node **reseeds** the P2P GetHeaders height map from disk so late peers are not served the losing fork (task 029).
 
 **Ops expectation:** shallow reorgs are cheap; deep ones pay full genesis-replay cost. Prefer staying near the public tip.
+
+### Stuck tip — operator checklist
+
+Symptoms: tip height lagging peers for many minutes; `guld_syncing` stuck true; explorer tip hash ≠ guld.io; peerstore shows a bootnode under `banned`.
+
+1. **Confirm peer view** — `guld_peerCount`, `guld_syncing`, `guld_blockNumber`, tip hash via `guld_getBlockByNumber` / HTTP `/api/v1/chain/status`.
+2. **Honest lag (not banned)** — Headers-first catch-up should pull from a taller Hello/Inv without banning the bootnode. Keep the process running; do not wipe yet.
+3. **Banned bootnode** — Inspect `datadir/peerstore/peers.json` → `banned`. If you banned guld.io (or your only bootnode) by mistake, remove that entry (or the whole ban list), restart the node, and re-dial. Sync-gap / out-of-order headers during catch-up must **not** add ban score while `guld_syncing` is true.
+4. **Fork-polluted serve map (rare)** — After a live reorg the node reseeds automatically. If GetHeaders still looks wrong after a crash mid-reorg, **restart** the process (startup `seed_p2p_blocks` rebuilds the height map from canonical disk). No wipe required.
+5. **`ReorgTooDeep` / corrupt tip** — Stop the node, wipe `blocks/` + state tip artifacts (or the whole datadir), restart empty, dial a trusted bootnode, and let P2P catch-up rebuild. Expect full genesis replay cost. Mempool will be empty.
+6. **HTTP** — Use HTTP/RPC for **diagnosis** (status, blocks by height/hash). Catch-up itself is **P2P** headers-first (spec 09); there is no HTTP sync client.
 
 **Automated tests** (also gated by pre-commit hooks — `./scripts/install-dev-hooks.sh`):
 - Genesis pins: `cargo test -p guld-node --test simba_genesis_smoke` (task 012) or `./scripts/chain-lifecycle/simba-genesis-smoke.sh`.
 - Reorg: `cargo test -p guld-node --test dual_miner_reorg` (task 019 / lifecycle phase 4). Unit: `cargo test -p guld-node chain_reorg`.
 - Tall-tip catch-up (miner + late peer, no bootnode ban): `cargo test -p guld-node --test simba_catchup_sync` (lifecycle phase 5) or `./scripts/chain-lifecycle/simba-catchup-sync.sh`.
+- Reorg + late peer via reorged tip, no false ban: `cargo test -p guld-node --test reorg_catchup_no_ban` (task 029) or `./scripts/chain-lifecycle/reorg-catchup-no-ban.sh`.
 
 ## 5. Replace deprecated API unit
 

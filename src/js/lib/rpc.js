@@ -181,6 +181,12 @@ export function summarizeTx(tx) {
       return { type, primary: String(tx.name || ""), amount: "—" };
     case "rotate_keys":
       return { type, primary: String(tx.name || ""), amount: "—" };
+    case "convert_account_kind":
+      return {
+        type,
+        primary: `${tx.name || ""} → ${tx.new_kind || ""}`,
+        amount: "—",
+      };
     default:
       return { type, primary: "—", amount: "—" };
   }

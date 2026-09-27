@@ -1,0 +1,45 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <meta name="theme-color" content="#000000" />
+    <meta
+      name="description"
+      content="Demo: log into a Guld dapp with the browser extension (site-login)."
+    />
+    <meta
+      http-equiv="Content-Security-Policy"
+      content="default-src 'self'; base-uri 'self'; form-action 'self'; object-src 'none'; img-src 'self' data:; font-src 'self'; style-src 'self'; script-src 'self'; connect-src 'self' http://127.0.0.1:* http://localhost:*; worker-src 'self'; manifest-src 'self'"
+    />
+    <link rel="manifest" href="/manifest.webmanifest" />
+    <link rel="icon" href="/assets/favicon.png" type="image/png" />
+    <link rel="stylesheet" href="/src/css/tokens.css" />
+    <link rel="stylesheet" href="/src/css/base.css" />
+    <link rel="stylesheet" href="/src/css/layout.css" />
+    <link rel="stylesheet" href="/src/css/docs.css" />
+    <link rel="stylesheet" href="/src/css/wallet.css" />
+    <title>Extension site-login demo — Guld</title>
+  </head>
+  <body class="site-body">
+    <guld-header></guld-header>
+    <main class="site-main wallet" id="main">
+      <header class="wallet__head">
+        <h1>Extension site-login</h1>
+        <p>
+          Pair the
+          <a href="/software/#guld-extension">Guld extension</a>
+          with this page. Import the same key you use in the
+          <a href="/wallet/">PWA wallet</a>
+          (<code>guld1key:</code> / hex), then prove your name.
+          Spec:
+          <a href="/docs/specs/14-reference-ui.md">14 §10.1</a>.
+        </p>
+      </header>
+      <p class="wallet__status" data-demo-status data-state="pending">Checking for extension…</p>
+      <div data-demo-host></div>
+    </main>
+    <guld-footer></guld-footer>
+    <script type="module" src="/src/js/demo-login-page.js"></script>
+  </body>
+</html>

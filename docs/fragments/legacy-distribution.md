@@ -78,7 +78,9 @@ Treat these as **historical Equity reservations**, not as “team treasury dress
 
 ### 3.3 Practical circulation
 
-2.0 users MAY treat long-unclaimed reserved grants (e.g. `satoshi`) as **effectively out of circulation** for market and security intuition — the coins still exist on-chain as legacy-locked balances, claims stay open indefinitely, and nothing burns them. That is a **user heuristic**, not a consensus burn.
+Legacy-locked imports follow the same **pay-or-release** clock as every other name ([GIP-27](../gips/gip-27.md)): after one registration period, unfunded settles release the name and send leftover dust to the miner vesting queue. Spend still requires `ClaimLegacy` while the account exists.
+
+Do **not** treat long-unclaimed Equity reservations (e.g. `satoshi`) as permanently out of circulation — they can reclaim like any underfunded lease. Short remaps such as **`y`** (L=1 → 1000 GULD/yr vs ~100 GULD import) are especially likely to return to the commons unless claimed and topped up during Simba beta outreach.
 
 ---
 
@@ -109,7 +111,7 @@ Measured with `ledger bal --flat Assets` on `archives/guld-ledger-all.dat` (**15
 
 ## 5. Unlock paths: PGP vs attestation (legacy identity debt)
 
-Import creates **legacy-locked** accounts. Spend requires `ClaimLegacy` ([spec 15](../specs/15-ledger-import.md) §5):
+Import creates **legacy-locked** accounts. Spend requires `ClaimLegacy` ([spec 15](../specs/15-ledger-import.md) §5). Name control uses ordinary settle ([GIP-27](../gips/gip-27.md)) — the import starts a one-year clock at genesis.
 
 | Proof | When |
 |-------|------|
@@ -254,4 +256,5 @@ See §3 (**2,023** × 100 GULD after hyphen remaps). Remaining rows: small dust 
 
 - 2026-09-26: Initial brief from Simba manifest audit + maintainer continuity rules (respect fees/rebates/names; Equity / package-manager narrative; negatives as fee residue).
 - 2026-09-26: Task 016 regenesis — remapped 7 hyphen names; `x = sum(rows) = 960,975.39527052`; tip `0xadbff540…`.
+- 2026-09-27: GIP-27 — finite import expiry + settle parity; tip `0xf4cdc017…` (prior tip obsolete).
 - 2026-09-26: Task 018 — committed `negatives.json` + `omissions.json` under `data/genesis/simba/`.

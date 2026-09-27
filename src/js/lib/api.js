@@ -193,6 +193,22 @@ export async function accountExists(base, name) {
   return body.exists === true;
 }
 
+/**
+ * Prefix account search (`guld_searchAccounts` / `GET /chain/accounts?prefix=`).
+ * @param {string} base
+ * @param {string} prefix
+ * @param {number} [limit]
+ * @returns {Promise<Array<{ name: string, balance?: string, kind?: string }>>}
+ */
+export async function searchAccounts(base, prefix, limit = 8) {
+  const q = new URLSearchParams({
+    prefix: prefix.trim().toLowerCase(),
+    limit: String(limit),
+  });
+  const body = await apiGet(base, `/chain/accounts?${q}`);
+  return Array.isArray(body.items) ? body.items : [];
+}
+
 /** @param {string} base */
 export async function faucetInfo(base) {
   return apiGet(base, "/faucet");

@@ -18,10 +18,9 @@ Strategic drivers from 1.0: [`UPGRADE_FROM_1.md`](UPGRADE_FROM_1.md).
 
 ## guld-js
 
-- Package under `src/guld-js/`
-- Validate with Ajv against `src/guld-python/schemas/`
-- Web Crypto SHA-256; read ACL + identity ref resolve in pure JS
-- Browser read path via `fetch` / static host / `guld_api`
+- Package under `src/guld-js/` (`@guld/js`) — **SDK** ([036](tasks/done/2026-09/036-guld-js-sdk.md)): wire, crypto, client, cosign, site-login, tx, leaf
+- Apps stay separate: umbrella `src/js/` (PWA glue), `guld-extension` (provider). Optional later: import SDK instead of copying helpers
+- Reference dapp: tic-tac-toe ([037](tasks/done/2026-09/037-guld-tic-tac-toe.md), `/demo/ttt/`) — shipped; further leaf demos optional
 
 ## Full-node UX + AI assists (strict tools)
 

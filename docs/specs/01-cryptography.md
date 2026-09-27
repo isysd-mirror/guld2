@@ -24,6 +24,7 @@ where `tag` is a fixed UTF-8 string listed below (no length prefix in v1 **unles
 | `guld/cosign/v1` | account_id ‖ prev ‖ new ‖ nonce ‖ chain_id |
 | `guld/tx_id/v1` | canonical tx bytes |
 | `guld/block_header/v1` | canonical header bytes without nonce mix **or** as specified by PoW |
+| `guld/site_login/v1` | ecosystem site-login digest (not consensus) — [`14-reference-ui.md`](14-reference-ui.md) §10.1 |
 
 ## 2. Account signatures (genesis)
 

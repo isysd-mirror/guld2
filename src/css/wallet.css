@@ -207,6 +207,74 @@
   color: #8b1e1e;
 }
 
+.wallet__suggest {
+  margin: 0.15rem 0 0.5rem;
+}
+
+.wallet__suggest ul {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  border: 1px solid color-mix(in srgb, var(--guld-ink) 12%, transparent);
+  border-radius: 0.3rem;
+  background: var(--guld-white);
+}
+
+.wallet__suggest li {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.5rem;
+  align-items: baseline;
+  padding: 0.35rem 0.55rem;
+  border-bottom: 1px solid color-mix(in srgb, var(--guld-ink) 8%, transparent);
+}
+
+.wallet__suggest li:last-child {
+  border-bottom: 0;
+}
+
+.wallet__suggest button {
+  appearance: none;
+  border: 0;
+  background: transparent;
+  color: var(--guld-primary);
+  font: inherit;
+  font-weight: 600;
+  padding: 0;
+  cursor: pointer;
+  text-align: left;
+}
+
+.wallet__suggest button:hover {
+  text-decoration: underline;
+}
+
+.wallet__contacts-list {
+  list-style: none;
+  margin: 0 0 0.75rem;
+  padding: 0;
+  display: grid;
+  gap: 0.4rem;
+}
+
+.wallet__contacts-list li {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.5rem;
+  align-items: center;
+  font-size: 0.9rem;
+}
+
+.wallet__contact-card {
+  margin-top: 1rem;
+  padding-top: 0.75rem;
+  border-top: 1px solid color-mix(in srgb, var(--guld-ink) 10%, transparent);
+}
+
+.wallet__contact-card figure {
+  margin: 0.5rem 0;
+}
+
 .wallet__activity h2 {
   font-size: 1rem;
   margin: 0 0 0.65rem;

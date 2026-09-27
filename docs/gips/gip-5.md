@@ -75,16 +75,16 @@ Extension / web-login conventions are **ecosystem** (not consensus opcodes) but 
 ### Phase 3 — Install + identity on the web
 
 - [ ] PWA service worker / install prompt polish  
-- [ ] **Browser extension**: site-login challenges for Guld dapps  
-- [x] Contacts / recent recipients on send combobox  
+- [x] **Browser extension**: site-login challenges for Guld dapps (spec 14 §10.1; `/demo/login/`)  
+- [x] Contacts / recent recipients + Send prefix typeahead ([GIP-20](gip-20.md) Accepted; tasks [002](../tasks/done/2026-09/002-wallet-send-contacts.md)–[004](../tasks/done/2026-09/004-rpc-search-accounts.md))  
 
 ### Phase 3b — Groups + threshold cosign (spec 14 §8.6 / §9)
 
-Protocol and explorer already know `RegisterGroup` and `threshold_cosign_v1`; the PWA still assumes 1-of-1. Normative UI: [`../specs/14-reference-ui.md`](../specs/14-reference-ui.md).
+Protocol and explorer know `RegisterGroup` and `threshold_cosign_v1` for tips, rotate, and **spend**. Normative UI: [`../specs/14-reference-ui.md`](../specs/14-reference-ui.md).
 
 - [x] **RegisterGroup** wizard (`kind=group`, `nKeys`, threshold, fee `F_group(L,n)`, friend + paid sponsor)  
 - [x] **Cosign workstation** — export/import partial cosignatures; progress; broadcast when ≥ threshold  
-- [x] Wire workstation into UpdateMaster, RotateKeys (Transfer remains 1-of-1 until consensus)  
+- [x] Wire workstation into UpdateMaster, RotateKeys, **and Transfer** ([GIP-29](gip-29.md); task [028](../tasks/done/2026-09/028-threshold-transfer-cosign.md))  
 - [x] Account card: kind, threshold, key indices this device holds, expiry funding hint  
 
 ### Phase 4 — Optional surfaces
@@ -101,3 +101,6 @@ Protocol and explorer already know `RegisterGroup` and `threshold_cosign_v1`; th
 ## History
 
 Supersedes: `docs/intents/pwa-reference-wallet.md`
+
+- 2026-09-27: Docs sync — threshold Transfer shipped; contacts marked partial (GIP-20 still Draft).
+- 2026-09-27: Contacts / typeahead / `guld1contact:` shipped; GIP-20 → Accepted.

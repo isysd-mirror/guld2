@@ -26,7 +26,7 @@ Checked-in TxId goldens exist for a few tx types ([009](./009-bare-wire-implemen
 ## Done when
 
 - [x] Vectors + Rust CI green
-- [x] GIP-26 → Accepted (Final when non-Rust consumer exists)
+- [x] GIP-26 → Accepted → **Final** ([032](032-gip-26-non-rust-vectors.md))
 - [x] Linked from schemas README and task 007 “before mainnet” notes
 
 ## Notes
@@ -35,5 +35,5 @@ Checked-in TxId goldens exist for a few tx types ([009](./009-bare-wire-implemen
 2026-09-26: Opened from external review / GIP-26.
 2026-09-27: Landed `schemas/guld/v1/vectors/{tx_id,header_pow,difficulty,timestamp}.jsonl` + README;
   Rust tests `guld-wire::vectors_tx_id` / `guld-consensus::vectors_gip26`; pre-commit Vectors gate;
-  GIP-26 Accepted. Stretch JS/Python deferred (Final).
+  GIP-26 Accepted then Final after JS consumer ([032](032-gip-26-non-rust-vectors.md)).
 ```

@@ -4,7 +4,13 @@
 
 ### Added
 
-- Simba beta readiness task ([007](docs/tasks/open/007-simba-beta-public-readiness.md)); BARE wire ([009](docs/tasks/open/009-bare-wire-implementation.md)), mempool persistence ([008](docs/tasks/open/008-mempool-persistence.md)), timestamp validation ([010](docs/tasks/open/010-header-timestamp-validation.md)) tasks
+- **[GIP-20](docs/gips/gip-20.md) Accepted:** local contacts / recent / favorites; Send prefix typeahead (`guld_searchAccounts`); `guld1contact:` QR (spec 14 §8.3.1); tasks [002](docs/tasks/done/2026-09/002-wallet-send-contacts.md)–[004](docs/tasks/done/2026-09/004-rpc-search-accounts.md)
+- Extension **site-login** (`guld1loginreq` / `guld1login`, tag `guld/site_login/v1`) + `/demo/login/` ([030](docs/tasks/done/2026-09/030-extension-site-login.md); leaf changelog `guld-extension` 0.1.2)
+- Threshold **Transfer** cosign ([GIP-29](docs/gips/gip-29.md) / [028](docs/tasks/done/2026-09/028-threshold-transfer-cosign.md)); **ConvertAccountKind** ([GIP-28](docs/gips/gip-28.md) / [034](docs/tasks/done/2026-09/034-convert-account-kind.md))
+- Sync hygiene / reorg catch-up without peer ban ([029](docs/tasks/done/2026-09/029-sync-fork-catchup.md)); GIP-27 settle parity + Simba regenesis docs
+- `@guld/js` SDK + `/demo/ttt/` leaf ([036](docs/tasks/done/2026-09/036-guld-js-sdk.md) / [037](docs/tasks/done/2026-09/037-guld-tic-tac-toe.md)); GIP-26 JS vector consumer ([032](docs/tasks/done/2026-09/032-gip-26-non-rust-vectors.md))
+- Landing **citizen / operator** split (hero = Sign up / Log in; install under `#operators`); human-first task [005](docs/tasks/open/005-human-first-ux.md) — P1 deferred, P4 cancelled
+- Simba beta readiness ([007](docs/tasks/done/2026-09/007-simba-beta-public-readiness.md)); BARE wire ([009](docs/tasks/done/2026-09/009-bare-wire-implementation.md)), mempool persistence ([008](docs/tasks/done/2026-09/008-mempool-persistence.md)), timestamp validation ([010](docs/tasks/done/2026-09/010-header-timestamp-validation.md))
 - Research: [bitcoin-guld-comparison](docs/research/bitcoin-guld-comparison.md), [pow-nbits-vs-leading-bits](docs/research/pow-nbits-vs-leading-bits.md), [wire-codec-comparison](docs/research/wire-codec-comparison.md); [`schemas/README.md`](schemas/README.md)
 - **PoW locked v1:** Bitcoin-style double-SHA256 block hash, **leading-zero-bits** difficulty (not compact `nBits` — [research](docs/research/pow-nbits-vs-leading-bits.md)), **2016-block / 14-day** retarget with 4× timespan clamp (spec 06 §2); [`bitcoin-guld-comparison.md`](docs/research/bitcoin-guld-comparison.md) for parameter parity
 - **[GIP-22](docs/gips/gip-22.md) Accepted:** deferred miner rewards — `RewardCommit` (tx[0]) + mature `ClaimReward` (mempool-open, inclusion at `h+100`); replaces implicit `credit_miner()` at activation
@@ -20,7 +26,9 @@
 
 ### Changed
 
-- **Simba protocol pins:** A7 import manifest/**x**, A8 letter fees (GIP-9 Final), A11 no foreign genesis names, GIP-14 Accepted, GIP-22 spec acceptance; whitepaper v0.25 trimmed to product narrative with spec links
+- Whitepaper **v0.27** roadmap: contacts/search gap closed; human-first scoped to P0/P2/P3
+- Spec 14: contacts matrix **shipped**; `guld1contact:` frozen §8.3.1; site-login §10.1
+- **Simba protocol pins:** A7 import manifest/**x**, A8 letter fees (GIP-9 Final), A11 no foreign genesis names, GIP-14 Accepted, GIP-22 spec acceptance; whitepaper trimmed to product narrative with spec links
 - **ClaimLegacy:** imported name immutable (no rename on claim)
 - `--miner` has no default — required to seal blocks; validating peers omit it
 - `--network simba` loads committed genesis (no alice premine; `--import-ledger` ignored)

@@ -6,6 +6,7 @@ import {
   faucetDrip,
   faucetInfo,
   resolveApiBase,
+  searchAccounts,
 } from "./lib/api.js";
 import { AUTH_EVENT, getLocalIdentity, LOGIN_HREF, REGISTER_HREF } from "./lib/auth.js";
 import {
@@ -19,7 +20,12 @@ import {
   stringifyCosign,
   verifyCosignResponse,
 } from "./lib/cosign.js";
-import { listSendSuggestions, recordSend, saveContact } from "./lib/contacts.js";
+import {
+  backfillRecentFromActivity,
+  listSendSuggestions,
+  recordSend,
+  saveContact,
+} from "./lib/contacts.js";
 import {
   cosignMessage,
   DEFAULT_MASTER_HASH,
@@ -300,6 +306,7 @@ async function route() {
       `/chain/accounts/${encodeURIComponent(r.name)}/activity?limit=25`,
     );
     if (gen !== routeGen) return;
+    backfillRecentFromActivity(activity.items || []);
 
     setStatus(`Height ${st.height ?? "—"}`);
     const account = acct.account || {};
@@ -361,39 +368,38 @@ async function route() {
           </form>
         </article>`;
     } else {
-      const suggestions = listSendSuggestions();
-      const opts = suggestions
-        .map((s) => `<option value="${escapeHtml(s.name)}">${escapeHtml(s.label)}</option>`)
-        .join("");
-      const spendOk = threshold === 1;
-      const keyOk = myIndex === 0;
+      const canSpend = myIndex >= 0;
       sendPanel = `
         <article class="wallet__card wallet__card--plain">
           <h2 class="wallet__panel-title">Send GULD</h2>
           ${
-            !keyOk
-              ? `<p class="wallet__note">This device’s key no longer matches on-chain <code>keys[0]</code>. ` +
+            !canSpend
+              ? `<p class="wallet__note">This device’s key no longer matches any on-chain key for this account. ` +
                 `That usually means a RotateKeys completed but the local keyring was not updated ` +
                 `(e.g. the browser timed out while PoW sealed the block). ` +
                 `Re-import the <strong>new</strong> private key via <a href="${LOGIN_HREF}">Log in</a>, ` +
-                `or rotate again from a device that still holds the controlling key.</p>
+                `or rotate again from a device that still holds a controlling key.</p>
             ${statusSlotHtml()}`
-              : spendOk
-              ? `<form class="wallet__form" data-send-form>
+              : `<form class="wallet__form" data-send-form>
             <label>To
-              <input name="to" type="text" list="send-suggestions" spellcheck="false" required placeholder="bob" autocomplete="off" />
-              <datalist id="send-suggestions">${opts}</datalist>
+              <input name="to" type="text" spellcheck="false" required placeholder="bob" autocomplete="off" />
             </label>
+            <div data-send-suggest class="wallet__suggest" hidden></div>
             <p class="wallet__meta" data-send-to-hint aria-live="polite"></p>
             <label>Amount (GULD) <input name="amount" type="text" inputmode="decimal" required placeholder="1" /></label>
             <label>Inclusion fee (GULD) <input name="fee" type="text" inputmode="decimal" value="0.000001" /></label>
             <label>Memo (optional) <input name="memo" type="text" maxlength="64" placeholder="order id / invoice" /></label>
             <label class="wallet__check"><input name="favorite" type="checkbox" /> Save recipient as favorite</label>
-            <button type="submit" class="btn btn--primary">Send</button>
+            <button type="submit" class="btn btn--primary">${
+              threshold > 1 ? "Start cosign (Transfer)" : "Send"
+            }</button>
+            ${
+              threshold > 1
+                ? `<p class="wallet__meta">This account is ${threshold}-of-n — collect signatures in the cosign workstation below.</p>`
+                : ""
+            }
             ${statusSlotHtml()}
           </form>`
-              : `<p class="wallet__note">This account is ${threshold}-of-n. L0 <code>Transfer</code> still requires threshold 1 — fund a 1-of-1 subaccount or rotate keys to spend.</p>
-            ${statusSlotHtml()}`
           }
           <div class="wallet__spacer" data-faucet-drip></div>
         </article>`;
@@ -653,8 +659,8 @@ async function route() {
         say("Unlock your keyring first", "error", form);
         return;
       }
-      if (threshold !== 1) {
-        say("Threshold > 1 cannot Transfer yet", "error", form);
+      if (myIndex < 0) {
+        say("No matching on-chain key on this device", "error", form);
         return;
       }
       if (!to) {
@@ -671,7 +677,6 @@ async function route() {
         say(/** @type {Error} */ (err).message, "error", form);
         return;
       }
-      say("Sending…", "pending", form);
       try {
         const livePub = keyring.getAccount(r.name)?.pubHex;
         if (!livePub) {
@@ -679,6 +684,41 @@ async function route() {
           return;
         }
         const live = await requireLiveSpendKey(r.name, livePub);
+        const liveThr = Number(live.threshold ?? 1);
+        const liveIdx = localKeyIndex(live, livePub);
+
+        // Fast path: threshold 1 + keys[0] single signature (BARE v1).
+        if (liveThr === 1 && liveIdx === 0) {
+          say("Sending…", "pending", form);
+          const msg = await transferMessage(
+            String(live.account_id),
+            Number(live.nonce),
+            to,
+            amountQ,
+            feeQ,
+            memoBytes,
+          );
+          const sig = await sign(msg, fromHex(privHex));
+          const body = {
+            type: "transfer",
+            from: r.name,
+            to,
+            amount: amountQ,
+            signature: toHex(sig),
+            inclusion_fee: feeQ,
+          };
+          if (memoRaw) body.memo = memoRaw;
+          const out = await apiPost(apiBase, "/chain/transactions", body);
+          recordSend(to);
+          if (fd.get("favorite")) saveContact({ name: to, favorite: true });
+          flashStatus(formatTxSubmittedHtml("Transfer submitted", out), "ok", "[data-send-form]");
+          route();
+          return;
+        }
+
+        // Cosign path: threshold > 1, or 1-of-n with a non-zero key_index.
+        say("Starting Transfer cosign…", "pending", form);
+        const seedSigs = new Map();
         const msg = await transferMessage(
           String(live.account_id),
           Number(live.nonce),
@@ -688,20 +728,49 @@ async function route() {
           memoBytes,
         );
         const sig = await sign(msg, fromHex(privHex));
-        const body = {
-          type: "transfer",
-          from: r.name,
+        seedSigs.set(liveIdx, toHex(sig));
+        const req = buildCosignRequest({
+          op: "transfer",
+          name: r.name,
+          account: live,
+          chainId,
+          inclusionFee: feeQ,
           to,
           amount: amountQ,
-          signature: toHex(sig),
-          inclusion_fee: feeQ,
-        };
-        if (memoRaw) body.memo = memoRaw;
-        const out = await apiPost(apiBase, "/chain/transactions", body);
-        recordSend(to);
-        if (fd.get("favorite")) saveContact({ name: to, favorite: true });
-        flashStatus(formatTxSubmittedHtml("Transfer submitted", out), "ok", "[data-send-form]");
-        route();
+          alreadySigned: [liveIdx],
+          memo: memoRaw || undefined,
+        });
+        const mount = hostEl.querySelector("[data-cosign-host]");
+        if (mount instanceof HTMLElement) {
+          mount.scrollIntoView({ behavior: "smooth", block: "nearest" });
+          mountCosignWorkstation(mount, {
+            name: r.name,
+            account: live,
+            chainId,
+            localIndex: liveIdx,
+            canSign: true,
+            getPriv: () => keyring.getPriv(r.name),
+            seedRequest: req,
+            seedSigs,
+          });
+        }
+        if (liveThr === 1 && seedSigs.size >= 1) {
+          // Single cosignature is enough — broadcast immediately.
+          const cosignatures = await mergeAndVerify(req, seedSigs, live.keys.map(String));
+          const body = buildTxFromCosign(req, cosignatures);
+          say("Sending…", "pending", form);
+          const out = await apiPost(apiBase, "/chain/transactions", body);
+          recordSend(to);
+          if (fd.get("favorite")) saveContact({ name: to, favorite: true });
+          flashStatus(formatTxSubmittedHtml("Transfer submitted", out), "ok", "[data-send-form]");
+          route();
+          return;
+        }
+        say(
+          `Cosign started — ${seedSigs.size}/${liveThr} signatures. Share the request from the workstation.`,
+          "ok",
+          form,
+        );
       } catch (err) {
         say(/** @type {Error} */ (err).message, "error", form);
       }
@@ -1124,6 +1193,8 @@ function bindSendRecipientCheck(form) {
   if (!(form instanceof HTMLFormElement)) return;
   const toInput = form.querySelector('[name="to"]');
   const hintEl = form.querySelector("[data-send-to-hint]");
+  const suggestEl = form.parentElement?.querySelector("[data-send-suggest]")
+    || form.querySelector("[data-send-suggest]");
   const submitBtn = form.querySelector('[type="submit"]');
   if (!(toInput instanceof HTMLInputElement)) return;
 
@@ -1147,6 +1218,35 @@ function bindSendRecipientCheck(form) {
     }
   }
 
+  /**
+   * @param {{ name: string, label: string, source: string }[]} rows
+   */
+  function renderSuggest(rows) {
+    if (!(suggestEl instanceof HTMLElement)) return;
+    if (!rows.length) {
+      suggestEl.hidden = true;
+      suggestEl.innerHTML = "";
+      return;
+    }
+    suggestEl.hidden = false;
+    suggestEl.innerHTML = `<ul>${rows
+      .map(
+        (s) =>
+          `<li><button type="button" data-suggest-name="${escapeHtml(s.name)}">${escapeHtml(s.label)}</button>` +
+          `<span class="wallet__meta">${escapeHtml(s.source)}</span></li>`,
+      )
+      .join("")}</ul>`;
+  }
+
+  suggestEl?.addEventListener("click", (ev) => {
+    const btn = /** @type {HTMLElement} */ (ev.target).closest("[data-suggest-name]");
+    if (!(btn instanceof HTMLElement)) return;
+    const name = btn.getAttribute("data-suggest-name") || "";
+    toInput.value = name;
+    renderSuggest([]);
+    toInput.dispatchEvent(new Event("input", { bubbles: true }));
+  });
+
   /** @type {ReturnType<typeof setTimeout> | undefined} */
   let debounce;
   toInput.addEventListener("input", () => {
@@ -1154,11 +1254,33 @@ function bindSendRecipientCheck(form) {
     const name = toInput.value.trim().toLowerCase();
     if (!name) {
       setHint(null);
+      renderSuggest([]);
       return;
     }
+    const local = listSendSuggestions(name).slice(0, 8);
+    renderSuggest(local);
     setHint(null);
     debounce = setTimeout(async () => {
       try {
+        const chain = await searchAccounts(apiBase, name, 8);
+        const seen = new Set(local.map((s) => s.name));
+        /** @type {{ name: string, label: string, source: string }[]} */
+        const merged = [...local];
+        for (const a of chain) {
+          const n = String(a.name || "")
+            .trim()
+            .toLowerCase();
+          if (!n || seen.has(n)) continue;
+          seen.add(n);
+          merged.push({
+            name: n,
+            label: n,
+            source: a.kind ? String(a.kind) : "chain",
+          });
+        }
+        if (toInput.value.trim().toLowerCase() === name) {
+          renderSuggest(merged.slice(0, 10));
+        }
         setHint(await accountExists(apiBase, name));
       } catch (err) {
         if (hintEl instanceof HTMLElement) {
@@ -1167,7 +1289,12 @@ function bindSendRecipientCheck(form) {
         }
         if (submitBtn instanceof HTMLButtonElement) submitBtn.disabled = false;
       }
-    }, 400);
+    }, 250);
+  });
+
+  toInput.addEventListener("blur", () => {
+    // Delay so suggestion click can fire first.
+    setTimeout(() => renderSuggest([]), 150);
   });
 }
 
@@ -1367,6 +1494,9 @@ function mountCosignWorkstation(mount, opts) {
             );
           }
         } else {
+          if (req.op === "transfer" && req.to) {
+            recordSend(req.to);
+          }
           flashStatus(
             formatTxSubmittedHtml(`${req.op} submitted`, out),
             "ok",

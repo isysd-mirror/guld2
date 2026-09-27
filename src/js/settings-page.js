@@ -7,7 +7,13 @@ import {
   loadGatewaySettings,
   saveGatewaySettings,
 } from "./lib/gateway-settings.js";
-import { loadWalletPrefs, saveContact } from "./lib/contacts.js";
+import {
+  buildContactCard,
+  loadWalletPrefs,
+  parseContactCard,
+  removeContact,
+  saveContact,
+} from "./lib/contacts.js";
 import {
   bindExportKeySections,
   renderExportKeySection,
@@ -16,6 +22,7 @@ import { keyring } from "./lib/keyring.js";
 import { loadNetworkInfo, NETWORK_PRESETS } from "./lib/network.js";
 import { accountDetailsHtml, registrationExpiryHtml } from "./lib/account-meta.js";
 import { docsViewerHref } from "./lib/doc-paths.js";
+import { qrSvgDataUrl } from "./lib/qr.js";
 import { escapeHtml } from "./lib/rpc.js";
 
 const statusEl = document.querySelector("[data-settings-status]");
@@ -177,19 +184,54 @@ async function render() {
           : ""
       }
 
+      ${(() => {
+        const prefs = loadWalletPrefs();
+        const acct = id.name ? keyring.getAccount(id.name) : null;
+        let cardBlock = "";
+        if (id.name && acct?.pubHex) {
+          try {
+            const payload = buildContactCard({ name: id.name, pub: acct.pubHex });
+            const qr = qrSvgDataUrl(payload, 200);
+            cardBlock = `
+              <div class="wallet__contact-card">
+                <p class="wallet__meta">Your contact card (in-person exchange — local save only):</p>
+                <figure>
+                  <img alt="Contact card QR" width="200" height="200" src="${qr}" />
+                  <figcaption class="wallet__meta"><code>${escapeHtml(id.name)}</code></figcaption>
+                </figure>
+                <label>
+                  Payload
+                  <input type="text" readonly data-contact-card-payload value="${escapeHtml(payload)}" spellcheck="false" />
+                </label>
+                <button type="button" class="btn btn--outline" data-copy-contact-card style="margin-top:0.5rem">Copy payload</button>
+              </div>`;
+          } catch {
+            cardBlock = "";
+          }
+        }
+        const list =
+          prefs.contacts
+            .map(
+              (c) =>
+                `<li>${escapeHtml(c.alias || c.name)}${c.favorite ? " ★" : ""} · <code>${escapeHtml(c.name)}</code>` +
+                ` <button type="button" class="btn btn--outline" data-remove-contact="${escapeHtml(c.name)}">Remove</button></li>`,
+            )
+            .join("") || "<li>No contacts yet</li>";
+        return `
       <fieldset>
         <legend>Contacts</legend>
-        <p class="wallet__meta">Favorites appear first in the wallet send combobox (spec 14 §8.3).</p>
-        <ul class="wallet__meta">${loadWalletPrefs()
-          .contacts.map(
-            (c) =>
-              `<li>${escapeHtml(c.alias || c.name)}${c.favorite ? " ★" : ""} · <code>${escapeHtml(c.name)}</code></li>`,
-          )
-          .join("") || "<li>No contacts yet</li>"}</ul>
+        <p class="wallet__meta">Favorites appear first in the wallet send typeahead (spec 14 §8.3).</p>
+        <ul class="wallet__contacts-list">${list}</ul>
         <label>Name <input name="contactName" type="text" spellcheck="false" placeholder="bob" /></label>
         <label>Alias (optional) <input name="contactAlias" type="text" placeholder="Bob" /></label>
         <label class="wallet__check"><input name="contactFavorite" type="checkbox" /> Favorite</label>
-      </fieldset>
+        <label>
+          Import contact card
+          <input name="contactImport" type="text" spellcheck="false" placeholder="guld1contact:{…}" />
+        </label>
+        ${cardBlock}
+      </fieldset>`;
+      })()}
 
       <button type="submit" class="btn btn--primary">Save</button>
       ${
@@ -245,6 +287,28 @@ async function render() {
     }
   });
 
+  hostEl.querySelectorAll("[data-remove-contact]").forEach((btn) => {
+    btn.addEventListener("click", () => {
+      const name = btn.getAttribute("data-remove-contact");
+      if (!name) return;
+      removeContact(name);
+      setStatus(`Removed contact ${name}.`, "ok");
+      void render();
+    });
+  });
+
+  hostEl.querySelector("[data-copy-contact-card]")?.addEventListener("click", async () => {
+    const input = hostEl.querySelector("[data-contact-card-payload]");
+    if (!(input instanceof HTMLInputElement)) return;
+    try {
+      await navigator.clipboard.writeText(input.value);
+      setStatus("Contact card copied.", "ok");
+    } catch {
+      input.select();
+      setStatus("Select and copy the contact payload.", "pending");
+    }
+  });
+
   hostEl.querySelector("[data-settings-form]")?.addEventListener("submit", async (ev) => {
     ev.preventDefault();
     const fd = new FormData(/** @type {HTMLFormElement} */ (ev.target));
@@ -255,6 +319,21 @@ async function render() {
         alias: String(fd.get("contactAlias") || "").trim() || undefined,
         favorite: fd.get("contactFavorite") === "on",
       });
+    }
+    const importRaw = String(fd.get("contactImport") || "").trim();
+    if (importRaw) {
+      try {
+        const card = parseContactCard(importRaw);
+        saveContact({
+          name: card.name,
+          alias: card.alias,
+          favorite: false,
+        });
+        setStatus(`Imported contact ${card.name}.`, "ok");
+      } catch (err) {
+        setStatus(/** @type {Error} */ (err).message, "error");
+        return;
+      }
     }
     const nextApi = String(fd.get("apiBase") || "").trim() || "/api/v1";
     persistApiBase(nextApi);

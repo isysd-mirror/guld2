@@ -62,6 +62,7 @@ Each `src/guld-*` directory is a submodule. Its **`origin`** is the bare on disk
 | `src/guld-wallet` | `repos/guld-wallet.git` | `https://guld.io/repos/guld-wallet.git` |
 | `src/guld-extension` | `repos/guld-extension.git` | `https://guld.io/repos/guld-extension.git` |
 | `src/guld-js` | `repos/guld-js.git` | `https://guld.io/repos/guld-js.git` |
+| `src/guld-tic-tac-toe` | `repos/guld-tic-tac-toe.git` | `https://guld.io/repos/guld-tic-tac-toe.git` |
 
 **Official distribution:** `.gitmodules` points at **`https://guld.io/repos/<name>.git`**. That is the canonical clone URL for humans and CI. Local `repos/*.git` bares on disk are for **serving** on peers that run `guld-node --http-static` — they are gitignored and not shipped in the umbrella commit.
 

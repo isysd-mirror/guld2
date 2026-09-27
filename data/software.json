@@ -124,11 +124,20 @@
     {
       "id": "guld-js",
       "title": "guld-js",
-      "summary": "Browser/JS peer (later)",
+      "summary": "@guld/js SDK — wire vectors, crypto, HTTP client, tx, leaf helpers",
       "kind": "software",
       "home": "here",
       "href": "/software/guld-js/",
-      "topics": ["javascript"]
+      "topics": ["javascript", "sdk"]
+    },
+    {
+      "id": "guld-tic-tac-toe",
+      "title": "guld-tic-tac-toe",
+      "summary": "Reference leaf dapp — witnessed tic-tac-toe (UpdateMaster per move)",
+      "kind": "software",
+      "home": "here",
+      "href": "/software/guld-tic-tac-toe/",
+      "topics": ["javascript", "dapp", "leaf"]
     }
   ]
 }

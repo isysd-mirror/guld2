@@ -22,8 +22,8 @@ The **browser extension** is **ecosystem software** (not required to validate th
 
 | Surface | Normative (spec) | Shipped today |
 |---------|------------------|---------------|
-| **guld.io PWA** | AES-256-GCM keyring + full §8–§10 flows | **Partial** — register (individual + group), send/subs/memo, UpdateMaster/RotateKeys + **cosign workstation**; Transfer still 1-of-1 |
-| **Browser extension** | Same keyring schema as PWA; site-login | Encrypted keyring + register/sponsor/send; site-login **Next** |
+| **guld.io PWA** | AES-256-GCM keyring + full §8–§10 flows | **Partial** — register (individual + group), send/subs/memo, UpdateMaster/RotateKeys + **cosign workstation**; Transfer cosign shipped |
+| **Browser extension** | Same keyring schema as PWA; site-login | Encrypted keyring + register/sponsor/send; site-login (`guld_login`) + `/demo/login/` |
 | `guld-wallet` (Dioxus desktop) | Encrypted file keyring or OS keychain | Deprecated for default path; legacy claim still supported |
 | Mobile native | Later | PWA covers cross-platform first |
 
@@ -99,8 +99,8 @@ Status: **shipped** | **partial** | **missing** | **out of UI** (node/miner/ops 
 | Threshold policy display | account JSON `threshold`, `keys[]` | Explorer + wallet | **shipped** |
 | **Cosign workstation** (collect ≥`threshold` sigs) | Client-side; broadcast when complete | Shared partial-cosign import/export (§9) | **shipped** |
 | Find accounts by pubkey | `guld_findAccountsByPubkey` | Settings / recovery hint | **partial** (RPC shipped; UI missing) |
-| Prefix name search | `guld_searchAccounts` | Explorer / contacts typeahead | **partial** (RPC shipped; UI missing) |
-| Local contacts / recent / favorites | — (local storage) | Send combobox | **partial** |
+| Prefix name search | `guld_searchAccounts` | Explorer / wallet Send typeahead | **shipped** |
+| Local contacts / recent / favorites | — (local storage) | Send typeahead + Settings | **shipped** |
 | Cross-chain / bridge dapps (no L0 reserved names — A11) | Spec 13 informative | N/A for Simba wallet | **later** (dapp layer) |
 | Leaf / CAS put-get in wallet | `guld_putObject` / `getObject` | Not required for L0 wallet; leaf host | **later** / ops |
 
@@ -127,7 +127,7 @@ Status: **shipped** | **partial** | **missing** | **out of UI** (node/miner/ops 
 | Docs / specs / whitepaper browsers | **shipped** |
 | Software catalog + tree/blob | **shipped** (MVP) |
 | PWA install polish | **partial** |
-| Extension site-login | **missing** (Phase 3) |
+| Extension site-login | **shipped** (Phase 3) — §10.1; `/demo/login/` |
 
 ---
 
@@ -253,10 +253,10 @@ Local only — no on-chain friend graph. GIP: [`../gips/gip-20.md`](../gips/gip-
 
 | Feature | Storage | Chain |
 |---------|---------|--------|
-| **Recent recipients** | Local `recent_recipients[]` | Names only |
+| **Recent recipients** | Local `recent_recipients[]` | Names only; backfilled from activity counterparties |
 | **Favorites** | Local `contacts[]` with `favorite: true` | — |
 | **Aliases** | `contacts[].alias` | Display only; tx uses canonical `name` |
-| **Send combobox** | UI | favorites → recent → typed |
+| **Send typeahead** | UI | Local favorites → recent → contacts, then `guld_searchAccounts` / `GET /chain/accounts?prefix=` |
 | **Exists hint** | API | Debounced lookup |
 
 ```json
@@ -270,7 +270,27 @@ Local only — no on-chain friend graph. GIP: [`../gips/gip-20.md`](../gips/gip-
 }
 ```
 
-**QR (optional):** in-person contact exchange MAY use `guld1contact:` + compact JSON — import to local contacts only. Not for routine payment.
+Storage key: `guld.contacts.v1` (localStorage). Settings: add / remove / alias / favorite; import contact card.
+
+#### 8.3.1 Contact card QR (`guld1contact:`)
+
+In-person exchange only — **not** for routine payment. Import saves to local contacts; no chain tx.
+
+**Prefix:** `guld1contact:`  
+**Body:** compact JSON (no whitespace required):
+
+```json
+{ "v": 1, "name": "bob", "pub": "0x…", "alias": "Bob" }
+```
+
+| Field | Required | Notes |
+|-------|----------|--------|
+| `v` | yes | Schema version; currently `1` |
+| `name` | yes | Canonical lowercase account name |
+| `pub` | no | Optional Ed25519 pubkey hex (`0x…`) for display / recovery hint |
+| `alias` | no | Local display nickname on import |
+
+Reference UI: Settings shows “my contact card” QR when logged in; paste/import field accepts the payload.
 
 ### 8.4 UpdateMaster (tip advance)
 
@@ -347,7 +367,7 @@ Settings / first-run opt-in: build unsigned tx or cosign challenge → download/
 
 ## 9. Cosign workstation
 
-Threshold accounts (`threshold > 1`, or any account where this device holds fewer than `threshold` keys) need a **first-class UI** to assemble `threshold_cosign_v1` (and RotateKeys cosign lists) without inventing leaf politics.
+Threshold accounts (`threshold > 1`, or any account where this device holds fewer than `threshold` keys) need a **first-class UI** to assemble `threshold_cosign_v1` (UpdateMaster, RotateKeys, and Transfer) without inventing leaf politics.
 
 ### 9.1 Goals
 
@@ -392,13 +412,14 @@ Version field: **`v: 1`**. Types: `guld1cosignreq` / `guld1cosignres`. Private k
 
 | Field | Required | Notes |
 |-------|----------|-------|
-| `op` | yes | `update_master` \| `rotate_keys` (`transfer` reserved — L0 spend still 1-of-1) |
+| `op` | yes | `update_master` \| `rotate_keys` \| `transfer` |
 | `name`, `account_id`, `nonce`, `chain_id` | yes | Bind to live account; stale nonce ⇒ discard |
 | `threshold`, `keys` | yes | Current on-chain policy (snapshot at request time) |
 | `needed` | yes | Distinct `key_index` values still unsigned; subset of `0..keys.len()` |
 | `inclusion_fee` | yes | Quanta string; covered by signed message where applicable |
 | `prev_master_hash`, `new_master_hash` | if `op=update_master` | Exact tip advance |
 | `new_keys`, `new_threshold` | if `op=rotate_keys` | Proposed policy |
+| `to`, `amount` | if `op=transfer` | Recipient name; amount in quanta (decimal string) |
 | `memo` | no | UTF-8 string ≤64 bytes if present |
 
 **Response** (`guld1cosignres`) — one signature fragment; MUST echo binding fields so the collector can verify without trusting the peer:
@@ -449,10 +470,61 @@ UI MUST state: cosigners authorize a **specific** statement (tip advance / spend
 | Phase | Behavior |
 |-------|----------|
 | Shipped | Shared encrypted keyring schema; register / sponsor / send |
-| **Next (§1.4)** | Site-login: dapp presents challenge; extension signs under registered key; dapp verifies via node account lookup |
-| Later | Multiple named accounts in extension; group key_index picker |
+| Shipped (§1.4) | Site-login: dapp presents challenge; extension signs under registered key; dapp verifies via node account lookup (§10.1) |
+| Later | Multiple named accounts in extension; group key_index picker; PWA session via extension |
 
-Extension MUST NOT be required to validate blocks. Challenge format is ecosystem (**TBD** with dapp SDK); document beside this spec when frozen.
+Extension MUST NOT be required to validate blocks. Site-login is **ecosystem** (not a consensus opcode). Format **frozen** at §10.1 (`v: 1`).
+
+### 10.1 Site-login challenge / response (frozen `v: 1`)
+
+Dapp ↔ extension portable blobs (same spirit as cosign `guld1cosignreq` / `guld1cosignres`).
+
+**Challenge** (`type: "guld1loginreq"`):
+
+| Field | Required | Notes |
+|-------|----------|-------|
+| `v` | yes | `1` |
+| `type` | yes | `"guld1loginreq"` |
+| `domain` | yes | `URL.host` of the page (e.g. `guld.io` or `localhost:8080`); MUST equal page origin host |
+| `uri` | yes | Full page URL; MUST be same-origin as the requesting page |
+| `name` | yes | Lowercase NFC account name |
+| `chain_id` | yes | u32; MUST match node `GET /api/v1/chain/status` |
+| `nonce` | yes | ≥ 128 bits entropy (hex or base64url) |
+| `issued_at` | yes | ISO-8601 UTC string; hashed **byte-identical** (no reformat) |
+| `expiration_time` | yes | ISO-8601 UTC; dapp SHOULD use ≤ 10 minutes window |
+| `statement` | no | Human string for confirm UI; max **256** UTF-8 bytes |
+
+**Digest** (Ed25519 message = 32-byte tagged hash, same pattern as transfer):
+
+```text
+msg = tagged_hash("guld/site_login/v1",
+  u32_be(chain_id)
+  ‖ utf8(name) ‖ 0x00
+  ‖ utf8(domain) ‖ 0x00
+  ‖ utf8(uri) ‖ 0x00
+  ‖ utf8(nonce) ‖ 0x00
+  ‖ utf8(issued_at) ‖ 0x00
+  ‖ utf8(expiration_time) ‖ 0x00
+  ‖ u16_be(statement_len) ‖ statement_bytes   // len 0 if absent
+)
+```
+
+**Response** (`type: "guld1login"`): echo challenge fields + `key_index` (u16), `pubkey` (`0x`-hex 32 B), `signature` (`0x`-hex 64 B) over `msg`.
+
+**Auth strength:** any key in `account.keys` MAY prove login (`key_index`); this is **not** a spend threshold.
+
+**Provider:** `guld.request({ method: "guld_login", params: [challenge] })` → response object. Extension MUST show user confirm (origin, name, domain, statement, expiry) and MUST reject if `domain` ≠ origin host or `uri` is not same-origin. `guld_requestAccounts` MUST confirm once per origin (no silent auto-grant).
+
+**Verify (dapp):**
+
+1. Schema + `now ∈ [issued_at, expiration_time]` + `chain_id` matches status.  
+2. Recompute `msg`; Ed25519-verify under `pubkey`.  
+3. `GET /api/v1/chain/accounts/{name}` → `account.keys[key_index]` equals `pubkey` (normalized hex).  
+4. Reject if account missing, index OOB, or keys empty.
+
+Session cookies / JWTs after verify are **out of band**. Reference demo: `/demo/login/`.
+
+**Non-goals:** consensus validation of login; threshold multi-approve login; free-form `signMessage`; automatic PWA↔extension key sync.
 
 ---
 
@@ -475,30 +547,30 @@ Extension MUST NOT be required to validate blocks. Challenge format is ecosystem
 7. Extension encrypted keyring parity (partial product)  
 8. Docs / software browsers  
 9. **RegisterGroup** wizard (`/register/?kind=group`) + gateway `register_group`  
-10. **Cosign workstation** (`guld1cosignreq` / `guld1cosignres` v1) for UpdateMaster + RotateKeys  
+10. **Cosign workstation** (`guld1cosignreq` / `guld1cosignres` v1) for UpdateMaster + RotateKeys + Transfer  
 11. Account card: kind, threshold, keys, expiry hint; wallet friend-sponsor form  
+12. Extension site-login (`guld1loginreq` / `guld1login` §10.1) + `/demo/login/`  
+13. Contacts / recent / favorites + Send prefix typeahead (`guld_searchAccounts`) + `guld1contact:` QR  
 
 **Next:**
 
-1. PWA install polish + **extension site-login**  
-2. Contacts polish / exists hint (tasks 002+)  
-3. Prefix search when `guld_searchAccounts` ships  
-4. Explorer: tx-by-id / block-by-hash when RPC methods land  
-5. External-signing-only path without browser key storage  
-6. Group `Transfer` when consensus accepts threshold proofs for spend  
-7. Mempool visualizer (draft intent) — later  
+1. PWA install polish  
+2. Explorer polish  
+3. External-signing-only path without browser key storage  
+4. Mempool visualizer — later  
 
 ---
 
 ## 13. Open parameters
 
-- Cosign request/response JSON **frozen** at §9.2.1 (`v: 1`)  
-- Group spend (`Transfer` with `threshold > 1`) — consensus still 1-of-1; UI MUST refuse and point at funding a 1-of-1 sub or rotating  
+- Cosign request/response JSON **frozen** at §9.2.1 (`v: 1`); `op=transfer` binds `to` + `amount` (+ optional `memo`)  
+- Group spend (`Transfer` with `threshold > 1`) — **shipped** via cosignatures (spec 03 §3.6); UI uses workstation when local keys `< threshold`  
+- Extension site-login JSON **frozen** at §10.1 (`v: 1`)  
+- Contact card JSON **frozen** at §8.3.1 (`guld1contact:` `v: 1`)  
 - JS/WASM signing crate parity with `guld-client` for all message tags  
 - Auto-lock timeout duration  
 - Hardware key / PQ key UX later  
 - Deep links `guld://` for handoff to desktop signer (**TBD**)  
-- Extension site-login challenge format (**TBD**)  
 - HTTP resource routes for blocks/CAS parity with RPC (§12)  
 
 ---

@@ -26,9 +26,9 @@ Turn the whitepaper into **implementable specs**: clear components, wire/logical
 ## Next acceptance criteria
 
 - [x] Freeze wire codec — **BARE** in `01` §4 ([`schemas/`](../../schemas/README.md))  
-- [ ] Freeze registration funding model in `03`  
+- [x] Freeze registration funding model in `03` / `07` ([GIP-9](gip-9.md)/[GIP-10](gip-10.md) Final)  
 - [x] Freeze PoW + subsidy function shape in `06`/`07` (10-min blocks; `(2/3)^(y−1)` floored at 4%)  
-- [ ] Prototype `guld-types` + `guld-crypto` against `01`/`04`  
+- [x] Prototype `guld-types` + `guld-crypto` against `01`/`04`  
 - [x] Flatten implementation under `src/` matching `00`  
 - [x] Extension + provider scaffold (moved out of protocol repo; spec 14 is wallet + webapp only)  
 
@@ -40,3 +40,5 @@ Turn the whitepaper into **implementable specs**: clear components, wire/logical
 ## History
 
 Supersedes: `docs/intents/specs-2.0.md`
+
+- 2026-09-27: Acceptance checkboxes synced with shipped fees / crates (docs consistency pass).

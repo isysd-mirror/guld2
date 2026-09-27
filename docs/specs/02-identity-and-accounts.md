@@ -16,8 +16,8 @@
 
 | Kind | Registration | Notes |
 |------|--------------|-------|
-| `individual` | `RegisterUsername` | One or more keys; typical threshold 1 |
-| `group` | `RegisterGroup` | `n` keys; fee = `F_user(L) × (2 + n)` GULD |
+| `individual` | `RegisterUsername` or `ConvertAccountKind` | One or more keys; typical threshold 1 |
+| `group` | `RegisterGroup` or `ConvertAccountKind` | `n` keys; fee = `F_user(L) × (2 + n)` GULD |
 | `subaccount` | `RegisterSubaccount` | Under an **individual** parent only; max **8** live |
 | `network` | Genesis only | Reserved name **`guld`** — **keyless** protocol shell (empty keys). CAP / rules changes are witnessed by miners via header `master_hash` / `guld_rules_hash`, not by a `guld` signature. |
 | `foreign_chain` | **Not used v1** (A11) | Reserved genesis foreign names **removed** — bridge/indexer dapps use ordinary registration ([`13-foreign-chains.md`](13-foreign-chains.md) informative) |
@@ -52,7 +52,7 @@ Fees buy **one year** of control (`REGISTRATION_PERIOD = BLOCKS_PER_YEAR`). See 
 - Current while `chain_height < expires_at_height`; due for `SettleRegistration` when `chain_height >= expires_at_height`.
 - **Pay-or-release:** miners include permissionless `SettleRegistration` — debit `F_*` and extend, or delete the name and pay leftover dust to the miner.
 - Parent release **cascades** delete of live subaccounts.
-- Legacy-locked imports: settle forbidden; `ClaimLegacy` open indefinitely. After claim: normal 1y period.
+- Legacy-locked imports: settle **applies** on the same clock ([GIP-27](../gips/gip-27.md)); spend still needs `ClaimLegacy`.  
 - Network (`guld`): `u64::MAX`. No resale market; lost keys ⇒ eventually unfunded settle ⇒ name free.
 
 ### 3.0.1 Account nonce (tip and spend sequencing)
@@ -65,7 +65,7 @@ Each account carries a monotonic **`nonce`** (`u64`, starts at **0** at registra
 
 - `UpdateMaster` — tip advance  
 - `Transfer` — when account is `from`  
-- `RotateKeys`, `SettleRegistration`, `ClaimLegacy`  
+- `RotateKeys`, `ConvertAccountKind`, `SettleRegistration`, `ClaimLegacy`  
 - Registration txs — payer (and parent for subaccounts)
 
 **`UpdateMaster` binding:** cosignatures MUST cover the account’s **current** `nonce` (before apply), `prev_master_hash`, and `new_master_hash` ([`04-proofs.md`](04-proofs.md) §3.1). On success: `master_hash ← new`, `nonce++`.
@@ -80,7 +80,7 @@ Leaf hosts and wallets MUST NOT sign blind: fetch current tip + nonce via HTTP A
 
 ### 3.1 `account_id` (locked — A3)
 
-`AccountId` is a 32-byte [`Hash32`](01-cryptography.md) assigned at account creation and **MUST NOT change** for the lifetime of that name (including after `ClaimLegacy` or `RotateKeys`).
+`AccountId` is a 32-byte [`Hash32`](01-cryptography.md) assigned at account creation and **MUST NOT change** for the lifetime of that name (including after `ClaimLegacy`, `RotateKeys`, or `ConvertAccountKind`).
 
 All variants use domain-separated hashing ([`01-cryptography.md`](01-cryptography.md) §1):
 

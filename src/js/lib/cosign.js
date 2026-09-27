@@ -8,6 +8,7 @@ import {
   rotateKeysMessage,
   sign,
   toHex,
+  transferMessage,
   verify,
 } from "./crypto.js";
 
@@ -15,7 +16,7 @@ export const COSIGN_REQ = "guld1cosignreq";
 export const COSIGN_RES = "guld1cosignres";
 
 /**
- * @typedef {"update_master"|"rotate_keys"} CosignOp
+ * @typedef {"update_master"|"rotate_keys"|"transfer"} CosignOp
  * @typedef {{
  *   v: 1,
  *   type: "guld1cosignreq",
@@ -33,6 +34,8 @@ export const COSIGN_RES = "guld1cosignres";
  *   new_master_hash?: string,
  *   new_keys?: string[],
  *   new_threshold?: number,
+ *   to?: string,
+ *   amount?: string,
  * }} CosignRequest
  * @typedef {{
  *   v: 1,
@@ -50,6 +53,8 @@ export const COSIGN_RES = "guld1cosignres";
  *   new_master_hash?: string,
  *   new_keys?: string[],
  *   new_threshold?: number,
+ *   to?: string,
+ *   amount?: string,
  * }} CosignResponse
  */
 
@@ -69,6 +74,13 @@ function memoBytesFrom(raw) {
   return bytes;
 }
 
+/** @param {string} op */
+function assertCosignOp(op) {
+  if (op !== "update_master" && op !== "rotate_keys" && op !== "transfer") {
+    throw new Error(`Unsupported cosign op: ${op}`);
+  }
+}
+
 /**
  * @param {unknown} raw
  * @returns {CosignRequest}
@@ -79,9 +91,7 @@ export function parseCosignRequest(raw) {
   if (obj.v !== 1 || obj.type !== COSIGN_REQ) {
     throw new Error("Unsupported cosign request (need v:1 guld1cosignreq)");
   }
-  if (obj.op !== "update_master" && obj.op !== "rotate_keys") {
-    throw new Error(`Unsupported cosign op: ${obj.op}`);
-  }
+  assertCosignOp(obj.op);
   const keys = Array.isArray(obj.keys) ? obj.keys.map(normHex) : [];
   const needed = Array.isArray(obj.needed)
     ? [...new Set(obj.needed.map((n) => Number(n)))].filter((i) => Number.isFinite(i) && i >= 0)
@@ -114,11 +124,19 @@ export function parseCosignRequest(raw) {
     if (!req.prev_master_hash || !req.new_master_hash) {
       throw new Error("update_master request needs prev/new master hash");
     }
-  } else {
+  } else if (req.op === "rotate_keys") {
     req.new_keys = Array.isArray(obj.new_keys) ? obj.new_keys.map(normHex) : [];
     req.new_threshold = Number(obj.new_threshold);
     if (!req.new_keys?.length || !(req.new_threshold > 0)) {
       throw new Error("rotate_keys request needs new_keys and new_threshold");
+    }
+  } else {
+    req.to = String(obj.to || "")
+      .trim()
+      .toLowerCase();
+    req.amount = String(obj.amount ?? "");
+    if (!req.to || !req.amount) {
+      throw new Error("transfer request needs to and amount");
     }
   }
   return req;
@@ -134,9 +152,7 @@ export function parseCosignResponse(raw) {
   if (obj.v !== 1 || obj.type !== COSIGN_RES) {
     throw new Error("Unsupported cosign response (need v:1 guld1cosignres)");
   }
-  if (obj.op !== "update_master" && obj.op !== "rotate_keys") {
-    throw new Error(`Unsupported cosign op: ${obj.op}`);
-  }
+  assertCosignOp(obj.op);
   /** @type {CosignResponse} */
   const res = {
     v: 1,
@@ -161,11 +177,19 @@ export function parseCosignResponse(raw) {
     if (!res.prev_master_hash || !res.new_master_hash) {
       throw new Error("update_master response needs prev/new master hash");
     }
-  } else {
+  } else if (res.op === "rotate_keys") {
     res.new_keys = Array.isArray(obj.new_keys) ? obj.new_keys.map(normHex) : [];
     res.new_threshold = Number(obj.new_threshold);
     if (!res.new_keys?.length || !(res.new_threshold > 0)) {
       throw new Error("rotate_keys response needs new_keys and new_threshold");
+    }
+  } else {
+    res.to = String(obj.to || "")
+      .trim()
+      .toLowerCase();
+    res.amount = String(obj.amount ?? "");
+    if (!res.to || !res.amount) {
+      throw new Error("transfer response needs to and amount");
     }
   }
   return res;
@@ -186,13 +210,23 @@ export async function deriveCosignMessage(binding) {
       memoBytes,
     );
   }
-  return rotateKeysMessage(
+  if (binding.op === "rotate_keys") {
+    return rotateKeysMessage(
+      binding.account_id,
+      Number(binding.nonce),
+      binding.chain_id,
+      /** @type {string[]} */ (binding.new_keys),
+      /** @type {number} */ (binding.new_threshold),
+      binding.inclusion_fee,
+    );
+  }
+  return transferMessage(
     binding.account_id,
     Number(binding.nonce),
-    binding.chain_id,
-    /** @type {string[]} */ (binding.new_keys),
-    /** @type {number} */ (binding.new_threshold),
+    /** @type {string} */ (binding.to),
+    /** @type {string} */ (binding.amount),
     binding.inclusion_fee,
+    memoBytes,
   );
 }
 
@@ -226,9 +260,12 @@ export async function signCosignRequest(req, signer) {
   if (req.op === "update_master") {
     res.prev_master_hash = req.prev_master_hash;
     res.new_master_hash = req.new_master_hash;
-  } else {
+  } else if (req.op === "rotate_keys") {
     res.new_keys = req.new_keys;
     res.new_threshold = req.new_threshold;
+  } else {
+    res.to = req.to;
+    res.amount = req.amount;
   }
   return res;
 }
@@ -273,9 +310,12 @@ export async function mergeAndVerify(req, sigs, liveKeys) {
     if (req.op === "update_master") {
       res.prev_master_hash = req.prev_master_hash;
       res.new_master_hash = req.new_master_hash;
-    } else {
+    } else if (req.op === "rotate_keys") {
       res.new_keys = req.new_keys;
       res.new_threshold = req.new_threshold;
+    } else {
+      res.to = req.to;
+      res.amount = req.amount;
     }
     await verifyCosignResponse(res, keys);
     out.push({ key_index: idx, signature: normHex(signature) });
@@ -294,6 +334,8 @@ export async function mergeAndVerify(req, sigs, liveKeys) {
  * @param {string} [p.newMasterHash]
  * @param {string[]} [p.newKeys]
  * @param {number} [p.newThreshold]
+ * @param {string} [p.to]
+ * @param {string} [p.amount]
  * @param {number[]} [p.alreadySigned]
  * @param {string} [p.memo]
  * @returns {CosignRequest}
@@ -321,9 +363,14 @@ export function buildCosignRequest(p) {
   if (p.op === "update_master") {
     req.prev_master_hash = normHex(String(p.account.master_hash || ""));
     req.new_master_hash = normHex(/** @type {string} */ (p.newMasterHash));
-  } else {
+  } else if (p.op === "rotate_keys") {
     req.new_keys = (p.newKeys || []).map(normHex);
     req.new_threshold = Number(p.newThreshold);
+  } else {
+    req.to = String(p.to || "")
+      .trim()
+      .toLowerCase();
+    req.amount = String(p.amount ?? "");
   }
   return req;
 }
@@ -353,13 +400,24 @@ export function buildTxFromCosign(req, cosignatures, newKeySignature) {
       ...(req.memo ? { memo: req.memo } : {}),
     };
   }
+  if (req.op === "rotate_keys") {
+    return {
+      type: "rotate_keys",
+      name: req.name,
+      new_keys: req.new_keys,
+      new_threshold: req.new_threshold,
+      cosignatures,
+      new_key_signature: newKeySignature,
+      inclusion_fee: req.inclusion_fee,
+      ...(req.memo ? { memo: req.memo } : {}),
+    };
+  }
   return {
-    type: "rotate_keys",
-    name: req.name,
-    new_keys: req.new_keys,
-    new_threshold: req.new_threshold,
+    type: "transfer",
+    from: req.name,
+    to: req.to,
+    amount: req.amount,
     cosignatures,
-    new_key_signature: newKeySignature,
     inclusion_fee: req.inclusion_fee,
     ...(req.memo ? { memo: req.memo } : {}),
   };

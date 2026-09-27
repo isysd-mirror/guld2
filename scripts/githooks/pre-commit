@@ -2,13 +2,14 @@
 # pre-commit — chain lifecycle + Simba genesis + GIP-26 vectors (tasks 006 / 012 / 021).
 # This is our CI (no hosted pipeline).
 #
-# Phase 1 — guld-state lifecycle_matrix
-# Phase 2 — guld-node dev_smoke
+# Phase 1 — guld-state lifecycle_matrix (+ group_multisig_lifecycle, task 035)
+# Phase 2 — guld-node dev_smoke (+ group_multisig_e2e, task 035)
 # Phase 3 — guld-node two_node_sync
 # Phase 4 — guld-node dual_miner_reorg
+# Phase 4b — guld-node reorg_catchup_no_ban (task 029)
 # Phase 5 — guld-node simba_catchup_sync
 # Genesis — guld-node simba_genesis_smoke (task 012)
-# Vectors — guld-wire + guld-consensus GIP-26 goldens (task 021)
+# Vectors — guld-wire + guld-consensus + @guld/js GIP-26 goldens (tasks 021 / 032 / 036)
 #
 # Skip (human only; agents MUST NOT):
 #   GULD_SKIP_LIFECYCLE=1   — all gates
@@ -52,7 +53,8 @@ run_state=0
 run_node=0
 run_p2p_suite=0   # phases 3–5
 run_genesis=0
-run_vectors=0     # GIP-26
+run_vectors=0     # GIP-26 Rust
+run_vectors_js=0  # GIP-26 @guld/js
 
 if [[ -f "${TOP}/.gitmodules" ]]; then
   staged="$(git diff --cached --name-only)"
@@ -72,37 +74,46 @@ if [[ -f "${TOP}/.gitmodules" ]]; then
   fi
   if echo "$staged" | grep -qE '^(schemas/|src/guld-(wire|consensus)(/|$))'; then
     run_vectors=1
+    run_vectors_js=1
+  fi
+  if echo "$staged" | grep -qE '^src/guld-js(/|$)'; then
+    run_vectors_js=1
   fi
 else
-  case "$(pkg_name "${TOP}/Cargo.toml")" in
-    guld-state)
-      run_state=1
-      ;;
-    guld-node)
-      run_state=1
-      run_node=1
-      run_p2p_suite=1
-      run_genesis=1
-      ;;
-    guld-p2p)
-      run_state=1
-      run_node=1
-      run_p2p_suite=1
-      ;;
-    guld-legacy)
-      run_genesis=1
-      run_node=1
-      ;;
-    guld-wire|guld-consensus)
-      run_vectors=1
-      ;;
-    *)
-      exit 0
-      ;;
-  esac
+  if [[ -f "${TOP}/package.json" ]] && grep -q '"name": "@guld/js"' "${TOP}/package.json" 2>/dev/null; then
+    run_vectors_js=1
+  else
+    case "$(pkg_name "${TOP}/Cargo.toml")" in
+      guld-state)
+        run_state=1
+        ;;
+      guld-node)
+        run_state=1
+        run_node=1
+        run_p2p_suite=1
+        run_genesis=1
+        ;;
+      guld-p2p)
+        run_state=1
+        run_node=1
+        run_p2p_suite=1
+        ;;
+      guld-legacy)
+        run_genesis=1
+        run_node=1
+        ;;
+      guld-wire|guld-consensus)
+        run_vectors=1
+        run_vectors_js=1
+        ;;
+      *)
+        exit 0
+        ;;
+    esac
+  fi
 fi
 
-if [[ "$run_state" -eq 0 && "$run_node" -eq 0 && "$run_p2p_suite" -eq 0 && "$run_genesis" -eq 0 && "$run_vectors" -eq 0 ]]; then
+if [[ "$run_state" -eq 0 && "$run_node" -eq 0 && "$run_p2p_suite" -eq 0 && "$run_genesis" -eq 0 && "$run_vectors" -eq 0 && "$run_vectors_js" -eq 0 ]]; then
   exit 0
 fi
 
@@ -113,16 +124,31 @@ if [[ "$run_vectors" -eq 1 && "${GULD_SKIP_VECTORS:-}" != "1" ]]; then
   cargo test -p guld-wire --test vectors_tx_id
   echo "guld pre-commit: Vectors — guld-consensus header/diff/time goldens (GIP-26)" >&2
   cargo test -p guld-consensus --test vectors_gip26
+  echo "guld pre-commit: Vectors — guld-consensus mine_block (incl. RegisterGroup import, task 035)" >&2
+  cargo test -p guld-consensus --test mine_block
+fi
+
+if [[ "$run_vectors_js" -eq 1 && "${GULD_SKIP_VECTORS:-}" != "1" ]]; then
+  if [[ -f "${ROOT}/src/guld-js/package.json" ]] && command -v node >/dev/null 2>&1; then
+    echo "guld pre-commit: Vectors — @guld/js GIP-26 consumer (task 032/036)" >&2
+    (cd "${ROOT}/src/guld-js" && npm run verify-vectors)
+  else
+    echo "guld pre-commit: warn — JS vector runner skipped (need node + src/guld-js)" >&2
+  fi
 fi
 
 if [[ "$run_state" -eq 1 ]]; then
   echo "guld pre-commit: Phase 1 — guld-state lifecycle_matrix" >&2
   cargo test -p guld-state --test lifecycle_matrix
+  echo "guld pre-commit: Phase 1b — guld-state group_multisig_lifecycle (task 035)" >&2
+  cargo test -p guld-state --test group_multisig_lifecycle
 fi
 
 if [[ "$run_node" -eq 1 ]]; then
   echo "guld pre-commit: Phase 2 — guld-node dev_smoke" >&2
   cargo test -p guld-node --test dev_smoke
+  echo "guld pre-commit: Phase 2b — guld-node group_multisig_e2e (task 035)" >&2
+  cargo test -p guld-node --test group_multisig_e2e
 fi
 
 if [[ "$run_p2p_suite" -eq 1 ]]; then
@@ -130,6 +156,8 @@ if [[ "$run_p2p_suite" -eq 1 ]]; then
   cargo test -p guld-node --test two_node_sync
   echo "guld pre-commit: Phase 4 — guld-node dual_miner_reorg" >&2
   cargo test -p guld-node --test dual_miner_reorg
+  echo "guld pre-commit: Phase 4b — guld-node reorg_catchup_no_ban (task 029)" >&2
+  cargo test -p guld-node --test reorg_catchup_no_ban
   if [[ "${GULD_SKIP_CATCHUP:-}" != "1" ]]; then
     echo "guld pre-commit: Phase 5 — guld-node simba_catchup_sync" >&2
     cargo test -p guld-node --test simba_catchup_sync

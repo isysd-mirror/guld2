@@ -7,7 +7,7 @@ export const HEADER_NAV = [{ href: "/explorer/", label: "Explorer" }];
 
 /** Docs / meta — footer only. */
 export const FOOTER_NAV = [
-  { href: "/#install", label: "Install" },
+  { href: "/#operators", label: "Install" },
   { href: "/claim/", label: "Legacy claim" },
   { href: whitepaperDocHref(), label: "Whitepaper" },
   { href: "/specs/", label: "Specs" },

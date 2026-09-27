@@ -52,7 +52,7 @@ L_eff = min(L, L_cap)            // L_cap = 6 (locked v1 — task 007 A8)
 F_user(L) = TABLE[L_eff]         // same fee on register, settle, and estimate
 ```
 
-Implementations MUST compute `L` identically in `RegisterUsername`, `RegisterGroup`, `SettleRegistration`, and `guld_estimateRegistrationFee`.
+Implementations MUST compute `L` identically in `RegisterUsername`, `RegisterGroup`, `SettleRegistration`, `ConvertAccountKind`, and `guld_estimateRegistrationFee`.
 
 | L (letters) | `F_user(L)` / year | Example |
 |-------------|-------------------|---------|
@@ -84,6 +84,8 @@ F_group(L, n) = F_user(L) × (2 + n)     // n = key count
 | Event | Amount |
 |-------|--------|
 | `RegisterGroup` | Full `F_group(L, n)` for initial `n` |
+| `ConvertAccountKind` → group | Full `F_group(L, n)` for target `n` (same schedule; no credit for prior `F_user`) |
+| `ConvertAccountKind` → individual | Full `F_user(L)` (same schedule; no rebate of prior `F_group`) |
 | `SettleRegistration` (funded) | Full `F_group(L, n)` for **current** `n` |
 | `RotateKeys` with `n_new > n_old` | **Delta only:** `F_group(L, n_new) − F_group(L, n_old)` = `F_user(L) × (n_new − n_old)` |
 | `RotateKeys` with `n_new ≤ n_old` | No protocol fee (inclusion only) |
@@ -96,7 +98,7 @@ This closes registering a cheap small group then rotating to a large signer set 
 |------|--------|----------------|
 | Subaccount | `F_sub` | **0.1 GULD** |
 
-Legacy-locked 1.0 imports are **not** settled until claimed; `ClaimLegacy` stays open indefinitely. After claim, yearly settle uses **`F_user(L)`** for their name. Keep the wallet funded before expiry — there is no separate renew tx.
+Legacy-locked 1.0 imports use the same yearly **`F_user(L)` / `F_group`** settle schedule as other names ([GIP-27](../gips/gip-27.md)); spend still requires `ClaimLegacy`. Keep the wallet funded before expiry — there is no separate renew tx.
 
 Examples: 1-letter 1-of-1 group = **3_000 GULD**/yr; long-name 5-key group = **7 GULD**/yr.
 

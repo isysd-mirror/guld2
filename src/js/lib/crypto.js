@@ -247,6 +247,61 @@ export async function rotateKeysMessage(
   return taggedHash("guld/rotate_keys/v1", payload);
 }
 
+async function convertAccountKindCommit(newKind, keysHex, threshold) {
+  const payload = concat(
+    new TextEncoder().encode(newKind),
+    new Uint8Array([0]),
+    u16Be(threshold),
+    ...keysHex.map((h) => fromHex(h)),
+  );
+  return taggedHash("guld/convert_account_kind/commit/v1", payload);
+}
+
+/** New controller consent (`guld/convert_account_kind/intent/v1`). */
+export async function convertAccountKindIntentMessage(
+  name,
+  newKind,
+  keysHex,
+  threshold,
+  feeQuanta,
+) {
+  const commit = await convertAccountKindCommit(newKind, keysHex, threshold);
+  const payload = concat(
+    new TextEncoder().encode(name),
+    new Uint8Array([0]),
+    new TextEncoder().encode(newKind),
+    new Uint8Array([0]),
+    u16Be(threshold),
+    commit,
+    u128Be(feeQuanta),
+  );
+  return taggedHash("guld/convert_account_kind/intent/v1", payload);
+}
+
+/** Current-owner cosign for kind conversion (`guld/convert_account_kind/v1`). */
+export async function convertAccountKindMessage(
+  accountIdHex,
+  nonce,
+  chainId,
+  newKind,
+  keysHex,
+  threshold,
+  feeQuanta,
+) {
+  const commit = await convertAccountKindCommit(newKind, keysHex, threshold);
+  const payload = concat(
+    fromHex(accountIdHex),
+    u64Be(nonce),
+    u32Be(chainId),
+    new TextEncoder().encode(newKind),
+    new Uint8Array([0]),
+    u16Be(threshold),
+    commit,
+    u128Be(feeQuanta),
+  );
+  return taggedHash("guld/convert_account_kind/v1", payload);
+}
+
 /** Spec 15 claim message (`guld/claim_legacy/v1`). */
 export async function claimMessage(
   chainId,
@@ -272,6 +327,52 @@ export async function claimMessage(
 /** Claim message hex without 0x prefix (PGP clearsign payload). */
 export function claimMessageHex(hash32) {
   return toHex(hash32, false);
+}
+
+/**
+ * Site-login digest (`guld/site_login/v1`) — ecosystem, not consensus.
+ * Spec 14 §10.1. Timestamps hashed byte-identical to the JSON strings.
+ *
+ * @param {number} chainId
+ * @param {string} name lowercase NFC
+ * @param {string} domain
+ * @param {string} uri
+ * @param {string} nonce
+ * @param {string} issuedAt
+ * @param {string} expirationTime
+ * @param {string} [statement]
+ */
+export async function siteLoginMessage(
+  chainId,
+  name,
+  domain,
+  uri,
+  nonce,
+  issuedAt,
+  expirationTime,
+  statement = "",
+) {
+  const enc = new TextEncoder();
+  const stmt = statement ? enc.encode(statement) : new Uint8Array(0);
+  if (stmt.length > 256) throw new Error("statement exceeds 256 bytes");
+  const payload = concat(
+    u32Be(chainId),
+    enc.encode(name),
+    new Uint8Array([0]),
+    enc.encode(domain),
+    new Uint8Array([0]),
+    enc.encode(uri),
+    new Uint8Array([0]),
+    enc.encode(nonce),
+    new Uint8Array([0]),
+    enc.encode(issuedAt),
+    new Uint8Array([0]),
+    enc.encode(expirationTime),
+    new Uint8Array([0]),
+    u16Be(stmt.length),
+    stmt,
+  );
+  return taggedHash("guld/site_login/v1", payload);
 }
 
 export { toHex, fromHex };

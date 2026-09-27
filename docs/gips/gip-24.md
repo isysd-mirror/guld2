@@ -4,7 +4,7 @@ title: Legacy Distribution Transparency
 description: Publish concentration, unlock-path, and x-reconciliation facts for 1.0 import.
 author: Guld contributors
 discussions-to: ../tasks/done/2026-09/016-reconcile-genesis-x-vs-manifest.md
-status: Draft
+status: Accepted
 type: Informational
 created: 2026-09-26
 requires: 14
@@ -78,3 +78,4 @@ Transparency reduces surprise; it does not remove the `isysd` attestation depend
 - 2026-09-26: Drafted from external project review (economic under-disclosure findings).
 - 2026-09-26: Published first Simba distribution brief under `docs/fragments/legacy-distribution.md`.
 - 2026-09-26: Task 018 — committed machine-readable `negatives.json` + `omissions.json`.
+- 2026-09-27: **Accepted** — Simba disclosure brief + artifacts shipped ([016](../tasks/done/2026-09/016-reconcile-genesis-x-vs-manifest.md), [018](../tasks/done/2026-09/018-publish-omitted-buckets-and-negatives.md)).

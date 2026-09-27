@@ -4,7 +4,7 @@ title: Consensus Golden Vectors
 description: Checked-in multi-language fixtures for TxId, headers, roots, and apply.
 author: Guld contributors
 discussions-to: ../tasks/done/2026-09/021-consensus-golden-vectors.md
-status: Accepted
+status: Final
 type: Standards
 category: Interface
 created: 2026-09-26
@@ -41,7 +41,7 @@ Until BARE files ship, vectors MAY live under `testdata/consensus/` with an expl
 ### CI requirements
 
 1. `guld-consensus` (or workspace) MUST fail CI if vectors drift.
-2. At least one **non-Rust** consumer SHOULD verify the same vectors before mainnet (JS via `@bare-ts/tools` or Python `bare-py` once schemas exist).
+2. At least one **non-Rust** consumer MUST verify the same vectors in CI or pre-commit (JS `@guld/js` or Python `bare-py`).
 3. Vector files MUST be deterministic (sorted keys / canonical BARE bytes only — no wall-clock).
 
 ### Minimum coverage
@@ -71,11 +71,13 @@ Fixtures must not include real mainnet private keys. Use throwaway keys checked 
 - Task: [021-consensus-golden-vectors.md](../tasks/done/2026-09/021-consensus-golden-vectors.md) (**done**)
 - Vectors: [`schemas/guld/v1/vectors/`](../../schemas/guld/v1/vectors/README.md)
 - Rust: `cargo test -p guld-wire --test vectors_tx_id`; `cargo test -p guld-consensus --test vectors_gip26`
-- Pre-commit Vectors gate when `schemas/` or `guld-{wire,consensus}` staged
+- Pre-commit Vectors gate when `schemas/` or `guld-{wire,consensus,js}` staged
 - Depends on: [009](../tasks/done/2026-09/009-bare-wire-implementation.md) (**done**), [GIP-23](gip-23.md)
-- Stretch (→ Final): non-Rust verifier job
+- Non-Rust: **JS `@guld/js`** (`npm run verify-vectors`) — [036](../tasks/done/2026-09/036-guld-js-sdk.md), [032](../tasks/done/2026-09/032-gip-26-non-rust-vectors.md)
 
 ## History
 
 - 2026-09-26: Drafted from external project review (wire freeze + multi-impl credibility).
 - 2026-09-27: Accepted — JSONL suite + Rust CI + pre-commit; JS/Python deferred for Final.
+- 2026-09-27: JS consumer implemented (`@guld/js` wire layer).
+- 2026-09-27: **Final** — non-Rust consumer shipped + pre-commit wired ([032](../tasks/done/2026-09/032-gip-26-non-rust-vectors.md)).

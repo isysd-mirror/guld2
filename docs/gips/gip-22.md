@@ -211,4 +211,4 @@ Normative specs: [`../specs/06-blocks-and-consensus.md`](../specs/06-blocks-and-
 ## History
 
 - 2026-09-26: Draft from maintainer discussion — deferred claim, mempool-open / inclusion-gated maturity, subaccount signing.
-- 2026-09-26: **Accepted** — normative specs updated; implementation + spec-17 activation pending.
+- 2026-09-26: **Accepted** — normative specs updated; implementation shipped ([011](../tasks/done/2026-09/011-gip-22-miner-rewards.md), [020](../tasks/done/2026-09/020-remove-credit-miner-footguns.md)). Spec-17 height activation remains for mainnet rule bundles.

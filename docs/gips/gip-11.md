@@ -32,7 +32,7 @@ Registration fees (`F_user(L)` / `F_sub` / `F_group(L, n)`) buy **one year of na
 | Early prepay | No `RenewRegistration` — keep wallet funded before expiry |
 | Resale | **Not supported** — `RotateKeys` is own key hygiene only |
 | Lost keys | Eventually unfunded settle ⇒ name free |
-| Legacy 1.0 | Claim open indefinitely; settle **skips** legacy-locked. After claim: normal 1y period |
+| Legacy 1.0 | Claim still requires `ClaimLegacy`; settle **applies** to legacy-locked ([GIP-27](gip-27.md)) |
 | Legacy claim | PGP binding ⇒ permissionless `pgp_cleartext_v1`; no PGP ⇒ only `isysd_attestation_v1` |
 | Subaccounts | Parent release **cascades** delete of live subs (balances → vesting queue) |
 
@@ -51,7 +51,7 @@ Valid while `chain_height <= expires_at_height`. Overdue when `chain_height > ex
 SettleRegistration { name: Name }
 ```
 
-Permissionless (no signature). Valid when overdue and not **network** (`guld`) or **legacy-locked**.
+Permissionless (no signature). Valid when overdue and not the **network** name (`guld`). **Legacy-locked** accounts **are** subject to settle ([GIP-27](gip-27.md)) — claim still requires `ClaimLegacy` to unlock keys, but unpaid lease releases the name.
 
 ## Acceptance
 
@@ -62,3 +62,6 @@ Permissionless (no signature). Valid when overdue and not **network** (`guld`) o
 ## History
 
 Supersedes: `docs/intents/name-expiry.md`
+
+- 2026-09-27: Legacy settle exemption **removed** — [GIP-27](gip-27.md) (pay-or-release parity while locked).
+
