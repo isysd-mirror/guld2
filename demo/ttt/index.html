@@ -48,7 +48,7 @@
         <div class="ttt__panel">
           <label>
             <input type="checkbox" data-ttt-chain />
-            On-chain mode (submit UpdateMaster)
+            On-chain mode — submit each move as UpdateMaster (shows in explorer)
           </label>
           <label>API base</label>
           <input data-ttt-api value="/api/v1" autocomplete="off" />
@@ -79,10 +79,11 @@
             <button type="button" class="btn" data-ttt-register>Register group</button>
           </div>
           <p class="ttt__hint">
-            Local mode only hashes tips. On-chain mode needs a peer with
-            <code>--http</code>. Simba: load demo keys and play on
-            <code>ttt-demo</code> (faucet auto-registers). Local e2e:
-            <code>npm test</code> against <code>guld-node --dev</code> (1-of-2).
+            Default is <strong>local only</strong>: the tip hash updates in this
+            page, but nothing is broadcast — the explorer stays empty. To put
+            moves on Simba: enable On-chain mode → Load Simba demo keys →
+            Connect → play (or Register group if <code>ttt-demo</code> is
+            missing). Needs a peer with <code>--http</code>.
           </p>
         </div>
       </div>

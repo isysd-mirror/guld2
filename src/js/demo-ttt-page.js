@@ -155,13 +155,13 @@ async function onCell(index) {
     }
 
     state = applyMove(state, index, mark);
-    say(`Played ${mark} at ${index}.`, "pending");
+    say(`Played ${mark} at ${index} (local — not on chain).`, "pending");
     render();
     await hashLocal();
     say(
       state.winner
-        ? `Game over (${state.winner}). Tip hashed.`
-        : `Move ${state.move} — tip ${lastMaster?.slice(0, 18) ?? "?"}…`,
+        ? `Game over (${state.winner}). Local tip hashed only — no explorer tx. Check On-chain mode + Connect to submit UpdateMaster.`
+        : `Move ${state.move} — local tip ${lastMaster?.slice(0, 18) ?? "?"}… (not submitted)`,
       "ok",
     );
   } catch (err) {
@@ -298,6 +298,9 @@ function bind() {
   });
 }
 
-say("Local leaf mode — enable chain + keys for UpdateMaster tips.", "pending");
+say(
+  "Local leaf mode — moves only recompute master_hash in the browser. Check On-chain mode, Load Simba demo keys, Connect, then play to submit UpdateMaster txs.",
+  "pending",
+);
 bind();
 render();
