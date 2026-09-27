@@ -20,7 +20,6 @@ import {
   genesisGameHome,
   playMoveOnChain,
   registerGameGroup,
-  waitMasterHash,
 } from "../guld-tic-tac-toe/lib/play.js";
 import {
   explorerPendingTxHref,
@@ -50,8 +49,10 @@ let chainId = 2;
 let client = null;
 /** @type {Promise<void>|null} */
 let readyChain = null;
-/** True while an UpdateMaster is in mempool awaiting the next block. */
-let confirming = false;
+/** Optimistic on-chain tip after mempool submits (nonce + master_hash). */
+let optimisticAccount = null;
+/** Serialize submits so nonce chain stays ordered. */
+let submitLock = false;
 
 /**
  * @param {string} msg plain text, or HTML when html=true
@@ -169,7 +170,7 @@ function render() {
     btn.type = "button";
     btn.className = "ttt__cell";
     btn.textContent = cell || "";
-    btn.disabled = confirming || Boolean(state.winner) || cell !== null;
+    btn.disabled = submitLock || Boolean(state.winner) || cell !== null;
     btn.setAttribute("aria-label", cell ? `Cell ${i + 1}: ${cell}` : `Cell ${i + 1}, empty`);
     btn.addEventListener("click", () => onCell(i));
     board.append(btn);
@@ -222,7 +223,7 @@ async function hashLocal() {
 }
 
 async function onCell(index) {
-  if (confirming) return;
+  if (submitLock) return;
   try {
     const mark = state.turn;
     if (chainModeOn()) {
@@ -241,13 +242,11 @@ async function onCell(index) {
         say("On-chain mode needs a peer + ttt-demo keys (see Advanced).", "error");
         return;
       }
-      const before = state;
       say(`Submitting ${mark}…`, "pending");
-      confirming = true;
+      submitLock = true;
       render();
-      let played;
       try {
-        played = await playMoveOnChain({
+        const played = await playMoveOnChain({
           client,
           name: accountName(),
           state,
@@ -257,46 +256,22 @@ async function onCell(index) {
           key0PrivHex: key0,
           key1PrivHex: key1,
           waitInclusion: false,
+          account: optimisticAccount || undefined,
         });
-      } catch (err) {
-        confirming = false;
-        render();
-        throw err;
-      }
-      state = played.state;
-      lastMaster = played.home.masterHash;
-      lastTxId = extractTxId(played.out) || lastTxId;
-      render();
-      say(
-        formatTxSubmittedHtml(
-          `${mark} submitted — waiting for the next block before the next turn`,
-          played.out,
-        ),
-        "pending",
-        { html: true },
-      );
-      try {
-        await waitMasterHash(client, accountName(), played.home.masterHash);
-        confirming = false;
-        render();
+        state = played.state;
+        lastMaster = played.home.masterHash;
+        lastTxId = extractTxId(played.out) || lastTxId;
+        optimisticAccount = played.account;
         const label = turnPrompt(state);
         say(
-          formatTxSubmittedHtml(`Confirmed · ${label}`, played.out) ||
-            escapeHtml(`Confirmed · ${label}`),
+          formatTxSubmittedHtml(`${mark} in mempool · ${label}`, played.out) ||
+            escapeHtml(`${mark} in mempool · ${label}`),
           "ok",
           { html: true },
         );
-      } catch (err) {
-        confirming = false;
-        state = before;
-        lastMaster = null;
+      } finally {
+        submitLock = false;
         render();
-        say(
-          err instanceof Error
-            ? `Move not confirmed in time: ${err.message}`
-            : String(err),
-          "error",
-        );
       }
       return;
     }
@@ -314,7 +289,7 @@ async function onCell(index) {
         /* keep playing even if hash helpers fail */
       });
   } catch (err) {
-    confirming = false;
+    submitLock = false;
     say(err instanceof Error ? err.message : String(err), "error");
     render();
   }
@@ -338,7 +313,8 @@ function bind() {
     state = initialState();
     lastMaster = null;
     lastTxId = null;
-    confirming = false;
+    optimisticAccount = null;
+    submitLock = false;
     render();
     say(turnPrompt(state), "pending");
   });
