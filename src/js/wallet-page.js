@@ -75,6 +75,10 @@ let apiBase = resolveApiBase();
 /** @type {{ html: string, state: string, selector: string } | null} */
 let statusFlash = null;
 
+/** Survives keyring→AUTH remount after Generate public key. */
+/** @type {{ name: string, pubHex: string } | null} */
+let pendingPubkeyReveal = null;
+
 /**
  * @param {string} html
  * @param {"ok"|"error"|"pending"} [state]
@@ -82,6 +86,22 @@ let statusFlash = null;
  */
 function flashStatus(html, state = "ok", selector = "[data-send-form]") {
   statusFlash = { html, state, selector };
+}
+
+/**
+ * @param {ParentNode | Element | null | undefined} root
+ * @param {{ name: string, pubHex: string }} reveal
+ */
+function revealGeneratedPubkey(root, reveal) {
+  if (!root) return;
+  const result = root.querySelector("[data-generate-pubkey-result]");
+  const pubInput = root.querySelector("[data-gen-pub]");
+  const nameInput = root.querySelector("[data-generate-pubkey-form] [name=name]");
+  if (result instanceof HTMLElement) result.hidden = false;
+  if (pubInput instanceof HTMLInputElement) pubInput.value = reveal.pubHex;
+  if (nameInput instanceof HTMLInputElement && !nameInput.value) {
+    nameInput.value = reveal.name;
+  }
 }
 
 window.addEventListener("hashchange", () => route());
@@ -462,6 +482,26 @@ async function route() {
           </article>`
               : `<p class="wallet__meta">Groups cannot open subaccounts.</p>`
           }
+          <article class="wallet__card wallet__card--plain">
+            <h2 class="wallet__panel-title">Generate public key</h2>
+            <p class="wallet__meta">Make a local key for a name that is not on this device yet — typically a group you will co-sign. Share the public key with the registrant; the private key stays encrypted in your keyring under that name.</p>
+            <form class="wallet__form" data-generate-pubkey-form>
+              <label>Account name
+                <input name="name" type="text" spellcheck="false" autocomplete="off" required
+                  placeholder="treasury" pattern="[a-zA-Z][a-zA-Z0-9_\\-]{1,31}" />
+              </label>
+              <button type="submit" class="btn btn--outline">Generate &amp; save to keyring</button>
+              ${statusSlotHtml()}
+            </form>
+            <div class="wallet__spacer--sm" data-generate-pubkey-result hidden>
+              <label>Public key (share this)
+                <input data-gen-pub type="text" readonly spellcheck="false" />
+              </label>
+              <p class="wallet__actions wallet__actions--flush">
+                <button type="button" class="btn btn--outline" data-copy-gen-pub>Copy public key</button>
+              </p>
+            </div>
+          </article>
           <article class="wallet__card wallet__card--plain">
             <h2 class="wallet__panel-title">Sponsor a name</h2>
             <form class="wallet__form" data-sponsor-form>
@@ -1089,6 +1129,88 @@ async function route() {
         route();
       } catch (err) {
         say(/** @type {Error} */ (err).message, "error", form);
+      }
+    });
+
+    bindBusyForm(hostEl.querySelector("[data-generate-pubkey-form]"), async (form) => {
+      const fd = new FormData(form);
+      const name = String(fd.get("name") || "")
+        .trim()
+        .toLowerCase();
+      if (!/^[a-z][a-z0-9_-]{1,31}$/.test(name)) {
+        say("Name must start with a letter and use a–z, 0–9, _ or - (2–32 chars)", "error", form);
+        return;
+      }
+      if (keyring.hasStoredKey(name)) {
+        if (
+          !confirm(
+            `This browser already has a key for “${name}”. Replace it with a newly generated key?`,
+          )
+        ) {
+          return;
+        }
+      }
+      say("Generating key…", "pending", form);
+      try {
+        try {
+          if (await accountExists(apiBase, name)) {
+            say(
+              `“${name}” is already on-chain. Use Rotate keys on that account’s wallet, or pick another name.`,
+              "error",
+              form,
+            );
+            return;
+          }
+        } catch {
+          /* offline / RPC blip — still allow local key prep */
+        }
+        const priv = await randomPrivateKey();
+        const pubHex = await pubkeyHex(priv);
+        const privHex = toHex(priv);
+        await keyring.upsertAccount({
+          name,
+          privHex,
+          pubHex,
+          pending: true,
+        });
+        // upsertAccount → KEYRING → AUTH remounts the wallet; stash for re-reveal.
+        pendingPubkeyReveal = { name, pubHex };
+        flashStatus(
+          `Saved under “${escapeHtml(name)}” (pending). Copy the public key below into the group registration form.`,
+          "ok",
+          "[data-generate-pubkey-form]",
+        );
+        document.getElementById("advanced")?.setAttribute("open", "");
+        say(
+          `Saved under “${name}” (pending). Copy the public key below into the group registration form.`,
+          "ok",
+          form,
+        );
+        revealGeneratedPubkey(hostEl, pendingPubkeyReveal);
+      } catch (err) {
+        say(/** @type {Error} */ (err).message, "error", form);
+      }
+    });
+
+    if (pendingPubkeyReveal) {
+      revealGeneratedPubkey(hostEl, pendingPubkeyReveal);
+      document.getElementById("advanced")?.setAttribute("open", "");
+    }
+
+    bindBusyClick(hostEl.querySelector("[data-copy-gen-pub]"), async () => {
+      const pubInput = hostEl.querySelector("[data-gen-pub]");
+      const form = hostEl.querySelector("[data-generate-pubkey-form]");
+      const pub =
+        pubInput instanceof HTMLInputElement ? pubInput.value.trim() : "";
+      if (!pub) {
+        say("Generate a key first", "error", form);
+        return;
+      }
+      try {
+        await navigator.clipboard.writeText(pub);
+        say("Public key copied", "ok", form);
+      } catch {
+        say("Copy failed — select the public key field", "error", form);
       }
     });
 
