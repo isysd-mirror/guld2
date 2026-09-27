@@ -42,11 +42,11 @@ guld-header {
   display: block;
 }
 
+/* Overlay header floats over the hero without taking flow space. */
 guld-header:has(.site-header--overlay) {
-  position: absolute;
-  inset: 0 0 auto;
+  position: relative;
   z-index: 20;
-  width: 100%;
+  height: 0;
 }
 
 guld-header:has(.site-header--solid) {
@@ -55,21 +55,212 @@ guld-header:has(.site-header--solid) {
   z-index: 20;
 }
 
-.site-banner[data-mode="mainnet"] {
-  background: #1a4d3a;
+/*
+ * Network banner — a strip set *behind* the page. It stays pinned while the
+ * page sheet (solid header or landing hero) scrolls up over it; the sheet
+ * overlaps its bottom edge by --banner-tuck with rounded corners and casts
+ * a shadow back onto it. Text/bg pairs are ≥ 7:1 (WCAG AAA).
+ */
+.site-body {
+  --banner-tuck: 1.1rem;
+}
+
+/* Dark well behind the banner, so its receding (scaled) edges never reveal light page bg. */
+.site-body:has(> .site-banner)::before {
+  content: "";
+  position: fixed;
+  inset: 0 0 auto;
+  z-index: -1;
+  height: var(--banner-h, 4rem);
+  background: #1c1d21;
+}
+
+.site-banner {
+  --banner-bg: #16181d;
+  --banner-fg: #e6e8ee;
+  --banner-accent: #9aa3b5;
+  --banner-tag-bg: #9aa3b5;
+  --banner-tag-fg: #0d0f12;
+  /* guld-header sets --banner-stick so a tall banner hides fully under a shorter header. */
+  position: sticky;
+  top: var(--banner-stick, 0);
+  z-index: 0;
+  padding: 0.6rem clamp(1rem, 4vw, 2.5rem) calc(0.6rem + var(--banner-tuck));
+  background: var(--banner-bg);
+  color: var(--banner-fg);
+  /* rem-based so it follows the user's font-size setting; 0.75rem = 15px at default. */
+  font-size: 0.75rem;
+  line-height: 1.5;
+  letter-spacing: 0.005em;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+  transform-origin: 50% 0;
+  /* Set into the chrome: shade under the top edge + contact shadow where the sheet lands. */
+  box-shadow:
+    inset 0 8px 12px -8px rgba(0, 0, 0, 0.75),
+    inset 0 calc(-1 * var(--banner-tuck) - 14px) 18px -14px rgba(0, 0, 0, 0.85);
+}
+
+/* As the page slides over, the banner sinks further back. */
+@supports (animation-timeline: scroll()) {
+  @media (prefers-reduced-motion: no-preference) {
+    .site-banner {
+      animation: banner-recede linear both;
+      animation-timeline: scroll();
+      animation-range: 0 5rem;
+    }
+  }
+
+  @keyframes banner-recede {
+    to {
+      transform: scale(0.96);
+      filter: brightness(0.55);
+    }
+  }
 }
 
 .site-banner[data-mode="testnet"] {
-  background: #c45c26;
+  --banner-bg: #1d130c;
+  --banner-fg: #f6e6d9;
+  --banner-muted: #d4bfae;
+  --banner-accent: #ffb27a;
+  --banner-tag-bg: #f59a5c;
+  --banner-tag-fg: #1d0f05;
+  background:
+    repeating-linear-gradient(-45deg, rgba(245, 154, 92, 0.05) 0 10px, transparent 10px 20px),
+    var(--banner-bg);
 }
 
+.site-banner[data-mode="mainnet"] {
+  --banner-bg: #0b2019;
+  --banner-fg: #dcf3e8;
+  --banner-muted: #b3d4c4;
+  --banner-accent: #7fe0b6;
+  --banner-tag-bg: #5fd3a3;
+  --banner-tag-fg: #04160f;
+}
 
+/* Type hierarchy: tag (small caps label) → lead (medium) → note (regular, muted). All ≥ 7:1. */
 .site-banner p {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 0.2rem 0.7rem;
   margin: 0;
+  max-width: 72rem;
+}
+
+.site-banner__lead {
+  font-weight: 500;
+  font-variant-numeric: tabular-nums;
 }
 
 .site-banner strong {
+  font-weight: 600;
+  letter-spacing: 0.01em;
+}
+
+/* Network id reads as a label, not code: body face, accent color. */
+.site-banner code {
+  font-family: inherit;
+  font-size: 1em;
+  font-weight: 500;
+  color: var(--banner-accent);
+}
+
+.site-banner__lead [aria-hidden] {
+  margin: 0 0.15em;
+  opacity: 0.6;
+}
+
+.site-banner__note {
+  color: var(--banner-muted, var(--banner-fg));
+  font-weight: 400;
+}
+
+.site-banner__tag {
+  display: inline-flex;
+  align-items: center;
+  padding: 0.2rem 0.55rem 0.18rem;
+  border-radius: 999px;
+  background: var(--banner-tag-bg);
+  color: var(--banner-tag-fg);
+  /* 0.6rem = 12px minimum; caps + weight + tracking keep it legible. */
+  font-size: 0.6rem;
   font-weight: 700;
+  line-height: 1;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+}
+
+/* The page sheet that passes over the banner. */
+.site-banner + guld-header:has(.site-header--solid),
+.site-banner ~ .site-main > .hero:first-child {
+  margin-top: calc(-1 * var(--banner-tuck));
+}
+
+.site-banner + guld-header .site-header--solid,
+.site-banner ~ .site-main > .hero:first-child {
+  border-radius: 1.25rem 1.25rem 0 0;
+  box-shadow:
+    inset 0 1px 0 rgba(255, 255, 255, 0.1),
+    0 -4px 8px rgba(0, 0, 0, 0.35),
+    0 -16px 36px rgba(0, 0, 0, 0.55);
+}
+
+/*
+ * Solid header over the banner: fully opaque (the banner must not bleed through)
+ * and no backdrop-filter — Chrome mis-paints the filtered banner behind a
+ * backdrop-filtered sticky sheet (light strip above the header).
+ */
+.site-banner + guld-header .site-header--solid {
+  background: var(--guld-theme);
+  backdrop-filter: none;
+}
+
+/* Everything after the banner stacks above it and is opaque, so it covers it on scroll. */
+.site-banner ~ .site-main,
+.site-banner ~ guld-footer {
+  position: relative;
+  z-index: 1;
+}
+
+.site-banner ~ .site-main {
+  background: var(--guld-paper);
+}
+
+/* Landing: transparent top strip keeps the hero's rounded corners showing the banner behind. */
+.site-banner ~ .site-main:has(> .hero:first-child) {
+  background: linear-gradient(transparent 1.25rem, var(--guld-paper) 1.25rem);
+}
+
+.site-banner ~ .site-main > .hero:first-child {
+  z-index: 1;
+}
+
+/* Once the sticky header pins to the top, square its corners (no page peeking through). */
+@supports (animation-timeline: scroll()) {
+  .site-banner + guld-header .site-header--solid {
+    animation: sheet-pin linear both;
+    animation-timeline: scroll();
+    animation-range: 0 3rem;
+  }
+
+  @keyframes sheet-pin {
+    to {
+      border-radius: 0;
+    }
+  }
+}
+
+@media (forced-colors: active) {
+  .site-banner {
+    border-bottom: 1px solid CanvasText;
+  }
+
+  .site-banner__tag {
+    border: 1px solid CanvasText;
+  }
 }
 
 .site-header {
@@ -100,7 +291,7 @@ guld-header:has(.site-header--solid) {
 .site-header__actions {
   display: flex;
   align-items: center;
-  gap: 1.25rem;
+  gap: 1.75rem;
 }
 
 .site-header__auth {
@@ -141,42 +332,285 @@ guld-header:has(.site-header--solid) {
   color: #fff;
 }
 
+/* Links + CTA group: inline on wide screens, a dropdown panel below lg. */
+.site-header__menu {
+  display: flex;
+  align-items: center;
+  gap: 1.75rem;
+}
+
+.site-header__toggle,
+.site-header__menu-mark,
+.site-header__menu-net {
+  display: none;
+}
+
+/* Collapse to a hamburger at the lg breakpoint (64rem = 1024px, Tailwind `lg`),
+   the same cut where the hero's activity log hides. */
+@media (max-width: 64rem) {
+  .site-header__toggle {
+    position: relative;
+    display: inline-grid;
+    place-content: center;
+    gap: 0.32rem;
+    width: 2.3rem;
+    height: 2.3rem;
+    padding: 0;
+    border: 1px solid rgba(255, 255, 255, 0.18);
+    border-radius: 999px;
+    background: rgba(255, 255, 255, 0.04);
+    cursor: pointer;
+  }
+
+  .site-header__toggle span {
+    display: block;
+    width: 0.9rem;
+    height: 1.5px;
+    border-radius: 1px;
+    background: #fff;
+    transition: transform 0.25s ease;
+  }
+
+  /* Two bars → an X when open. */
+  .site-header__toggle[aria-expanded="true"] span:first-child {
+    transform: translateY(0.2rem) rotate(45deg);
+  }
+
+  .site-header__toggle[aria-expanded="true"] span:last-child {
+    transform: translateY(-0.2rem) rotate(-45deg);
+  }
+
+  .site-header__toggle:focus-visible {
+    outline: 2px solid var(--guld-gold-bright);
+    outline-offset: 3px;
+  }
+
+  .site-header__actions {
+    position: relative;
+  }
+
+  /* The toggle stays above the drawer so it doubles as the close button. */
+  .site-header__toggle {
+    z-index: 32;
+  }
+
+  /* backdrop-filter would trap the fixed drawer inside the header box. */
+  .site-header--solid {
+    backdrop-filter: none;
+  }
+
+  /* Full-height drawer that slides in from the right, on top of the page;
+     the giant shadow dims everything behind it. */
+  .site-header__menu {
+    position: fixed;
+    inset: 0 0 0 auto;
+    z-index: 31;
+    display: flex;
+    flex-direction: column;
+    align-items: stretch;
+    gap: 0.2rem;
+    width: min(20rem, 86vw);
+    height: 100vh;
+    height: 100dvh;
+    padding: calc(var(--banner-h, 0px) + 5.5rem) 1rem 1.5rem; /* links start below the close (X) button */
+    overflow-y: auto;
+    background: rgba(9, 13, 28, 0.98);
+    box-shadow: -1px 0 0 rgba(255, 255, 255, 0.08), 0 0 0 100vmax rgba(3, 5, 12, 0);
+    transform: translateX(100%);
+    visibility: hidden;
+    transition: transform 0.32s cubic-bezier(0.2, 0.8, 0.2, 1), box-shadow 0.32s ease, visibility 0s linear 0.32s;
+  }
+
+  .site-header__menu[data-open] {
+    transform: none;
+    visibility: visible;
+    box-shadow: -1px 0 0 rgba(255, 255, 255, 0.08), 0 0 0 100vmax rgba(3, 5, 12, 0.6);
+    transition: transform 0.32s cubic-bezier(0.2, 0.8, 0.2, 1), box-shadow 0.32s ease, visibility 0s;
+  }
+
+  .site-header__menu .site-nav__list {
+    flex-direction: column;
+    gap: 0.2rem;
+  }
+
+  .site-header__menu .site-nav a,
+  .site-header__menu .site-header__login {
+    display: block;
+    padding: 0.8rem 0.85rem;
+    border-radius: 0.7rem;
+    font-size: 0.95rem;
+  }
+
+  .site-header__menu .site-nav a:hover,
+  .site-header__menu .site-header__login:hover {
+    background: rgba(255, 255, 255, 0.06);
+  }
+
+  .site-header__menu .site-nav a::after,
+  .site-header__menu .site-header__login::after {
+    display: none;
+  }
+
+  /* Network status, echoed from the top banner into the same top strip of
+     the drawer (where the banner sits on the page): muted, fills the gap. */
+  .site-header__menu-net {
+    display: block;
+    position: absolute;
+    inset: 0 0 auto;
+    display: flex;
+    align-items: center;
+    min-height: calc(var(--banner-h, 0px) - var(--banner-tuck, 0px));
+    margin: 0;
+    padding: 0.6rem 1.85rem;
+    /* Darker strip, like the banner above the page hero. */
+    background: rgba(2, 4, 10, 0.55);
+    box-shadow: inset 0 -1px 0 rgba(255, 255, 255, 0.05), inset 0 -10px 14px -12px rgba(0, 0, 0, 0.7);
+    white-space: nowrap;
+    overflow: hidden;
+    font-size: 0.62rem;
+    line-height: 1.6;
+    color: rgba(255, 255, 255, 0.34);
+  }
+
+  .site-header__menu-net .site-banner__tag {
+    display: inline-block;
+    margin-right: 0.4rem;
+    font-size: 0.85em;
+    font-weight: 700;
+    letter-spacing: 0.16em;
+    text-transform: uppercase;
+    color: rgba(245, 154, 92, 0.6);
+  }
+
+  .site-header__menu-net[data-mode="mainnet"] .site-banner__tag {
+    color: rgba(95, 211, 163, 0.6);
+  }
+
+  .site-header__menu-net strong,
+  .site-header__menu-net code {
+    font: inherit;
+    color: rgba(255, 255, 255, 0.5);
+  }
+
+  /* Only the first line (tag · network · chain); the note stays in the page banner. */
+  .site-header__menu-net .site-banner__note {
+    display: none;
+  }
+
+  .site-header__menu .site-header__register {
+    justify-content: center;
+    margin-top: auto; /* CTA anchored at the bottom of the drawer */
+    padding: 0.85rem 1rem;
+    font-size: 0.8rem;
+  }
+
+  /* Shield top-left of the drawer, on the same row as the close (X) button. */
+  .site-header__menu-mark {
+    display: block;
+    position: absolute;
+    top: calc(var(--menu-row-y, 0px) - 1.3rem);
+    left: 1.85rem;
+    width: auto;
+    height: 2.6rem;
+    filter: brightness(0) invert(1);
+  }
+
+  html.is-menu-open {
+    overflow: hidden; /* no scrolling the page behind the drawer */
+  }
+}
+
+@media (max-width: 64rem) and (prefers-reduced-motion: reduce) {
+  .site-header__menu,
+  .site-header__menu[data-open] {
+    transition: none;
+  }
+}
+
+/* Top-right menu: quiet text links, then one CTA. */
 .site-nav__list {
   display: flex;
   flex-wrap: wrap;
-  gap: 0.35rem 1.25rem;
+  gap: 0.35rem 1.75rem;
   margin: 0;
   padding: 0;
   list-style: none;
 }
 
-.site-nav a {
-  color: rgba(255, 255, 255, 0.88);
+.site-nav a,
+.site-header__login {
+  position: relative;
+  color: rgba(255, 255, 255, 0.72);
   text-decoration: none;
-  font-size: 0.95rem;
+  font-size: 0.74rem;
   font-weight: 500;
+  letter-spacing: 0.02em;
+  transition: color 0.2s ease;
+}
+
+/* Hairline underline that draws in on hover / marks the current page. */
+.site-nav a::after,
+.site-header__login::after {
+  content: "";
+  position: absolute;
+  left: 0;
+  right: 0;
+  bottom: -0.3rem;
+  height: 1px;
+  background: currentColor;
+  transform: scaleX(0);
+  transform-origin: left;
+  transition: transform 0.25s ease;
 }
 
 .site-nav a:hover,
-.site-nav a[aria-current="page"] {
+.site-nav a[aria-current="page"],
+.site-header__login:hover {
   color: #fff;
 }
 
-.site-header__register {
-  flex-shrink: 0;
-  font-size: 0.88rem;
-  padding: 0.35rem 0.85rem;
-  border-color: rgba(255, 255, 255, 0.45);
-  color: rgba(255, 255, 255, 0.95);
+.site-nav a:hover::after,
+.site-nav a[aria-current="page"]::after,
+.site-header__login:hover::after {
+  transform: scaleX(1);
 }
 
+.site-header__login[hidden],
 .site-header__register[hidden] {
   display: none !important;
 }
 
+/* The one call to action: a brand-gold pill that reads first on the dark chrome. */
+.site-header__register {
+  flex-shrink: 0;
+  display: inline-flex;
+  align-items: center;
+  padding: 0.5rem 1.05rem;
+  border-radius: 999px;
+  background: var(--guld-gold);
+  color: var(--guld-on-gold);
+  text-decoration: none;
+  font-size: 0.72rem;
+  font-weight: 600;
+  letter-spacing: 0.02em;
+  box-shadow: 0 1px 0 rgba(255, 255, 255, 0.35) inset, 0 6px 18px rgba(0, 0, 0, 0.35),
+    0 0 0 1px color-mix(in srgb, var(--guld-gold) 60%, transparent);
+  transition: transform 0.2s ease, box-shadow 0.2s ease, background 0.2s ease;
+}
+
 .site-header__register:hover {
-  border-color: rgba(255, 255, 255, 0.75);
-  color: #fff;
+  color: var(--guld-on-gold);
+  background: var(--guld-gold-bright);
+  transform: translateY(-1px);
+  box-shadow: 0 1px 0 rgba(255, 255, 255, 0.5) inset, 0 10px 24px rgba(0, 0, 0, 0.45);
+}
+
+.site-nav a:focus-visible,
+.site-header__login:focus-visible,
+.site-header__register:focus-visible {
+  outline: 2px solid var(--guld-name-1);
+  outline-offset: 4px;
+  border-radius: 999px;
 }
 
 .site-header__profile {
@@ -491,8 +925,13 @@ guld-footer {
 }
 
 .hero {
+  /* Exactly one screen: viewport minus the part of the network banner that stays
+     visible above the hero (--banner-h is measured by guld-header; the hero
+     tucks over its bottom --banner-tuck). svh keeps mobile toolbars out of it. */
+  --hero-h: calc(100vh - var(--banner-h, 0px) + var(--banner-tuck, 0px));
+  --hero-h: calc(100svh - var(--banner-h, 0px) + var(--banner-tuck, 0px));
   position: relative;
-  min-height: 100vh;
+  min-height: var(--hero-h);
   display: grid;
   align-items: end;
   color: #fff;
@@ -636,6 +1075,415 @@ guld-footer {
   margin: 0;
 }
 
+/*
+ * Landing type scale — calmer, editorial sizing on top of the site's 20px root.
+ * Content only (.site-main): header/banner/footer stay consistent with other pages.
+ * All rem/em, so user font-size preferences still scale everything.
+ */
+.site-body--landing .site-main {
+  font-size: 0.85rem; /* 17px body copy */
+  line-height: 1.65;
+}
+
+.site-body--landing .hero__logo {
+  width: min(11rem, 55vw);
+  margin-bottom: 1.25rem;
+}
+
+/* Eyebrow: small, tracked caps instead of a second headline. */
+.site-body--landing .hero__version {
+  margin: 0 0 0.9rem;
+  font-size: 0.8rem;
+  font-weight: 600;
+  letter-spacing: 0.28em;
+  text-transform: uppercase;
+  color: rgba(255, 255, 255, 0.72);
+}
+
+.site-body--landing .hero__title {
+  max-width: 18ch;
+  margin: 0 0 1.1rem;
+  font-size: clamp(2rem, 3.4vw, 2.8rem);
+  font-weight: 600;
+  line-height: 1.08;
+  letter-spacing: -0.03em;
+  text-wrap: balance;
+}
+
+.site-body--landing .hero__lede {
+  max-width: 34rem;
+  margin-bottom: 2rem;
+  font-size: 0.95rem;
+  line-height: 1.6;
+  color: rgba(255, 255, 255, 0.8);
+}
+
+.site-body--landing .site-main .btn {
+  padding: 0.62rem 1.15rem;
+  font-size: 0.8rem;
+  letter-spacing: 0.01em;
+}
+
+.site-body--landing .site-main h2 {
+  font-size: clamp(1.4rem, 2.4vw, 1.8rem);
+  letter-spacing: -0.02em;
+  line-height: 1.15;
+  margin-bottom: 1rem;
+}
+
+.site-body--landing .site-main h3,
+.site-body--landing .flow-steps h3,
+.site-body--landing .pillar h3 {
+  font-size: 1.08em;
+  letter-spacing: -0.005em;
+}
+
+.site-body--landing .pillar p,
+.site-body--landing .faq-list dd {
+  font-size: 1em;
+}
+
+.site-body--landing .section pre,
+.site-body--landing .install-cmd {
+  font-size: 0.75rem;
+}
+
+.site-body--landing .flow-steps li::before {
+  font-size: 0.75rem;
+}
+
+/* ---- Hero: globe story (see src/js/lib/hero-globe.js) ---- */
+.hero--globe {
+  align-items: stretch;
+  background: radial-gradient(120% 90% at 50% 45%, #182a52 0%, #0b1226 48%, #05070d 100%);
+}
+
+.hero__globe {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  display: block;
+}
+
+/* Final composition: mark on top, globe in the middle, thesis + actions below. */
+.hero__stage {
+  position: relative;
+  z-index: 1;
+  min-height: var(--hero-h, 100vh);
+  display: grid;
+  grid-template-rows: auto 1fr;
+  justify-items: center;
+  text-align: center;
+  padding: calc(var(--banner-tuck) + 5.25rem) clamp(1rem, 4vw, 2.5rem) clamp(1rem, 4vw, 2.5rem);
+  opacity: 0;
+  transform: translateY(0.4rem);
+  transition: opacity 1.4s ease, transform 1.4s ease;
+  pointer-events: none;
+}
+
+.hero--globe[data-phase="final"] .hero__stage {
+  opacity: 1;
+  transform: none;
+  pointer-events: auto;
+}
+
+.hero__mark {
+  display: grid;
+  justify-items: center;
+  gap: 0.7rem;
+}
+
+.hero__shield {
+  width: 3rem;
+  height: auto;
+  filter: brightness(0) invert(1);
+}
+
+.site-body--landing .hero__mark .hero__version {
+  margin: 0;
+}
+
+.hero__copy {
+  align-self: end;
+  display: grid;
+  justify-items: center;
+}
+
+.site-body--landing .hero--globe .hero__title {
+  max-width: 22ch;
+  margin: 0;
+}
+
+/* The 64-hex key the name replaces: inline with "Send to alice, not", one
+   line, dim and struck — the problem reads at a glance without competing. */
+.hero__key {
+  margin-left: 0.3em;
+  font-size: 0.56rem;
+  white-space: nowrap; /* landing-page.js middle-truncates it (0x7f3a…1b28) to fit */
+  color: rgba(255, 255, 255, 0.34);
+  text-decoration: line-through;
+  text-decoration-color: rgba(208, 180, 96, 0.5);
+}
+
+.hero__key--own-line {
+  display: block;
+  margin: 0.3rem 0 0;
+}
+
+/* Third clause of the thesis, quieter than the headline. */
+.hero__title-proof {
+  display: block;
+  margin-top: 0.55rem;
+  font-size: 0.3em;
+  font-weight: 600;
+  letter-spacing: 0.34em;
+  text-transform: uppercase;
+  color: var(--guld-gold);
+}
+
+/* Hierarchy: headline → gold thesis line → small "Send to alice" + key block. */
+.site-body--landing .hero--globe .hero__lede {
+  max-width: none; /* "Send to alice, not 0x…" stays on one line */
+  margin: 1.1rem 0 0;
+  line-height: 1.2; /* its baseline shares the bottom line with "Get started" and the log */
+  font-size: 0.82rem;
+  color: rgba(255, 255, 255, 0.7);
+}
+
+.hero--globe .hero__lede strong {
+  color: #fff;
+  font-weight: 600;
+}
+
+/* Scrim: the globe sinks into a dark horizon behind the copy, so text never
+   fights the dots. Fades in with the final composition. */
+.hero--globe::after {
+  content: "";
+  position: absolute;
+  inset: auto 0 0;
+  height: 58%;
+  background: linear-gradient(to bottom, rgba(6, 10, 22, 0), rgba(6, 10, 22, 0.78) 55%, rgba(6, 10, 22, 0.92));
+  opacity: 0;
+  transition: opacity 1.4s ease;
+  pointer-events: none;
+}
+
+.hero--globe[data-phase="final"]::after {
+  opacity: 1;
+}
+
+/* Mark: an oversized shield centered on the nav row (its middle sits on the
+   menu's vertical center), with the version chip right below it. */
+.hero--globe .hero__mark {
+  --mark-h: 3.08rem;
+  position: absolute;
+  top: calc(var(--banner-tuck, 0px) + 2.06rem - var(--mark-h) / 2);
+  left: 50%;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 0.6rem;
+  transform: translateX(-50%);
+}
+
+.hero--globe .hero__stage {
+  grid-template-rows: 1fr;
+}
+
+.hero--globe .hero__shield {
+  width: auto;
+  height: var(--mark-h);
+  filter: brightness(0) invert(1) drop-shadow(0 6px 18px rgba(0, 0, 0, 0.45));
+}
+
+.site-body--landing .hero--globe .hero__version {
+  padding: 0.28rem 0.7rem 0.24rem;
+  border-radius: 999px;
+  background: rgba(6, 10, 22, 0.72);
+  box-shadow: 0 0 0 1px rgba(255, 255, 255, 0.08);
+  font-size: 0.56rem;
+  letter-spacing: 0.3em;
+}
+
+/* "Get started" — bottom-left twin of the activity log, same inset. */
+.hero__next {
+  position: absolute;
+  left: clamp(1rem, 4vw, 2.5rem);
+  bottom: clamp(1rem, 4vw, 2.5rem);
+  z-index: 2;
+  display: inline-flex;
+  align-items: center;
+  gap: 0.55rem;
+  color: rgba(255, 255, 255, 0.6);
+  font-size: 0.6rem;
+  font-weight: 600;
+  letter-spacing: 0.18em;
+  text-transform: uppercase;
+  text-decoration: none;
+  opacity: 0;
+  transition: opacity 1.4s ease, color 0.2s ease;
+}
+
+.hero--globe[data-phase="final"] .hero__next {
+  opacity: 1;
+}
+
+.hero__next:hover,
+.hero__next:focus-visible {
+  color: #fff;
+}
+
+.hero__next svg {
+  width: 0.85rem;
+  height: 0.85rem;
+  fill: none;
+  stroke: currentColor;
+  stroke-width: 1.4;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+}
+
+@media (prefers-reduced-motion: no-preference) {
+  .hero__next svg {
+    animation: nudge 2.4s ease-in-out 1.5s 4; /* a few nudges, then still */
+  }
+}
+
+@keyframes nudge {
+  0%, 60%, 100% { transform: translateY(0); }
+  30% { transform: translateY(3px); }
+}
+
+.hero--globe .hero__actions {
+  justify-content: center;
+}
+
+/* Transfer log — simulated, decorative (aria-hidden). Newest entry last, older ones dim. */
+.hero__log {
+  /* Fixed width so the centered key line can reserve room for it (landing-page.js). */
+  width: 16rem;
+  position: absolute;
+  right: clamp(1rem, 4vw, 2.5rem);
+  bottom: clamp(1rem, 4vw, 2.5rem);
+  z-index: 2;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+  display: grid;
+  gap: 0.3rem;
+  font-size: 0.66rem;
+  line-height: 1.35;
+  text-align: right;
+  color: rgba(255, 255, 255, 0.75);
+  font-variant-numeric: tabular-nums;
+  pointer-events: none;
+}
+
+.hero__log-caption {
+  margin-bottom: 0.15rem;
+  font-size: 0.55rem;
+  font-weight: 600;
+  letter-spacing: 0.18em;
+  text-transform: uppercase;
+  color: rgba(255, 255, 255, 0.42);
+}
+
+.hero__log-item {
+  display: flex;
+  justify-content: flex-end;
+  white-space: nowrap;
+  align-items: center;
+  gap: 0.5rem;
+  animation: log-in 0.45s ease both;
+}
+
+.hero__log-item > span {
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+/* Event-type glyph on the right: transfer →, tip commit #, group cosign ∞, dapp sign-in key. */
+.hero__log-icon {
+  flex: none;
+  width: 0.8rem;
+  height: 0.8rem;
+  fill: none;
+  stroke: currentColor;
+  stroke-width: 1.4;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+  opacity: 0.8;
+}
+
+.hero__log-icon--commit,
+.hero__log-icon--group {
+  color: var(--guld-gold-bright);
+}
+
+.hero__log-icon--login {
+  color: var(--guld-name-5);
+}
+
+.hero__log code {
+  font-size: 0.95em;
+  color: rgba(255, 255, 255, 0.85);
+}
+
+.hero__log-item:nth-last-child(2) { opacity: 0.7; }
+.hero__log-item:nth-last-child(3) { opacity: 0.45; }
+.hero__log-item:nth-last-child(4) { opacity: 0.25; }
+
+.hero__log strong {
+  font-weight: 600;
+  color: rgba(255, 255, 255, 0.95);
+}
+
+.hero__name {
+  font-weight: 600;
+  color: var(--guld-name-6);
+}
+
+.hero__name--t1 { color: var(--guld-name-1); }
+.hero__name--t2 { color: var(--guld-name-2); }
+.hero__name--t3 { color: var(--guld-name-3); }
+.hero__name--t5 { color: var(--guld-name-5); }
+
+@keyframes log-in {
+  from {
+    opacity: 0;
+    transform: translateY(0.35rem);
+  }
+}
+
+/* Below the lg breakpoint (64rem = 1024px, Tailwind `lg`; Bootstrap uses 992px) the log
+   would collide with the copy — it is decorative, so it simply goes away. */
+@media (max-width: 64rem) {
+  .hero__log,
+  .hero__next {
+    display: none;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .hero__stage {
+    opacity: 1;
+    transform: none;
+    transition: none;
+    pointer-events: auto;
+  }
+
+  .hero__log {
+    display: none;
+  }
+}
+
+/* Monospace runs large next to Avenir; match its x-height inline. */
+.site-body--landing .site-main :not(pre) > code {
+  font-size: 0.86em;
+}
+
 @keyframes hero-drift {
   from {
     transform: scale(1.02) translate3d(0, 0, 0);
@@ -671,5 +1519,42 @@ guld-footer {
   .site-header__actions {
     flex-wrap: wrap;
     justify-content: flex-end;
+  }
+}
+
+/* Landing: the oversized centered shield is the mark, so the header brand
+   shows only the "guld" wordmark — the logo image is cropped to its right side. */
+.site-body--landing .site-header__brand img {
+  --wordmark-h: 2.55rem; /* ~28% larger than the site-wide 2rem logo */
+  height: var(--wordmark-h);
+  width: calc(var(--wordmark-h) * 1.175);
+  margin-block: calc((2rem - var(--wordmark-h)) / 2); /* don't grow the nav row */
+  object-fit: cover;
+  object-position: 100% 50%;
+}
+
+/* "2.0 BETA" pill sits beside the wordmark, on the nav row — a quiet tag, not a feature. */
+.site-body--landing .hero--globe .hero__version {
+  padding: 0.16rem 0.45rem 0.13rem;
+  background: rgba(255, 255, 255, 0.04);
+  box-shadow: 0 0 0 1px rgba(255, 255, 255, 0.1);
+  color: rgba(255, 255, 255, 0.5);
+  font-size: 0.44rem;
+  letter-spacing: 0.22em;
+  position: absolute;
+  z-index: 21;
+  top: calc(var(--banner-tuck, 0px) + 2.06rem);
+  left: calc(clamp(1rem, 4vw, 2.5rem) + 2.55rem * 1.175 + 0.55rem); /* after the wordmark */
+  transform: translateY(-50%);
+  margin: 0;
+}
+
+/* Under 500px there's no room beside the wordmark: the pill drops below it,
+   left-aligned with "guld". */
+@media (max-width: 31.25rem) {
+  .site-body--landing .hero--globe .hero__version {
+    top: calc(var(--banner-tuck, 0px) + 2.06rem + 2.55rem / 2 + 0.25rem);
+    left: calc(clamp(1rem, 4vw, 2.5rem) + 0.15rem);
+    transform: none;
   }
 }
