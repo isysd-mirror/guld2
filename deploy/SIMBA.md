@@ -223,7 +223,7 @@ curl -s http://127.0.0.1:8545/ -H 'content-type: application/json' \
 - Validating peers omit `--miner` and never seal.
 - Reasonable v1: **only guld.io mines** with `--miner isysd` **and** `keys/isysd.sk` present (after genesis claim); laptops validate.
 - **Shared hosts:** always `--mine-cpu-percent 1`. Service units under `deploy/` already set this.
-- `auto_mine` may also seal on mempool insert; the miner loop is the source of truth for block time.
+- `auto_mine` (profile / `--auto-mine`) seals on mempool insert when true; keep it **false** on Simba so the miner loop alone sets block time (not one block per tx).
 
 Force a block (usually unnecessary once the loop is running):
 
