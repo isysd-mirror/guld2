@@ -3,8 +3,8 @@
  * Local tip hashing + optional on-chain UpdateMaster when API + keys are set.
  */
 
-import { createClient } from "../../guld-js/src/client.js";
-import { randomPrivateKey, toHex } from "../../guld-js/src/crypto.js";
+import { createClient } from "../guld-js/src/client.js";
+import { randomPrivateKey, toHex } from "../guld-js/src/crypto.js";
 import {
   TTT_DEMO_KEY0_PRIV,
   TTT_DEMO_KEY1_PRIV,
