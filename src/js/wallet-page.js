@@ -239,33 +239,6 @@ async function requireLiveSpendKey(name, localPub) {
   return account;
 }
 
-/**
- * Poll until account.keys[0] matches wantPub (RotateKeys inclusion).
- * @param {string} name
- * @param {string} wantPub
- * @param {{ attempts?: number, delayMs?: number }} [opts]
- */
-async function waitForKeyRotation(name, wantPub, opts = {}) {
-  const attempts = opts.attempts ?? 90;
-  const delayMs = opts.delayMs ?? 2_000;
-  const want = normPub(wantPub);
-  for (let i = 0; i < attempts; i++) {
-    try {
-      const live = await apiGet(apiBase, `/chain/accounts/${encodeURIComponent(name)}`);
-      const keys = Array.isArray(live.account?.keys) ? live.account.keys.map(String) : [];
-      if (keys.length && normPub(keys[0]) === want) {
-        return /** @type {Record<string, unknown>} */ (live.account);
-      }
-    } catch {
-      /* keep polling */
-    }
-    await new Promise((r) => setTimeout(r, delayMs));
-  }
-  throw new Error(
-    "RotateKeys submitted but still unconfirmed — keep the new private key safe and refresh after the next block.",
-  );
-}
-
 async function route() {
   const gen = ++routeGen;
   const r = parseRoute();
@@ -555,60 +528,23 @@ async function route() {
           bindBusyClick(dripSlot.querySelector("[data-request-drip]"), async () => {
             say("Requesting faucet drip…", "pending", dripSlot);
             try {
-              const before = Number(
-                (await apiGet(apiBase, `/chain/accounts/${encodeURIComponent(r.name)}`))?.balance
-                  ?.quanta ?? 0,
-              );
               const out = await faucetDrip(apiBase, r.name);
-              say(
+              flashStatus(
                 formatTxSubmittedHtml(
-                  `Faucet sent ${out?.amountGuld ?? 10} ${ticker} — unconfirmed…`,
+                  `Faucet sent ${out?.amountGuld ?? 10} ${ticker}`,
                   out,
                 ),
-                "pending",
+                "ok",
+                "[data-send-form]",
+              );
+              say(
+                formatTxSubmittedHtml(
+                  `Faucet sent ${out?.amountGuld ?? 10} ${ticker}`,
+                  out,
+                ),
+                "ok",
                 dripSlot,
                 { html: true },
-              );
-              const txid = extractTxId(out);
-              for (let i = 0; i < 45; i++) {
-                await new Promise((res) => setTimeout(res, 4000));
-                try {
-                  if (txid) {
-                    const tx = await apiGet(
-                      apiBase,
-                      `/chain/transactions/${encodeURIComponent(txid)}`,
-                    );
-                    if (tx && tx.pending !== true && tx.height != null) {
-                      flashStatus(
-                        formatTxSubmittedHtml("Faucet drip included", out),
-                        "ok",
-                        "[data-send-form]",
-                      );
-                      route();
-                      return;
-                    }
-                  }
-                  const after = Number(
-                    (await apiGet(apiBase, `/chain/accounts/${encodeURIComponent(r.name)}`))
-                      ?.balance?.quanta ?? 0,
-                  );
-                  if (after > before) {
-                    flashStatus(
-                      formatTxSubmittedHtml("Faucet drip included", out),
-                      "ok",
-                      "[data-send-form]",
-                    );
-                    route();
-                    return;
-                  }
-                } catch {
-                  /* keep waiting */
-                }
-              }
-              flashStatus(
-                formatTxSubmittedHtml("Drip still unconfirmed — refresh the wallet shortly", out),
-                "pending",
-                "[data-send-form]",
               );
               route();
             } catch (err) {
@@ -1009,26 +945,17 @@ async function route() {
               pubHex: pubs[0],
             });
           }
+          flashStatus(
+            formatTxSubmittedHtml("RotateKeys submitted — local key updated", out),
+            "ok",
+            "[data-rotate-keys-form]",
+          );
           say(
-            formatTxSubmittedHtml("RotateKeys broadcast — unconfirmed…", out),
-            "pending",
+            formatTxSubmittedHtml("RotateKeys submitted — local key updated", out),
+            "ok",
             form,
             { html: true },
           );
-          try {
-            await waitForKeyRotation(r.name, pubs[0]);
-            flashStatus(
-              formatTxSubmittedHtml("RotateKeys confirmed — local key updated", out),
-              "ok",
-              "[data-rotate-keys-form]",
-            );
-          } catch (waitErr) {
-            flashStatus(
-              formatTxSubmittedHtml(/** @type {Error} */ (waitErr).message, out),
-              "error",
-              "[data-rotate-keys-form]",
-            );
-          }
           route();
           return;
         }
@@ -1090,7 +1017,7 @@ async function route() {
         say("Unlock keyring first", "error", form);
         return;
       }
-      say("Registering subaccount…", "pending", form);
+      say("Submitting subaccount…", "pending", form);
       try {
         const feeEst = await apiGet(
           apiBase,
@@ -1140,12 +1067,19 @@ async function route() {
             pubHex: subPub,
           });
         }
+        // Stay on the parent — the sub name is not on-chain until the next block.
         flashStatus(
           formatTxSubmittedHtml(`Subaccount ${fullName} submitted`, out),
           "ok",
-          "[data-send-form]",
+          "[data-register-sub-form]",
         );
-        location.hash = `#/account/${encodeURIComponent(fullName)}`;
+        say(
+          formatTxSubmittedHtml(`Subaccount ${fullName} submitted`, out),
+          "ok",
+          form,
+          { html: true },
+        );
+        route();
       } catch (err) {
         say(/** @type {Error} */ (err).message, "error", form);
       }
@@ -1477,25 +1411,16 @@ function mountCosignWorkstation(mount, opts) {
             privHex: opts.newPrivHex,
             pubHex: opts.newPubHex,
           });
+          flashStatus(
+            formatTxSubmittedHtml("RotateKeys submitted — local key updated", out),
+            "ok",
+            "[data-send-form]",
+          );
           say(
-            formatTxSubmittedHtml("RotateKeys broadcast — unconfirmed…", out),
-            "pending",
+            formatTxSubmittedHtml("RotateKeys submitted — local key updated", out),
+            "ok",
             { html: true },
           );
-          try {
-            await waitForKeyRotation(opts.name, opts.newPubHex);
-            flashStatus(
-              formatTxSubmittedHtml("RotateKeys confirmed — local key updated", out),
-              "ok",
-              "[data-send-form]",
-            );
-          } catch (waitErr) {
-            flashStatus(
-              formatTxSubmittedHtml(String(/** @type {Error} */ (waitErr).message), out),
-              "error",
-              "[data-send-form]",
-            );
-          }
         } else {
           if (req.op === "transfer" && req.to) {
             recordSend(req.to);

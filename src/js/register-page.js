@@ -605,10 +605,10 @@ function renderStepConfirm() {
               mode: "faucet",
               txid,
               title: "Faucet broadcast your registration",
-              detail: "Watching the mempool until the registration gets its first confirmation.",
+              detail: "Unconfirmed in the mempool — open the explorer links below; this page also watches for inclusion.",
             });
-            say(`Unconfirmed · waiting for a ~${BLOCK_INTERVAL_MIN} min block…`, "pending");
-            await pollNameOnly();
+            say("Submitted — unconfirmed in the mempool.", "ok");
+            void pollNameOnly();
           } catch (err) {
             say(/** @type {Error} */ (err).message, "error");
           }
