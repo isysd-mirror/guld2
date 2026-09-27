@@ -555,3 +555,26 @@
   font-size: 0.88rem;
   opacity: 0.85;
 }
+
+/* Demo ttt: explorer deep-links in status / meta */
+.ttt__meta a {
+  color: var(--guld-navy);
+  text-decoration: underline;
+  text-underline-offset: 0.12em;
+}
+
+.ttt__meta a:hover {
+  color: var(--guld-primary);
+}
+
+.ttt__muted {
+  opacity: 0.7;
+  font-size: 0.85em;
+}
+
+.wallet__status a {
+  color: var(--guld-navy);
+  font-weight: 600;
+  text-decoration: underline;
+  text-underline-offset: 0.12em;
+}

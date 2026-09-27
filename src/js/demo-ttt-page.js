@@ -21,6 +21,12 @@ import {
   playMoveOnChain,
   registerGameGroup,
 } from "../guld-tic-tac-toe/lib/play.js";
+import {
+  explorerPendingTxHref,
+  extractTxId,
+  formatTxSubmittedHtml,
+} from "./lib/tx-feedback.js";
+import { escapeHtml } from "./lib/rpc.js";
 
 const PKG = "/src/guld-tic-tac-toe";
 
@@ -33,6 +39,8 @@ let state = initialState();
 /** @type {string|null} */
 let lastMaster = null;
 /** @type {string|null} */
+let lastTxId = null;
+/** @type {string|null} */
 let key0 = null;
 /** @type {string|null} */
 let key1 = null;
@@ -40,10 +48,16 @@ let chainId = 2;
 /** @type {ReturnType<typeof createClient>|null} */
 let client = null;
 
-function say(msg, kind = "pending") {
+/**
+ * @param {string} msg plain text, or HTML when html=true
+ * @param {string} [kind]
+ * @param {{ html?: boolean }} [opts]
+ */
+function say(msg, kind = "pending", opts = {}) {
   const el = statusEl();
   if (!el) return;
-  el.textContent = msg;
+  if (opts.html) el.innerHTML = msg;
+  else el.textContent = msg;
   el.dataset.state = kind;
 }
 
@@ -52,6 +66,20 @@ function turnPrompt(s) {
   if (s.winner === "draw") return "Draw — New game to play again.";
   if (s.winner) return `${s.winner} wins — New game to play again.`;
   return `${s.turn} to move — click a cell.`;
+}
+
+/** @param {string|null|undefined} txid */
+function shortTx(txid) {
+  const id = String(txid || "");
+  return id.length > 20 ? `${id.slice(0, 18)}…` : id;
+}
+
+/** @param {string|null|undefined} txid */
+function txExplorerHtml(txid) {
+  const id = String(txid || "").trim();
+  if (!id || id === "ok") return "";
+  const href = explorerPendingTxHref(id);
+  return `<a href="${href}">${escapeHtml(shortTx(id))}</a>`;
 }
 
 function apiBase() {
@@ -103,9 +131,17 @@ function render() {
         : state.winner
           ? `${state.winner} wins`
           : `${state.turn}'s turn`;
+    const acct = accountName();
+    const tipHtml = lastMaster
+      ? `<a href="/explorer/#/account/${encodeURIComponent(acct)}"><code data-ttt-master>${escapeHtml(lastMaster)}</code></a>`
+      : `<code data-ttt-master>(hash tip after a move)</code>`;
+    const txHtml = lastTxId
+      ? `<div>txid: ${txExplorerHtml(lastTxId)} <span class="ttt__muted">(explorer)</span></div>`
+      : "";
     meta.innerHTML = `
-      <div>Move <strong>${state.move}</strong> · ${winner}</div>
-      <div>master_hash: <code data-ttt-master>${lastMaster || "(hash tip after a move)"}</code></div>
+      <div>Move <strong>${state.move}</strong> · ${escapeHtml(winner)}</div>
+      <div>master_hash: ${tipHtml}</div>
+      ${txHtml}
     `;
   }
 }
@@ -154,17 +190,17 @@ async function onCell(index) {
       });
       state = played.state;
       lastMaster = played.home.masterHash;
+      lastTxId = extractTxId(played.out) || lastTxId;
       render();
-      say(
-        state.winner
-          ? `${turnPrompt(state)} Tip on ${accountName()}.`
-          : `${turnPrompt(state)} Tip ${lastMaster.slice(0, 14)}…`,
-        "ok",
-      );
+      const label = turnPrompt(state);
+      say(formatTxSubmittedHtml(label, played.out) || escapeHtml(label), "ok", {
+        html: true,
+      });
       return;
     }
 
     state = applyMove(state, index, mark);
+    lastTxId = null;
     render();
     say(turnPrompt(state), state.winner ? "ok" : "pending");
     // Tip hash is best-effort background — don't block the next click.
@@ -198,6 +234,7 @@ function bind() {
   document.querySelector("[data-ttt-reset]")?.addEventListener("click", () => {
     state = initialState();
     lastMaster = null;
+    lastTxId = null;
     render();
     say(turnPrompt(state), "pending");
   });
@@ -294,9 +331,19 @@ function bind() {
         key0PrivHex: key0,
         key1PrivHex: key1,
         initialMasterHash: home.masterHash,
+      }).then((reg) => {
+        lastTxId = extractTxId(reg.out) || lastTxId;
+        return reg;
       });
       render();
-      say(`Registered ${accountName()} (1-of-2) at tip ${home.masterHash.slice(0, 18)}…`, "ok");
+      say(
+        formatTxSubmittedHtml(
+          `Registered ${accountName()} (1-of-2)`,
+          { tx_id: lastTxId },
+        ),
+        "ok",
+        { html: true },
+      );
     } catch (err) {
       say(err instanceof Error ? err.message : String(err), "error");
     }
