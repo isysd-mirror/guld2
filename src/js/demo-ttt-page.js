@@ -1,6 +1,6 @@
 /**
  * Site chrome wrapper for guld-tic-tac-toe demo.
- * Default: local hot-seat play (turns follow state.turn). Optional on-chain tips.
+ * Default: on-chain hot-seat (turns follow state.turn) with Simba demo keys.
  */
 
 import { createClient } from "../guld-js/src/client.js";
@@ -47,6 +47,8 @@ let key1 = null;
 let chainId = 2;
 /** @type {ReturnType<typeof createClient>|null} */
 let client = null;
+/** @type {Promise<void>|null} */
+let readyChain = null;
 
 /**
  * @param {string} msg plain text, or HTML when html=true
@@ -104,8 +106,55 @@ function fillKeyInputs() {
   if (k1 instanceof HTMLInputElement && key1) k1.value = key1;
 }
 
+function loadDemoKeys() {
+  key0 = TTT_DEMO_KEY0_PRIV;
+  key1 = TTT_DEMO_KEY1_PRIV;
+  fillKeyInputs();
+  const acct = document.querySelector("[data-ttt-account]");
+  if (acct instanceof HTMLInputElement) acct.value = TTT_DEMO_NAME;
+}
+
 function chainModeOn() {
   return Boolean(document.querySelector("[data-ttt-chain]")?.checked);
+}
+
+function setChainMode(on) {
+  const el = document.querySelector("[data-ttt-chain]");
+  if (el instanceof HTMLInputElement) el.checked = on;
+}
+
+async function connectPeer() {
+  client = createClient(apiBase());
+  const st = await client.status();
+  chainId = Number(st.chain_id ?? st.chainId ?? 2);
+  try {
+    await client.faucetEnsureTttDemo?.();
+  } catch {
+    /* optional — peer may already have ttt-demo */
+  }
+  return st;
+}
+
+/**
+ * Connect + demo keys so on-chain clicks work without Advanced.
+ * @returns {Promise<void>}
+ */
+async function ensureOnChainReady() {
+  if (client && key0 && key1) return;
+  if (readyChain) return readyChain;
+  readyChain = (async () => {
+    say("Connecting to peer + loading ttt-demo keys…", "pending");
+    loadDemoKeys();
+    setChainMode(true);
+    const st = await connectPeer();
+    const tip = `${st.network || "peer"} · chain ${chainId}`;
+    say(`${turnPrompt(state)} On-chain · ${tip}`, "ok");
+  })().catch((err) => {
+    readyChain = null;
+    client = null;
+    throw err;
+  });
+  return readyChain;
 }
 
 function render() {
@@ -173,8 +222,19 @@ async function onCell(index) {
   try {
     const mark = state.turn;
     if (chainModeOn()) {
+      try {
+        await ensureOnChainReady();
+      } catch (err) {
+        say(
+          err instanceof Error
+            ? `On-chain setup failed: ${err.message}`
+            : String(err),
+          "error",
+        );
+        return;
+      }
       if (!client || !key0 || !key1) {
-        say("On-chain mode needs Connect + group keys (see Advanced).", "error");
+        say("On-chain mode needs a peer + ttt-demo keys (see Advanced).", "error");
         return;
       }
       say(`Submitting ${mark}…`, "pending");
@@ -203,7 +263,6 @@ async function onCell(index) {
     lastTxId = null;
     render();
     say(turnPrompt(state), state.winner ? "ok" : "pending");
-    // Tip hash is best-effort background — don't block the next click.
     void hashLocal()
       .then(() => {
         const code = document.querySelector("[data-ttt-master]");
@@ -260,11 +319,7 @@ function bind() {
   });
 
   document.querySelector("[data-ttt-load-demo]")?.addEventListener("click", () => {
-    key0 = TTT_DEMO_KEY0_PRIV;
-    key1 = TTT_DEMO_KEY1_PRIV;
-    fillKeyInputs();
-    const acct = document.querySelector("[data-ttt-account]");
-    if (acct instanceof HTMLInputElement) acct.value = TTT_DEMO_NAME;
+    loadDemoKeys();
     say("Loaded published Simba ttt-demo keys (1-of-2 throwaways).", "ok");
   });
 
@@ -277,22 +332,10 @@ function bind() {
 
   document.querySelector("[data-ttt-connect]")?.addEventListener("click", async () => {
     try {
-      client = createClient(apiBase());
-      const st = await client.status();
-      chainId = Number(st.chain_id ?? st.chainId ?? 2);
-      const faucet =
-        st.faucet ||
-        (await fetch(`${apiBase()}/faucet`)
-          .then((r) => r.json())
-          .catch(() => null));
-      const ttt = faucet?.tttDemo;
-      const tip = ttt?.registered
-        ? `ttt-demo ready (thr=${ttt.threshold})`
-        : ttt
-          ? "ttt-demo not registered yet (faucet will ensure on testnet)"
-          : "";
+      readyChain = null;
+      const st = await connectPeer();
       say(
-        `Connected — network=${st.network || "?"} chain_id=${chainId} height=${st.height}${tip ? " · " + tip : ""}`,
+        `Connected — network=${st.network || "?"} chain_id=${chainId} height=${st.height}`,
         "ok",
       );
     } catch (err) {
@@ -350,6 +393,14 @@ function bind() {
   });
 }
 
-say(turnPrompt(state), "pending");
 bind();
 render();
+setChainMode(true);
+void ensureOnChainReady().catch((err) => {
+  say(
+    err instanceof Error
+      ? `Could not auto-connect (${err.message}). Uncheck On-chain for local play, or use Advanced.`
+      : String(err),
+    "error",
+  );
+});

@@ -28,8 +28,8 @@
       <header class="wallet__head">
         <h1>Witnessed tic-tac-toe</h1>
         <p>
-          Click the board — turns alternate X then O until someone wins.
-          Optional on-chain tips live under Advanced.
+          Click the board — turns alternate X then O. Each move submits an
+          on-chain <code>UpdateMaster</code> tip (see txid → explorer).
         </p>
       </header>
       <div class="ttt">
@@ -42,10 +42,10 @@
           <button type="button" class="btn" data-ttt-export>Export state.json</button>
         </div>
         <details class="ttt__advanced">
-          <summary>Advanced — on-chain UpdateMaster</summary>
+          <summary>Advanced — keys &amp; peer</summary>
           <div class="ttt__panel">
             <label>
-              <input type="checkbox" data-ttt-chain />
+              <input type="checkbox" data-ttt-chain checked />
               On-chain mode — submit each move as UpdateMaster (shows in explorer)
             </label>
             <label>API base</label>
@@ -72,10 +72,9 @@
               <button type="button" class="btn" data-ttt-register>Register group</button>
             </div>
             <p class="ttt__hint">
-              On-chain: Load Simba demo keys → Connect → enable On-chain mode →
-              play. Each move becomes an <code>UpdateMaster</code> tip under
-              <code>ttt-demo</code> (faucet auto-registers on testnet).
-              Reference:
+              On load the page connects to this peer, loads published
+              <code>ttt-demo</code> keys, and enables on-chain mode. Uncheck
+              On-chain mode for local-only play. Reference:
               <a href="/software/#guld-tic-tac-toe">guld-tic-tac-toe</a>
               ·
               <a href="/docs/research/reference-dapp.md">reference-dapp.md</a>.
