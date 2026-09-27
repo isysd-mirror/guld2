@@ -243,10 +243,11 @@ async function route() {
   const gen = ++routeGen;
   const r = parseRoute();
   if (!(hostEl instanceof HTMLElement)) return;
-  const net = await loadNetworkInfo(apiBase);
-  const ticker = currencyTicker(net);
 
   if (r.view === "gate") {
+    const net = await loadNetworkInfo(apiBase);
+    if (gen !== routeGen) return;
+    const ticker = currencyTicker(net);
     const next = `${location.pathname}${location.search}${location.hash || ""}`;
     hostEl.innerHTML = `
       <article class="wallet__card">
@@ -261,6 +262,9 @@ async function route() {
     return;
   }
 
+  // Normalize hash synchronously before any await. Concurrent route() calls used to
+  // resume after loadNetworkInfo with a stale account and location.replace each other
+  // (e.g. isysd ↔ isysd.mobile) in a tight loop when switching accounts.
   const wantHash = `#/account/${encodeURIComponent(r.name)}`;
   if ((location.hash || "") !== wantHash) {
     location.replace(`${location.pathname}${location.search}${wantHash}`);
@@ -272,6 +276,9 @@ async function route() {
   setStatus("Loading…", "pending");
 
   try {
+    const net = await loadNetworkInfo(apiBase);
+    if (gen !== routeGen) return;
+    const ticker = currencyTicker(net);
     const [st, acct] = await Promise.all([
       apiGet(apiBase, "/chain/status"),
       apiGet(apiBase, `/chain/accounts/${encodeURIComponent(r.name)}`),

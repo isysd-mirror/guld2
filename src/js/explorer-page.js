@@ -751,6 +751,7 @@ async function renderPendingTx(id) {
   const s = summarizeTx(tx);
   const txId = String(loc.tx_id || id);
   setStatus("ok", `Height ${tipHeight.toLocaleString()} · unconfirmed ${shortHash(txId, 10)}`);
+  const costs = await protocolCostRows(tx, tipHeight);
 
   hostEl.innerHTML = `
     <nav class="explorer__crumb">
@@ -769,12 +770,13 @@ async function renderPendingTx(id) {
         <p>0 confirmations</p>
       </header>
       <p class="explorer__tx-summary">${linkifyTxPrimary(tx, s.primary)}
-        ${s.amount !== "—" ? ` · <strong>${escapeHtml(s.amount)}</strong> ${ticker}` : ""}</p>
+        ${costs.summaryHtml || (s.amount !== "—" ? ` · <strong>${escapeHtml(s.amount)}</strong> ${ticker}` : "")}</p>
       <dl class="explorer-kv-grid">
         ${kvRow("Tx id", copyable(txId), { wide: true })}
         ${kvRow("Confirmations", `<span class="num">0</span>`)}
         ${kvRow("Status", `<span class="tx-pill tx-pill--pending">Unconfirmed</span>`)}
-        ${txDetailRowsHtml(tx)}
+        ${costs.rowsHtml}
+        ${txDetailRowsHtml(tx, { omitAmounts: Boolean(costs.rowsHtml) })}
       </dl>
       ${txExtrasHtml(tx)}
     </section>
@@ -1025,6 +1027,8 @@ async function renderTx(height, index) {
             .join(" · ")}</p>`
       : "";
 
+  const costs = await protocolCostRows(tx, height);
+
   hostEl.innerHTML = `
     <nav class="explorer__crumb">
       <a href="#/">Explorer</a>
@@ -1039,7 +1043,7 @@ async function renderTx(height, index) {
         <p>${txLink(height, index)} · ${blockLink(height, `block ${height}`)} · ${escapeHtml(confLabel)} · ${escapeHtml(formatTime(header.timestamp))}</p>
       </header>
       <p class="explorer__tx-summary">${linkifyTxPrimary(tx, s.primary)}
-        ${s.amount !== "—" ? ` · <strong>${escapeHtml(s.amount)}</strong> ${ticker}` : ""}</p>
+        ${costs.summaryHtml || (s.amount !== "—" ? ` · <strong>${escapeHtml(s.amount)}</strong> ${ticker}` : "")}</p>
       <dl class="explorer-kv-grid">
         ${txId ? kvRow("Tx id", copyable(txId), { wide: true }) : kvRow("Locator", copyable(`${height}:${index}`))}
         ${blockHash ? kvRow("Block hash", copyable(blockHash), { wide: true }) : ""}
@@ -1048,7 +1052,8 @@ async function renderTx(height, index) {
         ${kvRow("Confirmations", `<span class="num">${escapeHtml(String(conf))}</span>`)}
         ${kvRow("Time", escapeHtml(formatTime(header.timestamp)))}
         ${header.miner ? kvRow("Miner", nameLink(String(header.miner))) : ""}
-        ${txDetailRowsHtml(tx)}
+        ${costs.rowsHtml}
+        ${txDetailRowsHtml(tx, { omitAmounts: Boolean(costs.rowsHtml) })}
       </dl>
       ${txExtrasHtml(tx)}
       ${siblings}
@@ -1057,10 +1062,95 @@ async function renderTx(height, index) {
 }
 
 /**
+ * Protocol registration fee is applied at inclusion but not stored on the wire tx
+ * (F_user / F_group / F_sub). Fetch the schedule fee so explorers can show the full debit.
+ *
+ * @param {Record<string, unknown>} tx
+ * @param {number} [height]
+ * @returns {Promise<{ rowsHtml: string, summaryHtml: string }>}
+ */
+async function protocolCostRows(tx, height) {
+  const type = String(tx.type || "");
+  /** @type {{ kind: string, name: string, nKeys: number, payerLabel: string } | null} */
+  let spec = null;
+  if (type === "register_subaccount") {
+    spec = {
+      kind: "subaccount",
+      name: `${tx.parent}.${tx.label}`,
+      nKeys: Array.isArray(tx.keys) ? tx.keys.length : 1,
+      payerLabel: "Parent paid",
+    };
+  } else if (type === "register_username") {
+    spec = {
+      kind: "individual",
+      name: String(tx.name || ""),
+      nKeys: Array.isArray(tx.keys) ? tx.keys.length : 1,
+      payerLabel: "Payer paid",
+    };
+  } else if (type === "register_group") {
+    spec = {
+      kind: "group",
+      name: String(tx.name || ""),
+      nKeys: Array.isArray(tx.keys) ? tx.keys.length : 1,
+      payerLabel: "Payer paid",
+    };
+  }
+  if (!spec || !spec.name) return { rowsHtml: "", summaryHtml: "" };
+
+  let regQuanta = "";
+  try {
+    const params =
+      height != null && Number.isFinite(Number(height))
+        ? [spec.name, spec.kind, spec.nKeys, Number(height)]
+        : [spec.name, spec.kind, spec.nKeys];
+    const est = await rpcCall(rpcUrl, "guld_estimateRegistrationFee", params);
+    regQuanta = String(est?.fee ?? "");
+  } catch (err) {
+    console.warn("registration fee", err);
+  }
+  if (!regQuanta) return { rowsHtml: "", summaryHtml: "" };
+
+  const endowment = String(tx.endowment || "0");
+  const inclusion = String(tx.inclusion_fee || "0");
+  let total = 0n;
+  try {
+    total = BigInt(regQuanta) + BigInt(endowment || "0") + BigInt(inclusion || "0");
+  } catch {
+    total = 0n;
+  }
+  const feeLabel =
+    spec.kind === "subaccount"
+      ? "Registration fee (F_sub)"
+      : spec.kind === "group"
+        ? "Registration fee (F_group)"
+        : "Registration fee (F_user)";
+
+  const rowsHtml = [
+    kvRow(
+      feeLabel,
+      `${escapeHtml(quantaToGuld(regQuanta))} ${ticker}
+        <span class="explorer__meta"> · protocol fee (not a wire field)</span>`,
+      { wide: true },
+    ),
+    kvRow("Endowment", `${escapeHtml(quantaToGuld(endowment))} ${ticker}`),
+    kvRow("Inclusion fee", `${escapeHtml(quantaToGuld(inclusion))} ${ticker}`),
+    kvRow(
+      spec.payerLabel,
+      `<strong>${escapeHtml(quantaToGuld(total.toString()))}</strong> ${ticker}`,
+    ),
+  ].join("");
+
+  const summaryHtml = ` · endowment <strong>${escapeHtml(quantaToGuld(endowment))}</strong> · reg <strong>${escapeHtml(quantaToGuld(regQuanta))}</strong> · total <strong>${escapeHtml(quantaToGuld(total.toString()))}</strong> ${ticker}`;
+
+  return { rowsHtml, summaryHtml };
+}
+
+/**
  * Scalar / name / amount fields as kv rows (keys & sigs via txExtrasHtml).
  * @param {Record<string, unknown>} tx
+ * @param {{ omitAmounts?: boolean }} [opts]
  */
-function txDetailRowsHtml(tx) {
+function txDetailRowsHtml(tx, opts = {}) {
   const nameFields = new Set([
     "from",
     "to",
@@ -1106,6 +1196,7 @@ function txDetailRowsHtml(tx) {
       continue;
     }
     if (amountFields.has(key)) {
+      if (opts.omitAmounts) continue;
       rows.push(
         kvRow(labelize(key), `${escapeHtml(quantaToGuld(/** @type {string} */ (val)))} ${ticker}`),
       );

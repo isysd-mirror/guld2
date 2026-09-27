@@ -51,9 +51,20 @@ export function bindProfileMenu(menu, opts = {}) {
         if (!keyring.getPriv(name)) {
           throw new Error("Wrong passphrase or no key for this name");
         }
-        activateAccount(name);
         close();
-        location.href = walletAccountHref(name);
+        // Update hash before activateAccount so wallet route()/AUTH see the target
+        // account — avoids a race that rewrote the hash back to the previous name.
+        const dest = walletAccountHref(name);
+        if (location.pathname.replace(/\/+$/, "") === "/wallet") {
+          const want = `#/account/${encodeURIComponent(name.trim().toLowerCase())}`;
+          if ((location.hash || "") !== want) {
+            location.replace(`${location.pathname}${location.search}${want}`);
+          }
+          activateAccount(name);
+        } else {
+          activateAccount(name);
+          location.href = dest;
+        }
       } catch (err) {
         showMenuError(menu, /** @type {Error} */ (err).message);
       }
@@ -104,9 +115,18 @@ export function bindProfileMenu(menu, opts = {}) {
       const pubHex = await pubkeyHex(fromHex(privHex));
       if (!keyring.isUnlocked()) await keyring.unlock(pass);
       await keyring.upsertAccount({ name, privHex, pubHex, pending: false });
-      activateAccount(name);
       close();
-      location.href = walletAccountHref(name);
+      const dest = walletAccountHref(name);
+      if (location.pathname.replace(/\/+$/, "") === "/wallet") {
+        const want = `#/account/${encodeURIComponent(name.trim().toLowerCase())}`;
+        if ((location.hash || "") !== want) {
+          location.replace(`${location.pathname}${location.search}${want}`);
+        }
+        activateAccount(name);
+      } else {
+        activateAccount(name);
+        location.href = dest;
+      }
     } catch (err) {
       showMenuError(menu, /** @type {Error} */ (err).message);
     }
