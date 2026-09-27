@@ -4,7 +4,7 @@ Status: done
 Priority: **high** (Simba honesty — pairs with 013 / 006 phase 4)
 GIP:
 Spec: ../specs/06-blocks-and-consensus.md, ../specs/09-p2p.md
-Related: ../done/2026-09/013-chain-reorg-implementation.md, ../open/006-chain-lifecycle-tests.md
+Related: ../done/2026-09/013-chain-reorg-implementation.md, ./006-chain-lifecycle-tests.md
 
 ## Problem
 

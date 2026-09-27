@@ -64,7 +64,7 @@ Bit-difficulty coarseness (each step doubles work) is unchanged; this GIP does n
 
 ## Backwards Compatibility
 
-- **Simba / any public tip that already mined off-schedule headers:** may require a **reset** or a height-activated rule bundle ([spec 17](../specs/17-protocol-upgrades.md)) if historical tips violate the schedule. Prefer: activate at genesis / next Simba ceremony ([task 012](../tasks/open/012-simba-genesis-ceremony.md)) so no soft-fork window is needed on testnet.
+- **Simba / any public tip that already mined off-schedule headers:** may require a **reset** or a height-activated rule bundle ([spec 17](../specs/17-protocol-upgrades.md)) if historical tips violate the schedule. Prefer: activate at genesis / next Simba ceremony ([task 012](../tasks/done/2026-09/012-simba-genesis-ceremony.md)) so no soft-fork window is needed on testnet.
 - Dev nets with `--difficulty` soft-caps MUST still produce schedule-compliant headers, or use a dedicated `chain_id` with documented genesis-only exceptions (none recommended for Simba).
 
 ## Security Considerations

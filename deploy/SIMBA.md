@@ -98,7 +98,7 @@ Do **not** pass `--import-ledger` or `--dev` on Simba — the manifest and block
 
 **Rule:** every imported header with `height ≥ 1` MUST claim `difficulty == next_difficulty(...)` ([GIP-23](../gips/gip-23.md), spec 06 §3).
 
-**Activation on Simba:** prefer **regenesis** at the next ceremony ([task 012](../tasks/open/012-simba-genesis-ceremony.md)) so historical tips mined under soft policy do not need a height-activated soft fork. Until that reset, peers running this binary will **reject** off-schedule headers — wipe datadir and resync from artifact genesis if the public tip was mined off-schedule.
+**Activation on Simba:** prefer **regenesis** at the next ceremony ([task 012](../tasks/done/2026-09/012-simba-genesis-ceremony.md)) so historical tips mined under soft policy do not need a height-activated soft fork. Until that reset, peers running this binary will **reject** off-schedule headers — wipe datadir and resync from artifact genesis if the public tip was mined off-schedule.
 
 **`--dev` / `--difficulty`:** seal always follows `next_difficulty` (post-genesis starts at **1** from a difficulty-0 genesis). The CLI `--difficulty` flag is status/legacy only and MUST NOT under-claim the schedule. Rapid `--dev-empty-blocks` may raise bits at retarget boundaries (Bitcoin-class); that is consensus-correct.
 
@@ -222,7 +222,8 @@ Simba peers follow the **heavier valid tip** (cumulative work → height → has
 
 **Ops expectation:** shallow reorgs are cheap; deep ones pay full genesis-replay cost. Prefer staying near the public tip.
 
-**Automated tests:**
+**Automated tests** (also gated by pre-commit hooks — `./scripts/install-dev-hooks.sh`):
+- Genesis pins: `cargo test -p guld-node --test simba_genesis_smoke` (task 012) or `./scripts/chain-lifecycle/simba-genesis-smoke.sh`.
 - Reorg: `cargo test -p guld-node --test dual_miner_reorg` (task 019 / lifecycle phase 4). Unit: `cargo test -p guld-node chain_reorg`.
 - Tall-tip catch-up (miner + late peer, no bootnode ban): `cargo test -p guld-node --test simba_catchup_sync` (lifecycle phase 5) or `./scripts/chain-lifecycle/simba-catchup-sync.sh`.
 

@@ -200,4 +200,4 @@ trait Consensus {
 - DAG-PoW / multi-parent headers (research — not v1)  
 - Merged-mining witness format (future GIP)  
 - Rules activation margins per network ([`17-protocol-upgrades.md`](17-protocol-upgrades.md))
-- Consensus golden vectors ([task 021](../tasks/open/021-consensus-golden-vectors.md) / [GIP-26](../gips/gip-26.md))
+- Consensus golden vectors ([task 021](../tasks/done/2026-09/021-consensus-golden-vectors.md) / [GIP-26](../gips/gip-26.md) Accepted)

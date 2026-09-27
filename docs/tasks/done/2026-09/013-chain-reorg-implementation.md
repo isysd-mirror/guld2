@@ -4,7 +4,7 @@ Status: done
 Priority: **high** (Simba beta — test/ops, not greenfield)
 GIP:
 Spec: ../specs/06-blocks-and-consensus.md §2–§3, ../specs/10-node.md
-Tests: ./006-chain-lifecycle-tests.md phase 4, ../done/2026-09/019-dual-miner-reorg-integration-test.md
+Tests: ./006-chain-lifecycle-tests.md phase 4, ./019-dual-miner-reorg-integration-test.md
 
 ## Problem
 

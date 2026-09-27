@@ -42,7 +42,7 @@ Small bugs and polish: use [`../tasks/`](../tasks/) instead. Specs remain normat
 | [23](gip-23.md) | Consensus-enforced difficulty schedule | Accepted | Standards | Core |
 | [24](gip-24.md) | Legacy distribution transparency | Draft | Informational | — |
 | [25](gip-25.md) | Diversified ClaimLegacy attestation | Draft | Standards | Core |
-| [26](gip-26.md) | Consensus golden vectors | Draft | Standards | Interface |
+| [26](gip-26.md) | Consensus golden vectors | Accepted | Standards | Interface |
 
 ## Migration note
 

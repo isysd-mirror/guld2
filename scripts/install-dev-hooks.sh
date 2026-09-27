@@ -1,9 +1,11 @@
 #!/usr/bin/env bash
-# Install local pre-commit hooks (lifecycle Phase 1–2 + Simba catch-up) into the
-# umbrella and guld-state / guld-node / guld-p2p working trees. Safe to re-run.
+# Install local pre-commit hooks (lifecycle + genesis + GIP-26 vectors) into the
+# umbrella and guld-state / guld-node / guld-p2p / guld-wire / guld-consensus
+# working trees. Safe to re-run.
 #
-# This is our CI: commits fail if lifecycle / smoke / catch-up regressions land.
-# See docs/tasks/open/006-chain-lifecycle-tests.md and CONTRIBUTING.md.
+# This is our CI: commits fail if lifecycle / smoke / catch-up / vector regressions land.
+# See docs/tasks/done/2026-09/006-chain-lifecycle-tests.md,
+# docs/tasks/done/2026-09/021-consensus-golden-vectors.md, and CONTRIBUTING.md.
 set -euo pipefail
 
 ROOT="$(cd "$(dirname "$0")/.." && pwd)"
@@ -38,6 +40,9 @@ install_one "$ROOT"
 install_one "${ROOT}/src/guld-state"
 install_one "${ROOT}/src/guld-node"
 install_one "${ROOT}/src/guld-p2p"
+install_one "${ROOT}/src/guld-legacy"
+install_one "${ROOT}/src/guld-wire"
+install_one "${ROOT}/src/guld-consensus"
 
-echo "Done. Commits in guld / guld-state / guld-node / guld-p2p run lifecycle gates when relevant."
-echo "Escape hatch (humans only): GULD_SKIP_LIFECYCLE=1  or  GULD_SKIP_CATCHUP=1"
+echo "Done. Commits in guld / guld-state / guld-node / guld-p2p / guld-legacy / guld-wire / guld-consensus run lifecycle+genesis+vector gates when relevant."
+echo "Escape hatch (humans only): GULD_SKIP_LIFECYCLE=1 | GULD_SKIP_CATCHUP=1 | GULD_SKIP_GENESIS=1 | GULD_SKIP_VECTORS=1"

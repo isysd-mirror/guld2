@@ -30,7 +30,7 @@ Full map: [`docs/REPO_LAYOUT.md`](docs/REPO_LAYOUT.md) · serving git: [`docs/HO
 # Protocol tests
 cargo test
 
-# Local CI (git hooks) — Phase 1–2 + Simba catch-up on guld-state / guld-node / guld-p2p
+# Local CI (git hooks) — lifecycle Phase 1–5 + Simba genesis pins
 ./scripts/install-dev-hooks.sh
 
 # Node HTTP API + this tree as static site

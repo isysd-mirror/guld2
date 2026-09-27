@@ -30,7 +30,7 @@ External review (2026-09-26) rated this **critical**: retarget is miner policy, 
 - [x] Import rejects off-schedule difficulty
 - [x] Spec 06 updated; GIP-23 → Accepted
 - [x] Tests green; task 007 §C row closed
-- [ ] Golden vector stub for bad difficulty linked from [021](./021-consensus-golden-vectors.md) (optional until BARE)
+- [x] Golden vector stub for bad difficulty linked from [021](./021-consensus-golden-vectors.md) (in `difficulty.jsonl`)
 
 ## Notes
 

@@ -26,7 +26,7 @@ There is no hosted CI. After clone / submodule update:
 ./scripts/install-dev-hooks.sh
 ```
 
-That installs [`scripts/githooks/pre-commit`](scripts/githooks/pre-commit) into the umbrella, `src/guld-state`, `src/guld-node`, and `src/guld-p2p`. Commits then run chain lifecycle Phase 1–2 and (on node/p2p) Phase 5 Simba catch-up ([task 006](docs/tasks/open/006-chain-lifecycle-tests.md)) when those trees change — failed tests block the commit. Do not use `--no-verify`, `GULD_SKIP_LIFECYCLE=1`, or `GULD_SKIP_CATCHUP=1` unless you are the human maintainer and know why.
+That installs [`scripts/githooks/pre-commit`](scripts/githooks/pre-commit) into the umbrella, `src/guld-state`, `src/guld-node`, `src/guld-p2p`, `src/guld-legacy`, `src/guld-wire`, and `src/guld-consensus`. Commits then run lifecycle Phase 1–5, Simba genesis pin smoke, and GIP-26 golden vectors ([006](docs/tasks/done/2026-09/006-chain-lifecycle-tests.md) / [012](docs/tasks/done/2026-09/012-simba-genesis-ceremony.md) / [021](docs/tasks/done/2026-09/021-consensus-golden-vectors.md)) when those trees change — failed tests block the commit. Do not use `--no-verify`, `GULD_SKIP_LIFECYCLE=1`, `GULD_SKIP_CATCHUP=1`, `GULD_SKIP_GENESIS=1`, or `GULD_SKIP_VECTORS=1` unless you are the human maintainer and know why.
 ## Hosting and layout
 
 - [`docs/HOSTING.md`](docs/HOSTING.md) — node-first HTTP

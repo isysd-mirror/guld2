@@ -20,7 +20,7 @@ GIP-24 requires these disclosures for an honest distribution brief.
 1. Measure omitted ERC20 (and any other skipped) bucket totals from `archives/ledger-guld` (or export tooling) and publish GULD amounts.
 2. Commit `data/genesis/simba/negatives.json` (or section in README) listing negative names, amounts, and treatment.
 3. Link from genesis README + GIP-24 brief.
-4. Optionally extend manifest schema with an `omissions` / `negatives` object (non-consensus metadata) — only if ceremony [012](../open/012-simba-genesis-ceremony.md) is already regenerating artifacts.
+4. Optionally extend manifest schema with an `omissions` / `negatives` object (non-consensus metadata) — only if ceremony [012](./012-simba-genesis-ceremony.md) is already regenerating artifacts.
 
 ## Non-goals
 

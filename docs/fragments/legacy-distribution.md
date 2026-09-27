@@ -6,7 +6,7 @@
 **Simba artifacts:** [`import-manifest.json`](../../data/genesis/simba/import-manifest.json), [`negatives.json`](../../data/genesis/simba/negatives.json), [`omissions.json`](../../data/genesis/simba/omissions.json)  
 **Archive SoT:** `archives/ledger-guld/`, concatenated `archives/guld-ledger-all.dat`
 
-This document explains **what Guld 1.0 accounts were**, **how balances got there**, and **what 2.0 inherits**. Numbers below are measured from the committed Simba manifest unless noted; regenerate with the next genesis ceremony ([task 012](../tasks/open/012-simba-genesis-ceremony.md)).
+This document explains **what Guld 1.0 accounts were**, **how balances got there**, and **what 2.0 inherits**. Numbers below are measured from the committed Simba manifest unless noted; regenerate with the next genesis ceremony ([task 012](../tasks/done/2026-09/012-simba-genesis-ceremony.md)).
 
 ---
 
