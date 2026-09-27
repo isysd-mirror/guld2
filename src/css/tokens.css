@@ -6,6 +6,16 @@
   --guld-paper: #f4f6fa;
   --guld-mist: #e8ecf4;
   --guld-white: #ffffff;
+  /* Brand gold — the shield/logo fill (assets/guld.svg). Ink on gold ≥ 9:1. */
+  --guld-gold: #d0b460;
+  --guld-gold-bright: #e6c15c;
+  --guld-on-gold: #0b1226;
+  /* Name tiers by letter count (spec 07 §3.1): 1 gold · 2 silver · 3 bronze · 4–5 steel · 6+ mist. */
+  --guld-name-1: var(--guld-gold-bright);
+  --guld-name-2: #cfd6e0;
+  --guld-name-3: #c98d55;
+  --guld-name-5: #93a9d2;
+  --guld-name-6: #e8ecf4;
   --font-display: "Avenir Next", "Century Gothic", Futura, sans-serif;
   --font-body: "Avenir Next", "Trebuchet MS", sans-serif;
   --space: clamp(1rem, 2vw, 1.5rem);
