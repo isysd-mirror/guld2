@@ -10,8 +10,13 @@ const root = join(dirname(fileURLToPath(import.meta.url)), "..");
 
 test("index has brand-level logo and signup/login CTAs", () => {
   const html = readFileSync(join(root, "index.html"), "utf8");
-  assert.match(html, /assets\/logo\.svg/);
+  const header = readFileSync(join(root, "src/js/components/guld-header.js"), "utf8");
+  assert.match(header, /assets\/logo\.svg/);
+  assert.match(html, /assets\/shield\.svg/);
+  assert.ok(existsSync(join(root, "assets/logo.svg")));
+  assert.ok(existsSync(join(root, "assets/shield.svg")));
   assert.match(html, /Address people by name/i);
+  assert.match(html, /hero--globe/);
   assert.match(html, /hard fork/i);
   assert.match(html, /Guld 2\.0|2\.0/);
   assert.match(html, /guld-header/);
