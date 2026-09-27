@@ -1,6 +1,6 @@
 /**
  * Site chrome wrapper for guld-tic-tac-toe demo.
- * Local tip hashing + optional on-chain UpdateMaster when API + keys are set.
+ * Default: local hot-seat play (turns follow state.turn). Optional on-chain tips.
  */
 
 import { createClient } from "../guld-js/src/client.js";
@@ -32,7 +32,6 @@ const metaEl = () => document.querySelector("[data-ttt-meta]");
 let state = initialState();
 /** @type {string|null} */
 let lastMaster = null;
-let mark = /** @type {"X"|"O"} */ ("X");
 /** @type {string|null} */
 let key0 = null;
 /** @type {string|null} */
@@ -46,6 +45,13 @@ function say(msg, kind = "pending") {
   if (!el) return;
   el.textContent = msg;
   el.dataset.state = kind;
+}
+
+/** @param {import("../guld-tic-tac-toe/lib/rules.js").GameState} s */
+function turnPrompt(s) {
+  if (s.winner === "draw") return "Draw — New game to play again.";
+  if (s.winner) return `${s.winner} wins — New game to play again.`;
+  return `${s.turn} to move — click a cell.`;
 }
 
 function apiBase() {
@@ -70,6 +76,10 @@ function fillKeyInputs() {
   if (k1 instanceof HTMLInputElement && key1) k1.value = key1;
 }
 
+function chainModeOn() {
+  return Boolean(document.querySelector("[data-ttt-chain]")?.checked);
+}
+
 function render() {
   const board = boardEl();
   if (!board) return;
@@ -80,6 +90,7 @@ function render() {
     btn.className = "ttt__cell";
     btn.textContent = cell || "";
     btn.disabled = Boolean(state.winner) || cell !== null;
+    btn.setAttribute("aria-label", cell ? `Cell ${i + 1}: ${cell}` : `Cell ${i + 1}, empty`);
     btn.addEventListener("click", () => onCell(i));
     board.append(btn);
   });
@@ -91,11 +102,10 @@ function render() {
         ? "draw"
         : state.winner
           ? `${state.winner} wins`
-          : `turn ${state.turn}`;
+          : `${state.turn}'s turn`;
     meta.innerHTML = `
       <div>Move <strong>${state.move}</strong> · ${winner}</div>
-      <div>X: <code>${state.players.X || "—"}</code> · O: <code>${state.players.O || "—"}</code></div>
-      <div>master_hash: <code data-ttt-master>${lastMaster || "(hash tip)"}</code></div>
+      <div>master_hash: <code data-ttt-master>${lastMaster || "(hash tip after a move)"}</code></div>
     `;
   }
 }
@@ -125,13 +135,13 @@ async function hashLocal() {
 
 async function onCell(index) {
   try {
-    const chainMode = document.querySelector("[data-ttt-chain]")?.checked;
-    if (chainMode) {
+    const mark = state.turn;
+    if (chainModeOn()) {
       if (!client || !key0 || !key1) {
-        say("Connect API and load/generate group keys first.", "error");
+        say("On-chain mode needs Connect + group keys (see Advanced).", "error");
         return;
       }
-      say(`On-chain move ${mark} @ ${index}…`, "pending");
+      say(`Submitting ${mark}…`, "pending");
       const played = await playMoveOnChain({
         client,
         name: accountName(),
@@ -147,36 +157,31 @@ async function onCell(index) {
       render();
       say(
         state.winner
-          ? `On-chain tip advanced — ${state.winner === "draw" ? "draw" : state.winner + " wins"}.`
-          : `Tip ${lastMaster.slice(0, 18)}… on ${accountName()}`,
+          ? `${turnPrompt(state)} Tip on ${accountName()}.`
+          : `${turnPrompt(state)} Tip ${lastMaster.slice(0, 14)}…`,
         "ok",
       );
       return;
     }
 
     state = applyMove(state, index, mark);
-    say(`Played ${mark} at ${index} (local — not on chain).`, "pending");
     render();
-    await hashLocal();
-    say(
-      state.winner
-        ? `Game over (${state.winner}). Local tip hashed only — no explorer tx. Check On-chain mode + Connect to submit UpdateMaster.`
-        : `Move ${state.move} — local tip ${lastMaster?.slice(0, 18) ?? "?"}… (not submitted)`,
-      "ok",
-    );
+    say(turnPrompt(state), state.winner ? "ok" : "pending");
+    // Tip hash is best-effort background — don't block the next click.
+    void hashLocal()
+      .then(() => {
+        const code = document.querySelector("[data-ttt-master]");
+        if (code && lastMaster) code.textContent = lastMaster;
+      })
+      .catch(() => {
+        /* keep playing even if hash helpers fail */
+      });
   } catch (err) {
     say(err instanceof Error ? err.message : String(err), "error");
   }
 }
 
 function bind() {
-  const markSel = document.querySelector("[data-ttt-mark]");
-  markSel?.addEventListener("change", () => {
-    mark = /** @type {"X"|"O"} */ (
-      markSel instanceof HTMLSelectElement && markSel.value === "O" ? "O" : "X"
-    );
-  });
-
   document.querySelector("[data-ttt-seat]")?.addEventListener("click", () => {
     try {
       const x = /** @type {HTMLInputElement|null} */ (document.querySelector("[data-ttt-name-x]"));
@@ -194,12 +199,12 @@ function bind() {
     state = initialState();
     lastMaster = null;
     render();
-    say("Reset (local).", "ok");
+    say(turnPrompt(state), "pending");
   });
 
   document.querySelector("[data-ttt-hash]")?.addEventListener("click", async () => {
     try {
-      say("Hashing…", "pending");
+      say("Hashing tip…", "pending");
       const home = await hashLocal();
       say(`Tip ${home.masterHash}`, "ok");
       render();
@@ -298,9 +303,6 @@ function bind() {
   });
 }
 
-say(
-  "Local leaf mode — moves only recompute master_hash in the browser. Check On-chain mode, Load Simba demo keys, Connect, then play to submit UpdateMaster txs.",
-  "pending",
-);
+say(turnPrompt(state), "pending");
 bind();
 render();

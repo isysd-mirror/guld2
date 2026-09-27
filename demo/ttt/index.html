@@ -6,7 +6,7 @@
     <meta name="theme-color" content="#000000" />
     <meta
       name="description"
-      content="Reference dapp: witnessed tic-tac-toe — each move is an UpdateMaster tip."
+      content="Reference dapp: witnessed tic-tac-toe — play locally, optionally tip each move on-chain."
     />
     <meta
       http-equiv="Content-Security-Policy"
@@ -28,64 +28,60 @@
       <header class="wallet__head">
         <h1>Witnessed tic-tac-toe</h1>
         <p>
-          Reference leaf dapp (<a href="/software/#guld-tic-tac-toe">guld-tic-tac-toe</a>).
-          Each legal move is an <code>UpdateMaster</code> tip under a 1-of-2 group
-          (either key can submit — typically the winner or a batch).
-          On Simba, <code>ttt-demo</code> is auto-created by the isysd faucet.
-          SDK: <a href="/software/#guld-js">@guld/js</a>. Research:
-          <a href="/docs/research/reference-dapp.md">reference-dapp.md</a>.
+          Click the board — turns alternate X then O until someone wins.
+          Optional on-chain tips live under Advanced.
         </p>
       </header>
       <div class="ttt">
-        <p data-ttt-status data-state="pending">Loading…</p>
+        <p class="wallet__status" data-ttt-status data-state="pending">Loading…</p>
         <div class="ttt__board" data-ttt-board></div>
         <div class="ttt__meta" data-ttt-meta></div>
         <div class="ttt__actions">
+          <button type="button" class="btn btn--primary" data-ttt-reset>New game</button>
           <button type="button" class="btn" data-ttt-hash>Hash tip</button>
           <button type="button" class="btn" data-ttt-export>Export state.json</button>
-          <button type="button" class="btn" data-ttt-reset>Reset</button>
         </div>
-        <div class="ttt__panel">
-          <label>
-            <input type="checkbox" data-ttt-chain />
-            On-chain mode — submit each move as UpdateMaster (shows in explorer)
-          </label>
-          <label>API base</label>
-          <input data-ttt-api value="/api/v1" autocomplete="off" />
-          <label>Play as</label>
-          <select data-ttt-mark>
-            <option value="X">X</option>
-            <option value="O">O</option>
-          </select>
-          <label>Player X (Guld name)</label>
-          <input data-ttt-name-x placeholder="alice" autocomplete="off" />
-          <label>Player O (Guld name)</label>
-          <input data-ttt-name-o placeholder="bob" autocomplete="off" />
-          <label>Group account</label>
-          <input data-ttt-account placeholder="ttt-demo" value="ttt-demo" autocomplete="off" />
-          <label>Payer name (funds register; --dev: alice)</label>
-          <input data-ttt-payer placeholder="alice" autocomplete="off" />
-          <label>Payer private key (0x…)</label>
-          <input data-ttt-payer-key type="password" autocomplete="off" />
-          <label>Group key 0 (X)</label>
-          <input data-ttt-key0 type="password" autocomplete="off" />
-          <label>Group key 1 (O)</label>
-          <input data-ttt-key1 type="password" autocomplete="off" />
-          <div class="ttt__actions">
-            <button type="button" class="btn" data-ttt-seat>Seat players</button>
-            <button type="button" class="btn" data-ttt-load-demo>Load Simba demo keys</button>
-            <button type="button" class="btn" data-ttt-gen-keys>Generate keys</button>
-            <button type="button" class="btn" data-ttt-connect>Connect</button>
-            <button type="button" class="btn" data-ttt-register>Register group</button>
+        <details class="ttt__advanced">
+          <summary>Advanced — on-chain UpdateMaster</summary>
+          <div class="ttt__panel">
+            <label>
+              <input type="checkbox" data-ttt-chain />
+              On-chain mode — submit each move as UpdateMaster (shows in explorer)
+            </label>
+            <label>API base</label>
+            <input data-ttt-api value="/api/v1" autocomplete="off" />
+            <label>Player X (Guld name)</label>
+            <input data-ttt-name-x placeholder="alice" autocomplete="off" />
+            <label>Player O (Guld name)</label>
+            <input data-ttt-name-o placeholder="bob" autocomplete="off" />
+            <label>Group account</label>
+            <input data-ttt-account placeholder="ttt-demo" value="ttt-demo" autocomplete="off" />
+            <label>Payer name (funds register; --dev: alice)</label>
+            <input data-ttt-payer placeholder="alice" autocomplete="off" />
+            <label>Payer private key (0x…)</label>
+            <input data-ttt-payer-key type="password" autocomplete="off" />
+            <label>Group key 0 (X)</label>
+            <input data-ttt-key0 type="password" autocomplete="off" />
+            <label>Group key 1 (O)</label>
+            <input data-ttt-key1 type="password" autocomplete="off" />
+            <div class="ttt__actions">
+              <button type="button" class="btn" data-ttt-seat>Seat players</button>
+              <button type="button" class="btn" data-ttt-load-demo>Load Simba demo keys</button>
+              <button type="button" class="btn" data-ttt-gen-keys>Generate keys</button>
+              <button type="button" class="btn" data-ttt-connect>Connect</button>
+              <button type="button" class="btn" data-ttt-register>Register group</button>
+            </div>
+            <p class="ttt__hint">
+              On-chain: Load Simba demo keys → Connect → enable On-chain mode →
+              play. Each move becomes an <code>UpdateMaster</code> tip under
+              <code>ttt-demo</code> (faucet auto-registers on testnet).
+              Reference:
+              <a href="/software/#guld-tic-tac-toe">guld-tic-tac-toe</a>
+              ·
+              <a href="/docs/research/reference-dapp.md">reference-dapp.md</a>.
+            </p>
           </div>
-          <p class="ttt__hint">
-            Default is <strong>local only</strong>: the tip hash updates in this
-            page, but nothing is broadcast — the explorer stays empty. To put
-            moves on Simba: enable On-chain mode → Load Simba demo keys →
-            Connect → play (or Register group if <code>ttt-demo</code> is
-            missing). Needs a peer with <code>--http</code>.
-          </p>
-        </div>
+        </details>
       </div>
     </main>
     <guld-footer></guld-footer>
