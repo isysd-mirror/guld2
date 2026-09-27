@@ -1,4 +1,5 @@
 import "./chrome.js";
+import { currencyTicker, loadNetworkInfo } from "./lib/network.js";
 import { escapeHtml } from "./lib/rpc.js";
 
 /**
@@ -18,6 +19,7 @@ const qEl = document.querySelector("[data-explorer-q]");
 const stateEl = document.querySelector("[data-explorer-state]");
 
 async function boot() {
+  const ticker = currencyTicker(await loadNetworkInfo());
   try {
     const res = await fetch("/data/legacy-accounts.json", {
       headers: { Accept: "application/json" },
@@ -25,9 +27,9 @@ async function boot() {
     if (!res.ok) throw new Error(`HTTP ${res.status}`);
     snapshot = /** @type {Snapshot} */ (await res.json());
     if (metaEl instanceof HTMLElement) {
-      metaEl.textContent = `${snapshot.accounts.toLocaleString()} accounts · ${snapshot.total_guld} GULD · ${snapshot.with_pgp} PGP-ready · ${snapshot.unbound} unbound · ${snapshot.claimed} claimed · manifest ${snapshot.manifest_hash.slice(0, 18)}…`;
+      metaEl.textContent = `${snapshot.accounts.toLocaleString()} accounts · ${snapshot.total_guld} ${ticker} · ${snapshot.with_pgp} PGP-ready · ${snapshot.unbound} unbound · ${snapshot.claimed} claimed · manifest ${snapshot.manifest_hash.slice(0, 18)}…`;
     }
-    render();
+    render(ticker);
   } catch (err) {
     if (tableHost instanceof HTMLElement) {
       tableHost.innerHTML = `<p class="explorer__empty">Could not load legacy snapshot.</p>`;
@@ -36,7 +38,8 @@ async function boot() {
   }
 }
 
-function render() {
+/** @param {string} [ticker] */
+function render(ticker = currencyTicker()) {
   if (!(tableHost instanceof HTMLElement) || !snapshot) return;
   const q = (qEl instanceof HTMLInputElement ? qEl.value : "").trim().toLowerCase();
   const stateFilter = stateEl instanceof HTMLSelectElement ? stateEl.value : "all";
@@ -73,7 +76,7 @@ function render() {
     <thead>
       <tr>
         <th><button type="button" data-sort="name">Name</button></th>
-        <th class="num"><button type="button" data-sort="balance">Balance (GULD)</button></th>
+        <th class="num"><button type="button" data-sort="balance">Balance (${ticker})</button></th>
         <th>PGP fingerprints</th>
         <th><button type="button" data-sort="claim_state">Claim state</button></th>
       </tr>

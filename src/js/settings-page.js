@@ -19,7 +19,7 @@ import {
   renderExportKeySection,
 } from "./lib/key-export.js";
 import { keyring } from "./lib/keyring.js";
-import { loadNetworkInfo, NETWORK_PRESETS } from "./lib/network.js";
+import { currencyTicker, loadNetworkInfo, NETWORK_PRESETS } from "./lib/network.js";
 import { accountDetailsHtml, registrationExpiryHtml } from "./lib/account-meta.js";
 import { docsViewerHref } from "./lib/doc-paths.js";
 import { qrSvgDataUrl } from "./lib/qr.js";
@@ -53,6 +53,7 @@ async function render() {
   const peer = await loadPeerInfo(apiBase);
   const invite = deskInviteUrl(gw);
   const net = await loadNetworkInfo(apiBase);
+  const ticker = currencyTicker(net);
   let accountBlock = "";
   if (id.name) {
     try {
@@ -113,7 +114,7 @@ async function render() {
       <fieldset>
         <legend>Your OTC desk (Paymento)</legend>
         <p class="wallet__meta">
-          After you hold GULD, you can sell sponsorships for BTC, ETH, USDT, USDC, and
+          After you hold ${ticker}, you can sell sponsorships for BTC, ETH, USDT, USDC, and
           other rails Paymento supports — at <em>your</em> price. Friends open your invite
           link, pay your store, and you sign <code>RegisterUsername</code> on
           <a href="${GATEWAY_HREF}">Gateway</a>.
@@ -125,7 +126,7 @@ async function render() {
           peer?.paymentLink
             ? `<p class="wallet__note">Peer bootstrap desk: <code>${escapeHtml(String(peer.paymentLink))}</code>${
                 peer.feeUsd != null
-                  ? ` · operator asks $${escapeHtml(String(peer.feeUsd))} (not a GULD market price)`
+                  ? ` · operator asks $${escapeHtml(String(peer.feeUsd))} (not a ${ticker} market price)`
                   : ""
               }</p>`
             : `<p class="wallet__note">This peer has no bootstrap payment link — publish yours to sell here.</p>`
@@ -153,7 +154,7 @@ async function render() {
         <label>
           Your desk asking price (USD)
           <input name="feeUsd" type="number" min="1" max="10000" step="1" value="${escapeHtml(String(gw.feeUsd))}" />
-          <span class="wallet__meta">What you charge off-chain — not a protocol or GULD market price.</span>
+          <span class="wallet__meta">What you charge off-chain — not a protocol or ${ticker} market price.</span>
         </label>
         <label>
           Paymento API key <span class="wallet__meta">(optional)</span>

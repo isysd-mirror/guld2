@@ -12,7 +12,7 @@ import {
 } from "./lib/crypto.js";
 import { resolveRegistrationDesk } from "./lib/desk.js";
 import { keyring } from "./lib/keyring.js";
-import { loadNetworkInfo } from "./lib/network.js";
+import { currencyTicker, loadNetworkInfo } from "./lib/network.js";
 import { escapeHtml, quantaToGuld } from "./lib/rpc.js";
 import { explorerPendingTxHref, extractTxId } from "./lib/tx-feedback.js";
 
@@ -23,6 +23,8 @@ const titleEl = document.querySelector("[data-register-title]");
 const leadEl = document.querySelector("[data-register-lead]");
 
 const apiBase = resolveApiBase();
+/** @type {string} */
+let ticker = "tGULD";
 const params = new URLSearchParams(location.search);
 const isGroup = params.get("kind") === "group";
 
@@ -332,7 +334,7 @@ function renderStep1() {
           `/chain/fees/registration?kind=individual&name=${encodeURIComponent(name)}`,
         );
         say(
-          `“${name}” is available · on-chain fee ≈ ${String(fee.feeGuld ?? quantaToGuld(fee.fee))} GULD (paid by your sponsor).`,
+          `“${name}” is available · on-chain fee ≈ ${String(fee.feeGuld ?? quantaToGuld(fee.fee))} ${currencyTicker()} (paid by your sponsor).`,
           "ok",
         );
         renderStepPassphrase();
@@ -396,7 +398,7 @@ function renderStepKeys() {
         `/chain/fees/registration?kind=group&name=${encodeURIComponent(state.name)}&nKeys=${n}`,
       );
       say(
-        `Group · ${n} keys · ${threshold}-of-${n} · fee ≈ ${fee.feeGuld ?? quantaToGuld(fee.fee)} GULD/yr`,
+        `Group · ${n} keys · ${threshold}-of-${n} · fee ≈ ${fee.feeGuld ?? quantaToGuld(fee.fee)} ${currencyTicker()}/yr`,
         "ok",
       );
       renderStepPassphrase();
@@ -552,12 +554,12 @@ function renderStepConfirm() {
   hostEl.innerHTML = `
     <article class="wallet__card">
       <p class="wallet__name">${escapeHtml(state.name)}</p>
-      <p class="wallet__meta">Confirm — a sponsor pays the on-chain fee in GULD.</p>
+      <p class="wallet__meta">Confirm — a sponsor pays the on-chain fee in ${ticker}.</p>
       <ul class="wallet__meta">
         <li>Type: <strong>${isGroup ? "group" : "individual"}</strong></li>
-        <li>Registration fee: <strong>${escapeHtml(regFeeGuld)} GULD</strong> / year (to block miner)</li>
+        <li>Registration fee: <strong>${escapeHtml(regFeeGuld)} ${ticker}</strong> / year (to block miner)</li>
         <li>Threshold: ${escapeHtml(String(req.threshold))} of ${keys.length}</li>
-        <li>Endowment: ${escapeHtml(quantaToGuld(String(req.endowment || "0")))} GULD</li>
+        <li>Endowment: ${escapeHtml(quantaToGuld(String(req.endowment || "0")))} ${ticker}</li>
         <li>Your public key (keys[0]): <code>${escapeHtml(state.pubHex)}</code></li>
       </ul>
       <label class="wallet__meta">Registration request (friend sponsor)
@@ -566,7 +568,7 @@ function renderStepConfirm() {
       <p class="wallet__actions wallet__spacer--sm">
         <button type="button" class="btn btn--outline" data-copy-req>Copy request JSON</button>
       </p>
-      <p class="wallet__note">Your encrypted key stays on this device. GULD has no fixed USD price — any off-chain desk fee is set by that operator, not the protocol.</p>
+      <p class="wallet__note">Your encrypted key stays on this device. ${ticker} has no fixed USD price — any off-chain desk fee is set by that operator, not the protocol.</p>
       <p data-faucet-slot></p>
       <p class="wallet__actions">
         <button type="button" class="btn btn--primary" data-faucet-register-placeholder hidden>Register via faucet</button>
@@ -584,7 +586,7 @@ function renderStepConfirm() {
       if (!info?.ready) return;
       faucetSlot.innerHTML = `
         <p class="wallet__note">
-          <strong>Testnet faucet</strong> — this peer can sponsor you in GULD (no off-chain payment). Cooldown applies.
+          <strong>Testnet faucet</strong> — this peer can sponsor you in ${ticker} (no off-chain payment). Cooldown applies.
         </p>
       `;
       const faucetBtn = hostEl.querySelector("[data-faucet-register-placeholder]");
@@ -713,7 +715,7 @@ function renderStep3(checkout, desk) {
         : "Paying this peer’s bootstrap desk";
   const feeLabel =
     checkout.feeUsd != null || desk.feeUsd != null
-      ? `Desk asking price: $${escapeHtml(String(checkout.feeUsd ?? desk.feeUsd))} (operator-set, not a GULD market price)`
+      ? `Desk asking price: $${escapeHtml(String(checkout.feeUsd ?? desk.feeUsd))} (operator-set, not a ${ticker} market price)`
       : "Continue to this desk’s payment link";
   hostEl.innerHTML = `
     <article class="wallet__card">
@@ -725,7 +727,7 @@ function renderStep3(checkout, desk) {
           ? `<p class="wallet__note">${escapeHtml(state.instructions)}</p>`
           : `<p class="wallet__meta">Payment is matched by this Order ID automatically when using the gateway API.</p>`
       }
-      <p class="wallet__note">On-chain registration is still paid in GULD by the sponsoring account after payment clears (~${BLOCK_INTERVAL_MIN} min per block).</p>
+      <p class="wallet__note">On-chain registration is still paid in ${ticker} by the sponsoring account after payment clears (~${BLOCK_INTERVAL_MIN} min per block).</p>
       <p class="wallet__actions">
         <a class="btn btn--primary" href="${escapeHtml(state.paymentUrl)}" rel="noopener" target="_blank" data-pay>Open payment link</a>
         <button type="button" class="btn btn--outline" data-paid>I’ve paid — continue</button>
@@ -816,7 +818,7 @@ async function pollUntilRegistered() {
           "beforeend",
           `<p class="wallet__note wallet__spacer">
             Next: open <a href="/settings/">Settings</a> to link <strong>your</strong> Paymento store
-            and sell GULD to friends (OTC desk). Then share your invite link from Settings.
+            and sell ${ticker} to friends (OTC desk). Then share your invite link from Settings.
           </p>
           <p class="wallet__actions">
             <a class="btn btn--primary" href="/wallet/#/account/${encodeURIComponent(state.name)}">Open wallet</a>
@@ -845,14 +847,15 @@ async function boot() {
   if (titleEl) titleEl.textContent = isGroup ? "Create a group" : "Sign up";
 
   const net = await loadNetworkInfo(apiBase);
+  ticker = currencyTicker(net);
   const faucetReady = Boolean(net.faucet?.ready);
   if (leadEl) {
     if (isGroup) {
       leadEl.innerHTML = `Choose an available <strong>group</strong> name, set co-signer keys and threshold, then get sponsored (faucet, friend, or optional paid desk). On-chain fee scales with signer count.`;
     } else if (faucetReady) {
-      leadEl.innerHTML = `Choose an available name and generate keys here. On <strong>testnet</strong>, this peer’s faucet can sponsor you in GULD — or use a friend / optional paid desk.`;
+      leadEl.innerHTML = `Choose an available name and generate keys here. On <strong>testnet</strong>, this peer’s faucet can sponsor you in ${ticker} — or use a friend / optional paid desk.`;
     } else {
-      leadEl.innerHTML = `Choose an available name and generate keys here. A funded sponsor pays the on-chain fee in GULD (friend JSON, or an optional paid desk if this peer lists one).`;
+      leadEl.innerHTML = `Choose an available name and generate keys here. A funded sponsor pays the on-chain fee in ${ticker} (friend JSON, or an optional paid desk if this peer lists one).`;
     }
   }
 

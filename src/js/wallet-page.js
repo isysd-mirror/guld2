@@ -61,6 +61,7 @@ import {
   formatTxSubmittedHtml,
   statusSlotHtml,
 } from "./lib/tx-feedback.js";
+import { currencyTicker, loadNetworkInfo } from "./lib/network.js";
 import { setActiveName } from "./lib/wallet-session.js";
 import { walletAccountHref, walletNameFromHash } from "./lib/wallet-nav.js";
 
@@ -269,13 +270,15 @@ async function route() {
   const gen = ++routeGen;
   const r = parseRoute();
   if (!(hostEl instanceof HTMLElement)) return;
+  const net = await loadNetworkInfo(apiBase);
+  const ticker = currencyTicker(net);
 
   if (r.view === "gate") {
     const next = `${location.pathname}${location.search}${location.hash || ""}`;
     hostEl.innerHTML = `
       <article class="wallet__card">
         <p class="wallet__name">Wallet</p>
-        <p class="wallet__meta">Log in with a local key to send GULD and review your activity.</p>
+        <p class="wallet__meta">Log in with a local key to send ${ticker} and review your activity.</p>
         <p class="wallet__actions">
           <a class="btn btn--primary" href="${LOGIN_HREF}?next=${encodeURIComponent(next)}">Log in</a>
           <a class="btn btn--outline" href="${REGISTER_HREF}">Sign up</a>
@@ -348,7 +351,7 @@ async function route() {
           ? `<a href="/explorer/#/account/${encodeURIComponent(String(row.counterparty).toLowerCase())}">${escapeHtml(sum.primary)}</a>`
           : escapeHtml(sum.primary);
       const liClass = unconfirmed ? ` class="wallet__activity-item wallet__activity-item--unconfirmed"` : "";
-      return `<li${liClass}><strong>${escapeHtml(sum.type)}</strong> ${primary} · ${escapeHtml(sum.amount)} GULD <span class="wallet__meta">${when}</span></li>`;
+      return `<li${liClass}><strong>${escapeHtml(sum.type)}</strong> ${primary} · ${escapeHtml(sum.amount)} ${ticker} <span class="wallet__meta">${when}</span></li>`;
     });
 
     const unlocked = keyring.hasLocalKey(r.name);
@@ -371,7 +374,7 @@ async function route() {
       const canSpend = myIndex >= 0;
       sendPanel = `
         <article class="wallet__card wallet__card--plain">
-          <h2 class="wallet__panel-title">Send GULD</h2>
+          <h2 class="wallet__panel-title">Send ${ticker}</h2>
           ${
             !canSpend
               ? `<p class="wallet__note">This device’s key no longer matches any on-chain key for this account. ` +
@@ -386,8 +389,8 @@ async function route() {
             </label>
             <div data-send-suggest class="wallet__suggest" hidden></div>
             <p class="wallet__meta" data-send-to-hint aria-live="polite"></p>
-            <label>Amount (GULD) <input name="amount" type="text" inputmode="decimal" required placeholder="1" /></label>
-            <label>Inclusion fee (GULD) <input name="fee" type="text" inputmode="decimal" value="0.000001" /></label>
+            <label>Amount (${ticker}) <input name="amount" type="text" inputmode="decimal" required placeholder="1" /></label>
+            <label>Inclusion fee (${ticker}) <input name="fee" type="text" inputmode="decimal" value="0.000001" /></label>
             <label>Memo (optional) <input name="memo" type="text" maxlength="64" placeholder="order id / invoice" /></label>
             <label class="wallet__check"><input name="favorite" type="checkbox" /> Save recipient as favorite</label>
             <button type="submit" class="btn btn--primary">${
@@ -426,7 +429,7 @@ async function route() {
             <h2 class="wallet__panel-title">Update master hash</h2>
             <form class="wallet__form" data-update-master-form>
               <label>New master hash (0x…32 bytes) <input name="master" type="text" spellcheck="false" required /></label>
-              <label>Inclusion fee (GULD) <input name="fee" type="text" value="0.000001" /></label>
+              <label>Inclusion fee (${ticker}) <input name="fee" type="text" value="0.000001" /></label>
               <button type="submit" class="btn btn--outline">${
                 threshold > 1 ? "Start cosign (UpdateMaster)" : "Submit UpdateMaster"
               }</button>
@@ -447,7 +450,7 @@ async function route() {
               <label>New private key for keys[0] (0x…, kept locally after rotate)
                 <input name="priv" type="password" spellcheck="false" autocomplete="off" required />
               </label>
-              <label>Inclusion fee (GULD) <input name="fee" type="text" value="0.000001" /></label>
+              <label>Inclusion fee (${ticker}) <input name="fee" type="text" value="0.000001" /></label>
               <p class="wallet__meta" data-rotate-fee-hint>${
                 kind === "group"
                   ? "Group: adding keys charges F_group delta; shrinking is inclusion only."
@@ -470,8 +473,8 @@ async function route() {
             <h2 class="wallet__panel-title">Create subaccount</h2>
             <form class="wallet__form" data-register-sub-form>
               <label>Label (e.g. mobile) <input name="label" type="text" spellcheck="false" pattern="[a-z0-9]+(-[a-z0-9]+)*" required placeholder="mobile" /></label>
-              <label>Endowment (GULD) <input name="endowment" type="text" inputmode="decimal" value="0.1" /></label>
-              <label>Inclusion fee (GULD) <input name="fee" type="text" value="0.000001" /></label>
+              <label>Endowment (${ticker}) <input name="endowment" type="text" inputmode="decimal" value="0.1" /></label>
+              <label>Inclusion fee (${ticker}) <input name="fee" type="text" value="0.000001" /></label>
               <p class="wallet__meta">Creates <code>${escapeHtml(r.name)}.&lt;label&gt;</code> with a new local key.</p>
               <button type="submit" class="btn btn--outline">Register subaccount</button>
               ${statusSlotHtml()}
@@ -510,7 +513,7 @@ async function route() {
           <p class="wallet__name">${escapeHtml(r.name)}</p>
           <button type="button" class="btn btn--outline btn--small" data-copy-name>Copy</button>
         </div>
-        <p class="wallet__balance">${escapeHtml(balanceGuld)} <span class="wallet__meta">GULD</span></p>
+        <p class="wallet__balance">${escapeHtml(balanceGuld)} <span class="wallet__meta">${ticker}</span></p>
       </article>
       ${renderWalletView(`${sendPanel}${historyPanel}${advancedPanel}`)}
     `;
@@ -545,7 +548,7 @@ async function route() {
         .then((info) => {
           if (!info?.ready) return;
           dripSlot.innerHTML = `
-            <p class="wallet__note"><strong>Testnet faucet</strong> — request ${escapeHtml(String(info.dripGuld ?? 10))} GULD (cooldown applies; next block ~10 min).</p>
+            <p class="wallet__note"><strong>Testnet faucet</strong> — request ${escapeHtml(String(info.dripGuld ?? 10))} ${ticker} (cooldown applies; next block ~10 min).</p>
             <button type="button" class="btn btn--outline" data-request-drip>Request faucet drip</button>
             ${statusSlotHtml()}
           `;
@@ -559,7 +562,7 @@ async function route() {
               const out = await faucetDrip(apiBase, r.name);
               say(
                 formatTxSubmittedHtml(
-                  `Faucet sent ${out?.amountGuld ?? 10} GULD — unconfirmed…`,
+                  `Faucet sent ${out?.amountGuld ?? 10} ${ticker} — unconfirmed…`,
                   out,
                 ),
                 "pending",
@@ -880,7 +883,7 @@ async function route() {
           ),
         ]);
         const delta = BigInt(String(fNew.fee ?? "0")) - BigInt(String(fOld.fee ?? "0"));
-        rotateHint.textContent = `Key set ${nOld} → ${nNew}: expansion fee ≈ ${quantaToGuld(String(delta))} GULD (plus inclusion).`;
+        rotateHint.textContent = `Key set ${nOld} → ${nNew}: expansion fee ≈ ${quantaToGuld(String(delta))} ${ticker} (plus inclusion).`;
       } catch (err) {
         rotateHint.textContent = `Could not estimate expansion fee: ${/** @type {Error} */ (err).message}`;
       }
@@ -956,7 +959,7 @@ async function route() {
           const delta = BigInt(String(fNew.fee ?? "0")) - BigInt(String(fOld.fee ?? "0"));
           if (
             !confirm(
-              `This expands the group ${nOld} → ${pubs.length} keys.\nProtocol expansion fee ≈ ${quantaToGuld(String(delta))} GULD (vested to miners), plus inclusion.\nContinue?`,
+              `This expands the group ${nOld} → ${pubs.length} keys.\nProtocol expansion fee ≈ ${quantaToGuld(String(delta))} ${ticker} (vested to miners), plus inclusion.\nContinue?`,
             )
           ) {
             return;

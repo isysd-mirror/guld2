@@ -10,12 +10,16 @@ import {
 } from "./lib/claim.js";
 import { pubkeyHex, randomPrivateKey, toHex } from "./lib/crypto.js";
 import { keyring } from "./lib/keyring.js";
+import { currencyTicker, loadNetworkInfo } from "./lib/network.js";
 import { escapeHtml, quantaToGuld } from "./lib/rpc.js";
 import { explorerPendingTxHref, formatTxSubmittedHtml } from "./lib/tx-feedback.js";
 import { showToast } from "./lib/toast.js";
 
 const statusEl = document.querySelector("[data-claim-status]");
 const hostEl = document.querySelector("[data-claim-host]");
+
+/** @type {string} */
+let ticker = "tGULD";
 
 /** @type {import("./lib/claim.js").ClaimDraft | null} */
 let claimDraft = null;
@@ -83,7 +87,7 @@ async function lookupLegacyName(name) {
     const body = await apiGet(apiBase, `/chain/accounts/${encodeURIComponent(name)}`);
     const acct = body.account;
     const guld = body.balance?.guld ?? quantaToGuld(String(body.balance?.quanta ?? "0"));
-    ui.lookupPrimary = `Balance ${guld} GULD`;
+    ui.lookupPrimary = `Balance ${guld} ${ticker}`;
     if (acct?.legacy) {
       const hint = acct.legacy.binding_hint ? ` · ${acct.legacy.binding_hint}` : "";
       ui.lookupSecondary = `legacy: ${acct.legacy.status}${hint}`;
@@ -392,7 +396,7 @@ function renderForm() {
       const txHref = explorerPendingTxHref(result?.tx_id);
       showToast({
         title: "Claim submitted",
-        body: "Open Wallet to send GULD, or view the unconfirmed tx in the explorer.",
+        body: `Open Wallet to send ${ticker}, or view the unconfirmed tx in the explorer.`,
         href: result?.tx_id && result.tx_id !== "ok" ? txHref : "/wallet/",
         hrefLabel: result?.tx_id && result.tx_id !== "ok" ? "View unconfirmed tx" : "Open wallet",
       });
@@ -430,6 +434,12 @@ const storedDraft = loadClaimDraft();
 if (storedDraft) {
   claimDraft = storedDraft;
 }
+
+void loadNetworkInfo().then((net) => {
+  ticker = currencyTicker(net);
+  renderForm();
+});
+
 renderForm();
 if (storedDraft) {
   setStatus("Restored in-progress claim draft.", "ok");

@@ -14,8 +14,12 @@ import {
   activityConfirmations,
   activityIsUnconfirmed,
 } from "./lib/rpc.js";
+import { currencyTicker, loadNetworkInfo } from "./lib/network.js";
 
 const PAGE_SIZE = 20;
+
+/** @type {string} */
+let ticker = "tGULD";
 
 const statusEl = document.querySelector("[data-explorer-status]");
 const hostEl = document.querySelector("[data-explorer-host]");
@@ -386,6 +390,7 @@ async function navigateLookup(query) {
 
 async function route() {
   haltLive();
+  ticker = currencyTicker(await loadNetworkInfo());
   // Prefer Bitcoin-style path; keep `#/tx/pending/…` as a one-shot alias.
   if (/#\/tx\/pending\//i.test(location.hash)) {
     location.hash = location.hash.replace(/\/tx\/pending\//i, "/tx/unconfirmed/");
@@ -506,7 +511,7 @@ async function updateAccountSuggest(input, suggest) {
       .map(
         (a) =>
           `<li><a href="${accountHref(a.name)}"><code>${escapeHtml(a.name)}</code></a>
-            <span class="explorer__meta">${escapeHtml(String(a.kind || ""))} · ${escapeHtml(quantaToGuld(a.balance || "0"))} GULD</span></li>`,
+            <span class="explorer__meta">${escapeHtml(String(a.kind || ""))} · ${escapeHtml(quantaToGuld(a.balance || "0"))} ${ticker}</span></li>`,
       )
       .join("")}</ul>`;
   } catch {
@@ -713,7 +718,7 @@ async function renderPendingTx(id) {
         <p><code title="${escapeHtml(String(loc.tx_id || id))}">${escapeHtml(shortHash(loc.tx_id || id, 14))}</code></p>
       </header>
       <p class="explorer__tx-summary">${linkifyTxPrimary(tx, s.primary)}
-        ${s.amount !== "—" ? ` · <strong>${escapeHtml(s.amount)}</strong> GULD` : ""}</p>
+        ${s.amount !== "—" ? ` · <strong>${escapeHtml(s.amount)}</strong> ${ticker}` : ""}</p>
       <dl class="explorer-kv-grid">
         <div class="explorer-kv"><dt>Confirmations</dt><dd class="num">0</dd></div>
         ${kvRows}
@@ -749,7 +754,7 @@ function blocksTable(rows) {
     .join("");
   return `<div class="explorer__table-wrap"><table class="explorer-table">
     <thead><tr>
-      <th class="num">Height</th><th>Time</th><th>Miner</th><th class="num">Txs</th><th class="num">Fees (GULD)</th>
+      <th class="num">Height</th><th>Time</th><th>Miner</th><th class="num">Txs</th><th class="num">Fees (${ticker})</th>
     </tr></thead>
     <tbody>${body}</tbody>
   </table></div>`;
@@ -805,7 +810,7 @@ async function renderBlock(height) {
     ["Miner", String(h.miner || "—"), "name"],
     ["Difficulty", String(h.difficulty ?? "—"), "text"],
     ["Nonce", String(h.nonce ?? "—"), "text"],
-    ["Inclusion fees", `${quantaToGuld(h.inclusion_fees || "0")} GULD`, "text"],
+    ["Inclusion fees", `${quantaToGuld(h.inclusion_fees || "0")} ${ticker}`, "text"],
     ["Prev hash", String(h.prev_hash || "—"), "hash"],
     ["State root", String(h.state_root || "—"), "hash"],
     ["Tx root", String(h.tx_root || "—"), "hash"],
@@ -956,7 +961,7 @@ async function renderTx(height, index) {
         <p>${txLink(height, index)} · ${blockLink(height, `block ${height}`)} · ${escapeHtml(confLabel)} · ${escapeHtml(formatTime(header.timestamp))}</p>
       </header>
       <p class="explorer__tx-summary">${linkifyTxPrimary(tx, s.primary)}
-        ${s.amount !== "—" ? ` · <strong>${escapeHtml(s.amount)}</strong> GULD` : ""}</p>
+        ${s.amount !== "—" ? ` · <strong>${escapeHtml(s.amount)}</strong> ${ticker}` : ""}</p>
       <dl class="explorer-kv-grid">
         <div class="explorer-kv"><dt>Confirmations</dt><dd class="num">${escapeHtml(String(conf))}</dd></div>
         ${kvRows}
@@ -1005,7 +1010,7 @@ function txDetailRows(tx) {
       continue;
     }
     if (amountFields.has(key)) {
-      rows.push([labelize(key), `${escapeHtml(quantaToGuld(/** @type {string} */ (val)))} GULD`]);
+      rows.push([labelize(key), `${escapeHtml(quantaToGuld(/** @type {string} */ (val)))} ${ticker}`]);
       continue;
     }
     if (key === "memo") {
@@ -1152,7 +1157,7 @@ async function renderAccount(name) {
         <h2>${escapeHtml(name)}</h2>
         <p>${escapeHtml(String(account.kind || "account"))}</p>
       </header>
-      <p class="explorer__balance"><strong>${escapeHtml(balanceGuld)}</strong> GULD</p>
+      <p class="explorer__balance"><strong>${escapeHtml(balanceGuld)}</strong> ${ticker}</p>
       <dl class="explorer-kv-grid">
         <div class="explorer-kv"><dt>Threshold</dt><dd class="num">${escapeHtml(String(account.threshold ?? "—"))}</dd></div>
         <div class="explorer-kv"><dt>Nonce</dt><dd class="num">${escapeHtml(String(account.nonce ?? "—"))}</dd></div>

@@ -64,7 +64,8 @@ The wallet MUST still support **friend sponsor** (paste/QR registration JSON) wi
 
 Peers expose `mode` (`testnet` | `mainnet`), `network`, and optional `faucet` on `GET /api/v1/chain/status`. The reference UI MUST:
 
-- Show a site-wide banner/footer derived from that peer (not a hard-coded “beta forever” string).
+- Show a site-wide **footer network switcher/indicator** derived from that peer (not a hard-coded “beta forever” string). Do not use a top-of-page testnet banner.
+- Display the native currency as **`tGULD`** on testnet and **`GULD`** on mainnet (display ticker only; protocol amounts remain GULD quanta).
 - Keep **settings presets** for both testnet and mainnet API bases after mainnet launch.
 - On testnet when `faucet.ready`, offer **faucet register** (`POST /api/v1/faucet/register`) and **10 GULD drip** (`POST /api/v1/faucet/drip`) on register / wallet. Mainnet peers MUST NOT enable faucet routes.
 

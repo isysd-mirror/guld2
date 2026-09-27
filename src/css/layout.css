@@ -40,6 +40,10 @@
 
 guld-header {
   display: block;
+  width: 100%;
+  max-width: 100%;
+  min-width: 0;
+  box-sizing: border-box;
 }
 
 guld-header:has(.site-header--overlay) {
@@ -53,23 +57,7 @@ guld-header:has(.site-header--solid) {
   position: sticky;
   top: 0;
   z-index: 20;
-}
-
-.site-banner[data-mode="mainnet"] {
-  background: #1a4d3a;
-}
-
-.site-banner[data-mode="testnet"] {
-  background: #c45c26;
-}
-
-
-.site-banner p {
-  margin: 0;
-}
-
-.site-banner strong {
-  font-weight: 700;
+  width: 100%;
 }
 
 .site-header {
@@ -78,6 +66,8 @@ guld-header:has(.site-header--solid) {
   align-items: center;
   justify-content: space-between;
   gap: 1rem;
+  width: 100%;
+  box-sizing: border-box;
   padding: 1rem clamp(1rem, 4vw, 2.5rem);
 }
 
@@ -458,9 +448,70 @@ guld-footer {
   gap: 0.75rem;
 }
 
-.site-footer__legal {
+.site-footer__network {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 0.5rem 0.75rem;
+}
+
+.site-footer__network-label {
+  display: inline-flex;
   margin: 0;
-  color: rgba(255, 255, 255, 0.75);
+}
+
+.site-footer__network-select {
+  appearance: none;
+  margin: 0;
+  padding: 0.35rem 1.75rem 0.35rem 0.65rem;
+  border: 1px solid rgba(255, 255, 255, 0.28);
+  border-radius: 0.35rem;
+  background:
+    var(--guld-theme)
+    url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='8' viewBox='0 0 12 8'%3E%3Cpath fill='rgba(255,255,255,0.75)' d='M1 1l5 5 5-5'/%3E%3C/svg%3E")
+    right 0.55rem center / 0.7rem no-repeat;
+  color: rgba(255, 255, 255, 0.95);
+  font: inherit;
+  font-size: 0.88rem;
+  line-height: 1.2;
+  cursor: pointer;
+}
+
+.site-footer__network-select:disabled {
+  cursor: default;
+  opacity: 0.92;
+}
+
+.site-footer__network-select:focus-visible {
+  outline: 2px solid rgba(255, 255, 255, 0.55);
+  outline-offset: 2px;
+}
+
+.site-footer__network-meta {
+  margin: 0;
+  font-size: 0.82rem;
+  color: rgba(255, 255, 255, 0.7);
+  letter-spacing: 0.02em;
+}
+
+.site-footer__network-meta[data-mode="testnet"] {
+  color: #f0b27a;
+}
+
+.site-footer__network-meta[data-mode="mainnet"] {
+  color: #8fd4b5;
+}
+
+.visually-hidden {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  padding: 0;
+  margin: -1px;
+  overflow: hidden;
+  clip: rect(0, 0, 0, 0);
+  white-space: nowrap;
+  border: 0;
 }
 
 .site-footer__nav {
