@@ -1,0 +1,17 @@
+# Interim P2P block envelope for /guld/block/2.0.0 (task 009 W6).
+# Reference: guld-p2p encode_block_bare_interim / decode_block_bare_interim.
+#
+# This is NOT a full header.bare freeze. Header fields remain JSON for v2
+# dual-wire until a post-beta cutover; txs are canonical BARE (tx.bare).
+# PoW header preimage stays the fixed binary table in docs/specs/06 §2.1.
+#
+# Layout (version byte first):
+#   version: u8 = 1
+#   header_json: data   # UTF-8 JSON object of Header (serde field names)
+#   txs: list<data>     # each element = bare_encode_tx(Tx)
+
+type InterimBlockV2 = {
+  version: u8,
+  header_json: data,
+  txs: list<data>,
+}

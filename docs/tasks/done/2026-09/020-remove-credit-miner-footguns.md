@@ -1,9 +1,9 @@
 # Task: Remove dead `credit_miner` path + stale maturity comments
 
-Status: open
+Status: done
 Priority: low
-GIP: ../gips/gip-22.md
-Spec: ../specs/06-blocks-and-consensus.md §4
+GIP: ../../gips/gip-22.md
+Spec: ../../specs/06-blocks-and-consensus.md §4
 Related: ./011-gip-22-miner-rewards.md
 
 ## Problem
@@ -30,12 +30,14 @@ External review flagged these as low–medium footguns.
 
 ## Done when
 
-- [ ] No production path credits miner balances outside ClaimReward
-- [ ] Comments match enforcement
-- [ ] Footgun API hardened or tested
+- [x] No production path credits miner balances outside ClaimReward
+- [x] Comments match enforcement
+- [x] Footgun API hardened or tested
 
 ## Notes
 
 ```
 2026-09-26: Opened from external review R6 / leftover footguns.
+2026-09-26: Closed — deleted `credit_miner`; `apply(ClaimReward)` → ClaimNeedsHeight;
+  maturity always checked in apply_at_height; tests in apply_tx; economy comment fixed.
 ```

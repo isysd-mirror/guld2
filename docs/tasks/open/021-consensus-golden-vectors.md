@@ -1,14 +1,14 @@
 # Task: Consensus golden vectors (GIP-26)
 
 Status: open
-Priority: normal (raise to **high** before mainnet; after [009](./009-bare-wire-implementation.md))
+Priority: normal (raise to **high** before mainnet; BARE TxId goldens already in [009](../done/2026-09/009-bare-wire-implementation.md))
 GIP: ../gips/gip-26.md
 Spec: ../specs/01-cryptography.md, ../schemas/README.md
-Depends: ./009-bare-wire-implementation.md, ../done/2026-09/014-enforce-difficulty-on-import.md
+Depends: ../done/2026-09/009-bare-wire-implementation.md, ../done/2026-09/014-enforce-difficulty-on-import.md
 
 ## Problem
 
-No checked-in multi-language fixtures for `TxId`, header hashes, difficulty schedule, or apply transitions. BARE schemas are TBD; JSON hashing is interim. External review: single-client + unstable identities block credibility.
+Checked-in TxId goldens exist for a few tx types ([009](../done/2026-09/009-bare-wire-implementation.md)). Broader fixtures for header hashes, difficulty schedule, apply transitions, and multi-language CI are still missing. External review: single-client credibility needs a fuller vector set.
 
 ## Goals
 

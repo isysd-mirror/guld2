@@ -55,10 +55,10 @@ Normative text is largely **locked** for A1–A11 ([task 007](../tasks/open/007-
 | PoW + 2016 retarget | 06 §2 | Locked (A1) | **yes** (seal) | — |
 | Difficulty == schedule on import | 06 §2.4–§3, [GIP-23](../gips/gip-23.md) | Accepted | **yes** | [014](../tasks/done/2026-09/014-enforce-difficulty-on-import.md) done |
 | Timestamps (MTP + 2 h) | 06 §3 | Locked (A10) | **yes** | [010](../tasks/done/2026-09/010-header-timestamp-validation.md) done |
-| Coinbase maturity 100 | 06 §4, 07 §5 | Locked | **yes** (GIP-22 path) | [011](../tasks/open/011-gip-22-miner-rewards.md) hygiene |
-| GIP-22 RewardCommit / ClaimReward | GIP-22, 03 | Accepted | **yes** (core) | [011](../tasks/open/011-gip-22-miner-rewards.md), [020](../tasks/open/020-remove-credit-miner-footguns.md) |
+| Coinbase maturity 100 | 06 §4, 07 §5 | Locked | **yes** (GIP-22 path) | [011](../tasks/done/2026-09/011-gip-22-miner-rewards.md) |
+| GIP-22 RewardCommit / ClaimReward | GIP-22, 03 | Accepted | **yes** | [011](../tasks/done/2026-09/011-gip-22-miner-rewards.md), [020](../tasks/done/2026-09/020-remove-credit-miner-footguns.md) |
 | Fork choice + reorg | 06 §2–3, 10 | Required | **yes** | [013](../tasks/done/2026-09/013-chain-reorg-implementation.md), [019](../tasks/done/2026-09/019-dual-miner-reorg-integration-test.md) done |
-| BARE wire / TxId | 01, 03, GIP-4 | Locked (A2/A4) | **no** | [009](../tasks/open/009-bare-wire-implementation.md) |
+| BARE wire / TxId | 01, 03, GIP-4 | Locked (A2/A4) | **yes** (TxId + dual-wire) | [009](../tasks/done/2026-09/009-bare-wire-implementation.md) done; datadir BARE deferred |
 | Golden vectors | [GIP-26](../gips/gip-26.md) | Draft | **no** | [021](../tasks/open/021-consensus-golden-vectors.md) |
 | AccountId preimages | 01, 02 | Locked (A3) | **yes** | — |
 | Letter fees `F_user` / `F_group` | 07, GIP-9 | Final (A8) | **yes** | — |
@@ -67,7 +67,7 @@ Normative text is largely **locked** for A1–A11 ([task 007](../tasks/open/007-
 | Attestation diversification | [GIP-25](../gips/gip-25.md) | Draft | **no** | (after Review) |
 | Genesis ceremony / block 0 | 15, 05 §6 | G1 done; G2–G4 open | partial | [012](../tasks/open/012-simba-genesis-ceremony.md) |
 | No foreign genesis names | 13, 02 | Locked (A11) | **yes** | — |
-| Mempool snapshot / persist | 12, GIP-19 | Partial spec | partial API | [008](../tasks/open/008-mempool-persistence.md) |
+| Mempool snapshot / persist | 12, GIP-19 | Spec 10 §3.1.1 | **yes** | [008](../tasks/done/2026-09/008-mempool-persistence.md) done |
 | HTTP `/api/v1` + wallet UI | 12, 14, GIP-5/17 | Shipped baseline | **yes** | UX tasks 002–005 |
 | Protocol upgrades (height rules) | 17 | Spec draft | partial | bundle with GIP-22 / GIP-23 activation |
 | Docs ↔ code sync | — | — | **yes** (2026-09-26) | [015](../tasks/done/2026-09/015-reconcile-docs-with-code.md) done |

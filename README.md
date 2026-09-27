@@ -30,6 +30,9 @@ Full map: [`docs/REPO_LAYOUT.md`](docs/REPO_LAYOUT.md) · serving git: [`docs/HO
 # Protocol tests
 cargo test
 
+# Local CI (git hooks) — Phase 1–2 on guld-state / guld-node commits
+./scripts/install-dev-hooks.sh
+
 # Node HTTP API + this tree as static site
 # → http://127.0.0.1:8080/wallet/
 # Do not expose archives/, target/, .guld-data/ in production publishes.

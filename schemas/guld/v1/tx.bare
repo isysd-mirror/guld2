@@ -1,22 +1,113 @@
-# Guld tx union (wire v1) — see docs/specs/03-transactions.md
-# Encoding: BARE (little-endian scalars, u64 length-prefixed bytes/strings)
+# Guld tx union (wire v1) — SoT: docs/specs/03-transactions.md
+# Reference encoder: src/guld-wire/src/tx.rs
+# Encoding: BARE (little-endian uints, u64 length-prefixed data/string)
+#
+# Conventions (wire v1):
+#   Amount          = u128 LE quanta (10 decimal places)
+#   Name / hex sig  = string (UTF-8; signatures and most hashes stay 0x-hex like JSON-RPC)
+#   Hash32 (ClaimReward.ref_hash only) = data (exactly 32 raw bytes)
+#   Memo            = optional data (0 = absent, 1 = present + bytes; UTF-8 when present)
+#   Cosignatures    = list<{ key_index: u64, signature: string }>
+#   version         = u8 (currently 1 on all types)
 
 type Tx = Transfer | UpdateMaster | RotateKeys | SettleRegistration
   | RegisterUsername | RegisterGroup | RegisterSubaccount | ClaimLegacy
   | RewardCommit | ClaimReward
 
-# Shared: version u8 on reward types; Amount = u128; Name/signature = string (utf8 bytes)
-# Memo = optional bytes (0 absent / 1 present + bytes)
-
 type Transfer = {
   tag: 0,
-  version: u8,          # 1
+  version: u8,
   from: string,
   to: string,
   amount: u128,
   signature: string,
   inclusion_fee: u128,
-  memo: optional bytes,
+  memo: optional data,
+}
+
+type UpdateMaster = {
+  tag: 1,
+  version: u8,
+  name: string,
+  new_master_hash: string,
+  cosignatures: list<{ key_index: u64, signature: string }>,
+  inclusion_fee: u128,
+  memo: optional data,
+}
+
+type RotateKeys = {
+  tag: 2,
+  version: u8,
+  name: string,
+  new_keys: list<string>,
+  new_threshold: u64,
+  cosignatures: list<{ key_index: u64, signature: string }>,
+  new_key_signature: string,
+  inclusion_fee: u128,
+  memo: optional data,
+}
+
+type SettleRegistration = {
+  tag: 3,
+  version: u8,
+  name: string,
+}
+
+type RegisterUsername = {
+  tag: 4,
+  version: u8,
+  payer: string,
+  name: string,
+  keys: list<string>,
+  threshold: u64,
+  initial_master_hash: string,
+  endowment: u128,
+  payer_signature: string,
+  registrant_signature: string,
+  inclusion_fee: u128,
+  memo: optional data,
+}
+
+type RegisterGroup = {
+  tag: 5,
+  version: u8,
+  payer: string,
+  name: string,
+  keys: list<string>,
+  threshold: u64,
+  initial_master_hash: string,
+  endowment: u128,
+  payer_signature: string,
+  registrant_signature: string,
+  inclusion_fee: u128,
+  memo: optional data,
+}
+
+type RegisterSubaccount = {
+  tag: 6,
+  version: u8,
+  parent: string,
+  label: string,
+  keys: list<string>,
+  threshold: u64,
+  initial_master_hash: string,
+  endowment: u128,
+  parent_signature: string,
+  sub_signature: string,
+  inclusion_fee: u128,
+  memo: optional data,
+}
+
+type ClaimLegacy = {
+  tag: 7,
+  version: u8,
+  name: string,
+  keys: list<string>,
+  threshold: u64,
+  initial_master_hash: string,
+  legacy_proof: string,
+  inclusion_fee: u128,
+  memo: optional data,
 }
 
 type RewardCommit = {
@@ -32,11 +123,9 @@ type ClaimReward = {
   tag: 9,
   version: u8,
   ref_height: u64,
-  ref_hash: bytes,      # 32 bytes raw Hash32
+  ref_hash: data,       # exactly 32 bytes
   beneficiary: string,
   amount: u128,
   inclusion_fee: u128,
   signature: string,
 }
-
-# Remaining tags 1–7 mirror Register/Transfer field order in guld-wire/src/tx.rs

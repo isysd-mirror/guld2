@@ -37,7 +37,17 @@ trait Mempool {
 }
 ```
 
-Mempool MUST reject `RewardCommit`. MUST accept `ClaimReward` before maturity (inclusion gated in consensus — [GIP-22](../gips/gip-22.md)). SHOULD persist pending claims across restarts ([task 008](../tasks/open/008-mempool-persistence.md)).
+Mempool MUST reject `RewardCommit`. MUST accept `ClaimReward` before maturity (inclusion gated in consensus — [GIP-22](../gips/gip-22.md)).
+
+### 3.1.1 Persistence (task 008)
+
+Nodes SHOULD persist the mempool under `{datadir}/mempool.jsonl` (one JSON `Tx` per line):
+
+1. **Append** on successful accept (RPC / P2P / mined `ClaimReward` queue).
+2. **Rewrite** after removals (included in a block, poison drop) and after reorg wipe.
+3. **Reload** at startup: re-validate each entry against the current tip; drop confirmed, orphaned, or invalid txs; rewrite the snapshot; then re-gossip via `seed_p2p_mempool` when P2P is up.
+
+Immature `ClaimReward` entries MUST be retained across restarts when still valid against the canonical tip.
 
 ### 3.2 Block production (miner)
 
@@ -65,6 +75,7 @@ datadir/
   peerstore/
   keys/           # miner / node identity (not account keys)
   guld-rules/     # materialized on-chain guld rule bundle (small; not full source tree)
+  mempool.jsonl   # pending txs (task 008); rewritten on mine/reorg
   config.toml
 ```
 

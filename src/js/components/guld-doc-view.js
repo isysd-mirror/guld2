@@ -152,6 +152,11 @@ export class GuldDocView extends HTMLElement {
     /** @type {Array<{ href: string, title: string, blurb: string }>} */
     const featured = [
       {
+        href: docsViewerHref("SIMBA_BETA.md"),
+        title: "Simba beta",
+        blurb: "Testnet pins, how to join, faucet, peers",
+      },
+      {
         href: docsViewerHref("essays/one-peer-whole-stack.md"),
         title: "One peer, whole stack",
         blurb: "Node + site + git + wallet + explorer",

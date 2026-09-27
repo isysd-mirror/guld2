@@ -2,6 +2,8 @@
 
 **Network name:** `simba` · **`chain_id`:** `2` · **Bootstrap peer:** guld.io  
 
+**Public beta page:** [`docs/SIMBA_BETA.md`](../docs/SIMBA_BETA.md) (pins, how to join, peers).
+
 Config SoT: [`data/networks/simba.json`](../data/networks/simba.json)  
 Genesis SoT: [`data/genesis/simba/`](../data/genesis/simba/) (committed manifest + params + `isysd-claim.asc`)
 
@@ -164,7 +166,7 @@ Optional: after first start, put the peer id into [`data/p2p-bootnodes.json`](..
 
 Peers that check out the same repo already share `data/genesis/simba/`. Empty datadir + `--network simba` rebuilds the same height-0. After that, **P2P block sync** pulls the tip — no full-datadir tarball required for catch-up.
 
-**Mempool is in-memory** (not persisted). After restart a peer re-fetches pending txs from connected peers via `GetMempool` on Hello (guld-p2p ≥ this tree). Until guld.io runs that build, reconnecting laptops may show an empty mempool until new txs are submitted.
+**Mempool persistence** (`{datadir}/mempool.jsonl`): pending txs (including immature `ClaimReward`) are restored and re-validated on restart, then re-gossiped. Peer `GetMempool` on Hello remains a backup when the local file is empty. On reorg the mempool is wiped on disk and in RAM — re-submit or wait for peer relay.
 
 (Legacy note: copying `blocks/0.json` + state from guld.io still works if you already forked an older genesis; prefer resetting to artifact genesis.)
 
@@ -214,7 +216,7 @@ curl -s http://127.0.0.1:8545/ -H 'content-type: application/json' \
 Simba peers follow the **heavier valid tip** (cumulative work → height → hash). On a competing fork:
 
 1. The losing tip is abandoned; state is rebuilt by **replaying from the genesis snapshot** through the common ancestor, then applying the winning fork segment (`guld-node` `chain_reorg`, max depth **2016**).
-2. The **mempool is wiped** on reorg — pending txs must be re-submitted or re-gossiped.
+2. The **mempool is wiped** on reorg (RAM + `mempool.jsonl`) — pending txs must be re-submitted or re-gossiped.
 3. Deeper than `MAX_REORG_DEPTH` is rejected cleanly (`ReorgTooDeep`); wipe + resync from a trusted peer if that ever happens.
 4. Orphaned `RewardCommit` blocks are **not** claimable: `ClaimReward.ref_hash` must match the canonical block at `ref_height` (GIP-22).
 
@@ -233,8 +235,11 @@ sudo systemctl enable --now guld-node-simba
 
 Point nginx `proxy_pass` at **`127.0.0.1:8080`** (node `--http`), not `:8004`. See [`HOSTING.md`](../docs/HOSTING.md).
 
+## Peers / Discord (D6)
+
+No Discord (or other chat) is required to join the mesh. Default: dial **guld.io** via compiled / published bootnodes. Extra multiaddrs in [`data/p2p-bootnodes.json`](../data/p2p-bootnodes.json) are optional fallbacks, not consensus authority. Short public pins + join steps: [`docs/SIMBA_BETA.md`](../docs/SIMBA_BETA.md).
+
 ## Next engineering
 
-- Commit `isysd-claim.asc` + real `isysd_pubkey` (ceremony above)  
 - Stable bootnode multiaddr with `/p2p/<peer-id>` once guld.io identity is fixed under `guld-data/simba/keys/p2p.key`  
-- Reset existing Simba datadirs once after artifact lock
+- Optional: one more regenesis before durable beta lock (G4)

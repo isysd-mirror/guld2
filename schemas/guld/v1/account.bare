@@ -1,0 +1,18 @@
+# Account leaf schema — DRAFT / deferred (task 009 W2).
+#
+# On-disk and SMT leaf hashing today use guld_state::account_value_hash
+# (custom layout), not BARE. Do not implement clients against this file yet.
+# A future GIP / task will freeze account.bare and migrate leaves with a
+# height-activated rules bundle (spec 17).
+#
+# Placeholder field list (informative only — mirrors Account JSON):
+
+# type Account = {
+#   name: string,
+#   kind: u8,
+#   keys: list<data>,        # 32-byte Ed25519 pubs
+#   threshold: u64,
+#   balance: u128,           # Amount LE
+#   master_hash: data,       # 32 bytes
+#   … legacy / vesting fields TBD
+# }

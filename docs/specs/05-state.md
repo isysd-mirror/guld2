@@ -35,7 +35,7 @@ fn apply_block(state: &mut State, block: &Block) -> Result<NewRoots, Error> {
 }
 ```
 
-Track **claimed** rewards (per `ref_hash`) so `ClaimReward` cannot double-mint. Legacy path (`credit_miner`) deprecated at GIP-22 activation ([`06-blocks-and-consensus.md`](06-blocks-and-consensus.md) §4).
+Track **claimed** rewards (per `ref_hash`) so `ClaimReward` cannot double-mint. Mint only via mature `ClaimReward` through `apply_at_height` ([`06-blocks-and-consensus.md`](06-blocks-and-consensus.md) §4 / GIP-22). There is no `credit_miner` path.
 
 ## 4. Parallelism
 

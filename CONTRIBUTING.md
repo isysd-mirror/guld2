@@ -18,6 +18,15 @@ Follow [`docs/SOFTWARE_FLOW.md`](docs/SOFTWARE_FLOW.md): implement in the right 
 
 Consensus rule changes also need a height-activated rule bundle — see [spec 17](docs/specs/17-protocol-upgrades.md).
 
+## Local CI (git hooks)
+
+There is no hosted CI. After clone / submodule update:
+
+```bash
+./scripts/install-dev-hooks.sh
+```
+
+That installs [`scripts/githooks/pre-commit`](scripts/githooks/pre-commit) into the umbrella, `src/guld-state`, and `src/guld-node`. Commits then run chain lifecycle Phase 1–2 ([task 006](docs/tasks/open/006-chain-lifecycle-tests.md)) when those trees change — failed tests block the commit. Do not use `--no-verify` or `GULD_SKIP_LIFECYCLE=1` unless you are the human maintainer and know why.
 ## Hosting and layout
 
 - [`docs/HOSTING.md`](docs/HOSTING.md) — node-first HTTP

@@ -13,7 +13,7 @@ Spec: ../specs/06-blocks-and-consensus.md, ../specs/16-sponsored-registration.md
 | **2** | Single-node dev smoke (RPC + subprocess) | **Done** — mine, register, transfer |
 | **3** | Two-node forward sync (P2P) | **Done** — Rust test + shell script (mDNS on `--dev`) |
 | **4** | Fork / reorg | **Done** — `dual_miner_reorg` + `chain_reorg` unit tests (task 019) |
-| **CI** | Run phases 1–2 in pipeline | **Not started** (optional follow-up) |
+| **CI** | Pre-commit Phase 1–2 on `guld-state` / `guld-node` | **Done** — `scripts/githooks/pre-commit` + `scripts/install-dev-hooks.sh` |
 
 Node RPC smoke covers a **subset** of the matrix today (register + transfer). Rotate, group/sub over RPC, and full parity with the state matrix are follow-ups under this task while it stays open.
 
@@ -75,13 +75,16 @@ Run: `cargo test -p guld-node --test dev_smoke`
 - [x] Phase 2: `dev_smoke` RPC harness
 - [x] Phase 3: `two_node_sync.rs` + `two-node-sync.sh` + `scripts/chain-lifecycle/README.md`
 - [x] Phase 4: reorg tests ([019](../done/2026-09/019-dual-miner-reorg-integration-test.md))
-- [ ] CI job runs Phase 1–2 on every `guld-state` / `guld-node` change (optional follow-up)
+- [x] Pre-commit runs Phase 1–2 on `guld-state` / `guld-node` (and umbrella when those gitlinks change) — `./scripts/install-dev-hooks.sh`
 
 ## Running locally
 
 ```bash
+# One-time: install pre-commit hooks (umbrella + guld-state + guld-node)
+./scripts/install-dev-hooks.sh
+
 # State matrix (fast, no subprocess)
-cargo test -p guld-state lifecycle
+cargo test -p guld-state --test lifecycle_matrix
 
 # Single dev node over JSON-RPC
 cargo test -p guld-node --test dev_smoke
@@ -92,3 +95,5 @@ cargo test -p guld-node --test dev_smoke
 # Dual-miner reorg
 cargo test -p guld-node --test dual_miner_reorg
 ```
+
+Pre-commit runs Phase 1 on every `guld-state` commit, and Phase 1+2 on every `guld-node` commit (and on umbrella commits that touch those gitlinks). Humans may set `GULD_SKIP_LIFECYCLE=1` only in emergencies; agents must not.

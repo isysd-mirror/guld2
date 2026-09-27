@@ -1,0 +1,78 @@
+#!/usr/bin/env bash
+# pre-commit — Phase 1–2 chain lifecycle (task 006).
+# Fail the commit if state matrix / node smoke regressions land.
+#
+# Skip (human only; agents MUST NOT): GULD_SKIP_LIFECYCLE=1
+set -euo pipefail
+
+if [[ "${GULD_SKIP_LIFECYCLE:-}" == "1" ]]; then
+  echo "guld pre-commit: skipping lifecycle (GULD_SKIP_LIFECYCLE=1)" >&2
+  exit 0
+fi
+
+# Resolve umbrella workspace (Cargo.toml with [workspace]).
+umbrella_root() {
+  local super top d
+  super="$(git rev-parse --show-superproject-working-tree 2>/dev/null || true)"
+  if [[ -n "$super" && -f "$super/Cargo.toml" ]]; then
+    printf '%s\n' "$super"
+    return
+  fi
+  top="$(git rev-parse --show-toplevel)"
+  d="$top"
+  while [[ "$d" != "/" ]]; do
+    if [[ -f "$d/Cargo.toml" ]] && grep -q '^\[workspace\]' "$d/Cargo.toml" 2>/dev/null; then
+      printf '%s\n' "$d"
+      return
+    fi
+    d="$(dirname "$d")"
+  done
+  printf '%s\n' "$top"
+}
+
+ROOT="$(umbrella_root)"
+TOP="$(git rev-parse --show-toplevel)"
+pkg_name() {
+  # [package] name = "…" from a leaf Cargo.toml (not workspace-only).
+  sed -n '/^\[package\]/,/^\[/{s/^name = "\([^"]*\)"/\1/p;}' "$1" 2>/dev/null | head -1
+}
+
+run_state=0
+run_node=0
+
+if [[ -f "${TOP}/.gitmodules" ]]; then
+  # Umbrella: only when state/node trees or gitlinks are in the index.
+  if git diff --cached --name-only | grep -qE '^src/guld-(state|node)(/|$)'; then
+    run_state=1
+    run_node=1
+  fi
+else
+  case "$(pkg_name "${TOP}/Cargo.toml")" in
+    guld-state)
+      run_state=1
+      ;;
+    guld-node)
+      run_state=1
+      run_node=1
+      ;;
+    *)
+      exit 0
+      ;;
+  esac
+fi
+
+if [[ "$run_state" -eq 0 && "$run_node" -eq 0 ]]; then
+  exit 0
+fi
+
+cd "$ROOT"
+
+echo "guld pre-commit: Phase 1 — guld-state lifecycle_matrix" >&2
+cargo test -p guld-state --test lifecycle_matrix
+
+if [[ "$run_node" -eq 1 ]]; then
+  echo "guld pre-commit: Phase 2 — guld-node dev_smoke" >&2
+  cargo test -p guld-node --test dev_smoke
+fi
+
+echo "guld pre-commit: lifecycle OK" >&2

@@ -17,7 +17,7 @@ Replace implicit `credit_miner()` coinbase accounting with an explicit two-step 
 
 ## Motivation
 
-Spec 06 §4 locks **100-block coinbase maturity** (Bitcoin `COINBASE_MATURITY`) so miners cannot spend issuance from block `B` before `B` is buried — otherwise an orphaning fork double-spends rewards. Today implementations call `credit_miner()` and credit spendable balance immediately; enforcement was deferred to “immature balance lots + reorg.”
+Spec 06 §4 locks **100-block coinbase maturity** (Bitcoin `COINBASE_MATURITY`) so miners cannot spend issuance from block `B` before `B` is buried — otherwise an orphaning fork double-spends rewards. Pre-GIP-22 implementations called `credit_miner()` and credited spendable balance immediately; that path is **removed** (task 020).
 
 Problems with the implicit path:
 
@@ -120,7 +120,7 @@ ClaimReward {
 **Mempool policy:**
 
 - Nodes **MAY** accept and retain `ClaimReward` as soon as (1)–(4) hold — **including** before `ref_height + COINBASE_MATURITY_BLOCKS` is reached on the chain.
-- Nodes **SHOULD** persist pending claims across restarts (see task [008-mempool-persistence.md](../tasks/open/008-mempool-persistence.md)).
+- Nodes **SHOULD** persist pending claims across restarts (see task [008](../tasks/done/2026-09/008-mempool-persistence.md)).
 - Miners **SHOULD** retain roughly **`COINBASE_MATURITY_BLOCKS`** pending claims (one per immature block they mined).
 
 **Block inclusion (consensus):**
@@ -198,14 +198,15 @@ Separates block `header.miner` identity from payout keys — limited exposure wh
 
 | Area | Path | Status |
 |------|------|--------|
-| Implicit coinbase (legacy) | `guld-consensus/src/lib.rs` (`credit_miner`) | Replace |
-| Maturity constant | `guld-state/src/economy.rs` | Exists |
-| Mempool | `guld-consensus/src/mempool.rs` | Extend for `ClaimReward` |
-| Persistence | — | Task 008 |
+| Reward commit / claim | `guld-consensus` (`rewards.rs`) + `guld-state` `apply_at_height` | Shipped |
+| Maturity constant | `guld-state/src/economy.rs` (`COINBASE_MATURITY_BLOCKS = 100`) | Enforced |
+| Mempool | `guld-consensus/src/mempool.rs` | Accepts immature claims |
+| Persistence | `{datadir}/mempool.jsonl` | Task 008 done |
+| Dead `credit_miner` | — | Removed (task 020) |
 
 Normative specs: [`../specs/06-blocks-and-consensus.md`](../specs/06-blocks-and-consensus.md) §4, [`../specs/03-transactions.md`](../specs/03-transactions.md) §3.0–§3.1, [`../specs/07-fees-and-tokenomics.md`](../specs/07-fees-and-tokenomics.md) §2–§5.
 
-**Activation:** MUST ship via height-activated rule bundle ([spec 17](../specs/17-protocol-upgrades.md)). Reference code still uses legacy `credit_miner()` until that activation.
+**Activation:** GIP-22 is **Accepted** on Simba (regenesis / artifact tip). Chains that still ran implicit coinbase need a cutover GIP or reset. Height-activated rule bundles remain the path for later mainnet forks ([spec 17](../specs/17-protocol-upgrades.md)).
 
 ## History
 

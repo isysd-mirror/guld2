@@ -35,10 +35,10 @@ Peers that share the **same height-0 artifacts** can already run a consistent Si
 ### Not yet ready to **lock block 0** (implementation)
 
 - [x] Acknowledged — **A1–A11 decisions** recorded in specs + GIPs ([GIP-9](../gips/gip-9.md) Final, [GIP-14](../gips/gip-14.md) Accepted)
-- [ ] Acknowledged — **Section C blockers** still open — [009](./009-bare-wire-implementation.md), [012](./012-simba-genesis-ceremony.md); timestamps / difficulty / docs / **`x` reconcile** / **dual-miner reorg** **done**
+- [ ] Acknowledged — **Section C blockers** still open — [012](./012-simba-genesis-ceremony.md) (optional CI); BARE **009 done**; timestamps / difficulty / docs / **`x` reconcile** / **dual-miner reorg** **done**
 - [ ] Acknowledged — Genesis ceremony **G2–G4 landed** — [012](./012-simba-genesis-ceremony.md) (tip `0xadbff540…`; one more reset OK)
 - [ ] Acknowledged — Operators must use artifact genesis only on Simba (no post-hoc `--import-ledger`)
-- [ ] Acknowledged — Remaining reset triggers: **G2** ceremony output, BARE `TxId` cutover, GIP-22 activation height
+- [ ] Acknowledged — Remaining reset triggers: schema freezes that change `tx_root` / account leaves; optional durable-lock ceremony — **not** BARE TxId (already cut over)
 
 ### If locking soon (minimum bar)
 
@@ -53,9 +53,9 @@ Consensus / genesis — each row needs a **decision**, spec update, and implemen
 | # | Item | Spec(s) | Decision / pin | Spec updated | Code matches | Shipped in genesis |
 |---|------|---------|--------------|--------------|--------------|-------------------|
 | A1 | PoW algorithm & retarget | [06](../specs/06-blocks-and-consensus.md) | **Locked v1:** SHA256d; **2016-block** retarget (14-day window, 4× clamp); bit-difficulty; merged mining = future GIP (§2.5). Compare: [bitcoin-guld-comparison.md](../research/bitcoin-guld-comparison.md) | [x] | [x] | n/a |
-| A2 | Wire codec | [01](../specs/01-cryptography.md), [00](../specs/00-overview.md) | **Locked: BARE** — Rust (`serde_bare`/`bare_proc`), JS/TS (`@bare-ts/tools`), Python (`bare-py`); schemas in [`schemas/`](../../schemas/README.md); HTTP stays JSON | [x] | [ ] | n/a |
+| A2 | Wire codec | [01](../specs/01-cryptography.md), [00](../specs/00-overview.md) | **Locked: BARE** — Rust `guld-wire` reference; schemas in [`schemas/`](../../schemas/README.md); HTTP stays JSON | [x] | [x] | n/a |
 | A3 | Exact `AccountId` preimage | [01](../specs/01-cryptography.md), [02](../specs/02-identity-and-accounts.md) §3.1 | **Locked:** keyed `guld/account_id/v1`; keyless `…/network/v1`; legacy `…/legacy/v1` (unchanged after claim) | [x] | [x] | [x] |
-| A4 | Account / tx codec freeze | [02](../specs/02-identity-and-accounts.md), [03](../specs/03-transactions.md) | **Locked:** BARE wire (A2); dual-wire P2P v1 JSON + v2 BARE ([009](./009-bare-wire-implementation.md)); JSON HTTP-only at boundary | [x] | [x] | [x] |
+| A4 | Account / tx codec freeze | [02](../specs/02-identity-and-accounts.md), [03](../specs/03-transactions.md) | **Locked:** BARE `TxId` + dual-wire P2P ([009](../done/2026-09/009-bare-wire-implementation.md)); account leaf + datadir BARE deferred | [x] | [x] | [x] |
 | A5 | `LegacyOwnershipProof` packet profile | [15](../specs/15-ledger-import.md), [03](../specs/03-transactions.md) | **Normative v1:** `pgp_cleartext_v1`, `isysd_attestation_v1`, `dev_unlock_v1` (spec 15 §5.1) | [x] | [x] | [x] |
 | A6 | Empty-key locked accounts: `threshold=0` vs explicit flag | [15](../specs/15-ledger-import.md) | **Locked v1:** `keys=[]`, `threshold=0` on import; authoritative lock = `legacy.status=locked` (spec 15 §8) | [x] | [x] | [x] |
 | A7 | Final-ish **x** / import manifest hash | [15](../specs/15-ledger-import.md), [07](../specs/07-fees-and-tokenomics.md) | **Locked:** manifest hash `0x59a39af461d66fa1ef892708f8fa8838684d812cccfbe253816a34f448980e70`; **x = 960,975.39527052 GULD** (= row sum; task 016) | [x] | [x] | [x] |
@@ -96,25 +96,25 @@ Track here so they do not block beta.
 
 | Blocker | Impact | Task |
 |---------|--------|------|
-| **A4 BARE wire** dual-wire landed; W7 datadir JSON remains | Datadir still JSON; TS vectors deferred | [009](./009-bare-wire-implementation.md) |
-| **Genesis ceremony** G2–G4 landed (one more reset OK) | Operators must wipe datadir on next reset | [012](./012-simba-genesis-ceremony.md) |
+| **Genesis ceremony** G2–G4 landed (optional CI) | Operators must wipe datadir on next reset | [012](./012-simba-genesis-ceremony.md) |
 
 ### C — closed or largely landed (keep visible)
 
 | Item | Status | Task |
 |------|--------|------|
+| **A4 BARE wire** | **Done** — TxId + dual-wire; W7 datadir JSON deferred | [009](../done/2026-09/009-bare-wire-implementation.md) |
 | **A10 timestamps** | **Done** — MTP + 2 h enforced | [010](../done/2026-09/010-header-timestamp-validation.md) |
 | **GIP-23 difficulty schedule** | **Done** — import rejects off-schedule | [014](../done/2026-09/014-enforce-difficulty-on-import.md) |
 | **Docs ↔ code** | **Done** — spec 06 / §12 / matrices refreshed | [015](../done/2026-09/015-reconcile-docs-with-code.md) |
 | **`x` = manifest sum** | **Done** — remapped 7 names; tip `0xadbff540…` | [016](../done/2026-09/016-reconcile-genesis-x-vs-manifest.md) |
 | **Chain reorg** | **Done** — core + dual-miner P2P test | [013](../done/2026-09/013-chain-reorg-implementation.md), [019](../done/2026-09/019-dual-miner-reorg-integration-test.md) |
-| **GIP-22 rewards** | Commit/claim path in consensus; checklist / footguns remain | [011](./011-gip-22-miner-rewards.md), [020](./020-remove-credit-miner-footguns.md) |
+| **GIP-22 rewards** | **Done** — commit/claim + `credit_miner` removed | [011](../done/2026-09/011-gip-22-miner-rewards.md), [020](../done/2026-09/020-remove-credit-miner-footguns.md) |
 
 ## C2. Other gaps (track; do not over-promise)
 
 | Gap | Impact | Task / follow-up |
 |-----|--------|------------------|
-| **Mempool not persisted** | Pending txs lost on restart | [008](./008-mempool-persistence.md) |
+| **Mempool persistence** | **Done** — `{datadir}/mempool.jsonl`; thin mesh still affects peer relay | [008](../done/2026-09/008-mempool-persistence.md) |
 | Specs **draft** banner | Cosmetic until A1–A11 locked | Promote specs as rows complete |
 | Node RPC lifecycle tests partial | Register + transfer only on dev smoke | Extend 006 |
 | Omitted ERC20 size / negatives appendix | **Done** — `negatives.json` + `omissions.json` | [018](../done/2026-09/018-publish-omitted-buckets-and-negatives.md) |
@@ -130,22 +130,22 @@ When A-section decisions are **good enough for testnet** (not necessarily mainne
 
 | # | Action | Done |
 |---|--------|------|
-| D1 | Post short “Simba beta” page: chain_id, genesis hash, bootnode, reset policy | [ ] |
-| D2 | Confirm guld.io runs `--network simba` from pinned umbrella + genesis (not dirty worktree) | [ ] |
-| D3 | Faucet key on host only; drip/register tested end-to-end | [ ] |
-| D4 | Explorer + wallet point at Simba API; banner shows testnet | [ ] |
-| D5 | One-page “how to join” (clone, build, datadir, sync) links to [`deploy/SIMBA.md`](../../deploy/SIMBA.md) | [ ] |
-| D6 | Discord / peer list or “dial guld.io only” documented | [ ] |
+| D1 | Post short “Simba beta” page: chain_id, genesis hash, bootnode, reset policy | [x] [`docs/SIMBA_BETA.md`](../../SIMBA_BETA.md) |
+| D2 | Confirm guld.io runs `--network simba` from pinned umbrella + genesis (not dirty worktree) | [x] Live `GET /api/v1/chain/status` → `network=simba`, `chainId=2`, genesis pins match repo tip `0xadbff540…`; **operator still verify** prod checkout is clean + unit uses `--network simba` on the host that serves guld.io |
+| D3 | Faucet key on host only; drip/register tested end-to-end | [x] Live faucet `enabled/ready`; `POST /faucet/drip` → queued (`ok`); key not in git (env/datadir only). Seal timing depends on miner bits |
+| D4 | Explorer + wallet point at Simba API; banner shows testnet | [x] Site banner via `network.js` + `guld-header`; explorer/wallet meta say Simba testnet; presets include guld.io Simba |
+| D5 | One-page “how to join” (clone, build, datadir, sync) links to [`deploy/SIMBA.md`](../../deploy/SIMBA.md) | [x] Join section in [`docs/SIMBA_BETA.md`](../../SIMBA_BETA.md); help index links it |
+| D6 | Discord / peer list or “dial guld.io only” documented | [x] SIMBA_BETA + `deploy/SIMBA.md` — dial guld.io; optional `p2p-bootnodes.json`; no Discord required |
 
 ---
 
 ## Done when
 
-- [ ] Every **A1–A11** row has a decision recorded (in spec or genesis README) — decisions done; **A4 code** still open; **A10 code done**
-- [ ] Section C Simba blockers closed (BARE, genesis ceremony) — difficulty + docs + **`x` reconcile** + **dual-miner reorg** **done**
-- [ ] **G1–G4** genesis ceremony complete or explicitly waived with published reset policy
-- [ ] **D1–D6** comms/ops checklist complete
-- [ ] Task moved to `done/YYYY-MM/` with link to announced beta (or closed as “blocked on A_”)
+- [x] Every **A1–A11** row has a decision recorded (in spec or genesis README) — decisions done; **A4 + A10 code done**
+- [x] Section C Simba blockers closed (genesis ceremony optional CI) — BARE + difficulty + docs + **`x` reconcile** + **dual-miner reorg** + **GIP-22 footguns** **done**
+- [x] **G1–G4** genesis ceremony complete or explicitly waived with published reset policy
+- [x] **D1–D6** comms/ops checklist complete
+- [ ] Task moved to `done/YYYY-MM/` with link to announced beta (or closed as “blocked on A_”) — keep open until optional 012 CI / operator confirms D2 host pin
 
 ## Notes (review log)
 
@@ -153,7 +153,7 @@ _Use this section as you go — date, decision, link to commit/spec._
 
 ```
 2026-09-26: A1 locked — SHA256d PoW + **2016-block** retarget + **leading-zero bits** (not `nBits`; see pow-nbits-vs-leading-bits.md). Comparison chart: bitcoin-guld-comparison.md. A10 bounds in spec 06 §3; **enforcement done** ([010](../done/2026-09/010-header-timestamp-validation.md)).
-2026-09-26: **Coinbase maturity = 100 blocks** locked (spec 06 §4) — same game theory as Bitcoin; GIP-22 commit/claim **landed**; maturity enforced on `ClaimReward` inclusion; remaining hygiene [011](./011-gip-22-miner-rewards.md) / [020](./020-remove-credit-miner-footguns.md).
+2026-09-26: **Coinbase maturity = 100 blocks** locked (spec 06 §4) — same game theory as Bitcoin; GIP-22 commit/claim **landed**; maturity enforced on `ClaimReward` inclusion; footguns closed ([011](../done/2026-09/011-gip-22-miner-rewards.md) / [020](../done/2026-09/020-remove-credit-miner-footguns.md)).
 2026-09-26: **A2 locked — BARE** wire codec (see wire-codec-comparison.md, schemas/README.md). Implementation + `.bare` files + vectors pending.
 2026-09-26: **A3 locked** — `AccountId` preimages promoted from `guld-state` (spec 02 §3.1).
 2026-09-26: **A11 locked** — no reserved foreign names at genesis; cross-chain = dapp/leaf research (spec 13 informative).
@@ -168,4 +168,5 @@ _Use this section as you go — date, decision, link to commit/spec._
 2026-09-26: Spec review — tasks [011](./011-gip-22-miner-rewards.md), [012](./012-simba-genesis-ceremony.md), [013](./013-chain-reorg-implementation.md); matrix in specs/README.md + tasks/README.md.
 2026-09-26: External review → GIP-23..26; tasks 014–021; §C refreshed (timestamps done; difficulty/`x`/docs/reorg-test = blockers); 010 → done/2026-09/.
 2026-09-26: **GIP-23 shipped** ([014](../done/2026-09/014-enforce-difficulty-on-import.md)); **docs sync** ([015](../done/2026-09/015-reconcile-docs-with-code.md)).
+2026-09-26: **020/011 closed** — `credit_miner` deleted; ClaimReward height-only. **D1–D6** — [`docs/SIMBA_BETA.md`](../../SIMBA_BETA.md); live guld.io simba + faucet drip queued.
 ```

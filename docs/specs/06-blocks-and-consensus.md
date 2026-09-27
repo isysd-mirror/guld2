@@ -172,9 +172,9 @@ reward_commit(h).amount = subsidy(h) + inclusion_fees + vested_registration_fees
 
 **Why (game theory):** deferred mint avoids issuing spendable subsidy on blocks that may later be orphaned by reorg; maturity is an **inclusion** rule on `ClaimReward`, not a mempool ban.
 
-**Miner operations:** pre-sign claims at seal time (often via subaccount `parent.rewards`); retain ~**100** pending claims; persist across restarts ([task 008](../tasks/open/008-mempool-persistence.md)).
+**Miner operations:** pre-sign claims at seal time (often via subaccount `parent.rewards`); retain ~**100** pending claims; persist across restarts ([task 008](../tasks/done/2026-09/008-mempool-persistence.md)).
 
-**Activation:** GIP-22 is **Accepted**; reference code uses `RewardCommit` / `ClaimReward` on Simba (no legacy `credit_miner` on the consensus path). Remaining hygiene: drop/gate dead `credit_miner` ([task 020](../tasks/open/020-remove-credit-miner-footguns.md)). Chains that still ran implicit coinbase require a migration cutover GIP or reset.
+**Activation:** GIP-22 is **Accepted**; reference code uses `RewardCommit` / `ClaimReward` on Simba. Dead `credit_miner` removed ([task 020](../tasks/done/2026-09/020-remove-credit-miner-footguns.md)). Chains that still ran implicit coinbase require a migration cutover GIP or reset.
 
 ## 5. Subsidy
 
@@ -195,7 +195,7 @@ trait Consensus {
 
 ## 7. Open parameters (post–PoW freeze)
 
-- Drop/gate dead `credit_miner` + document activation ([task 020](../tasks/open/020-remove-credit-miner-footguns.md))  
+- Dead `credit_miner` removed; ClaimReward height-gated only ([task 020](../tasks/done/2026-09/020-remove-credit-miner-footguns.md))  
 - Dual-miner adversarial reorg test — **done** ([task 019](../tasks/done/2026-09/019-dual-miner-reorg-integration-test.md))  
 - DAG-PoW / multi-parent headers (research — not v1)  
 - Merged-mining witness format (future GIP)  

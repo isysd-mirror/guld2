@@ -17,7 +17,7 @@ Establish a **golden vector** suite under `schemas/` (and/or `testdata/consensus
 
 ## Motivation
 
-Today consensus identities hash **JSON** (`serde_json`) in places; BARE is locked (task 007 A2) but `.bare` files and vectors are TBD ([task 009](../tasks/open/009-bare-wire-implementation.md)). External review flagged single-implementation risk and unstable `TxId` as blockers for credibility.
+Today consensus **`TxId`** uses BARE (`guld-wire`); dual-wire P2P is live ([task 009](../tasks/done/2026-09/009-bare-wire-implementation.md)). Broader golden vectors (headers, state roots, multi-impl) remain open. External review flagged single-implementation risk as a credibility gap.
 
 Without cross-language fixtures, a second client (or even a JS wallet verifying locally) cannot prove agreement with `guld-consensus`.
 
@@ -56,7 +56,7 @@ Until BARE files ship, vectors MAY live under `testdata/consensus/` with an expl
 
 ## Rationale
 
-Golden vectors are cheaper than a full second client and catch encoding mistakes early. They complement, not replace, [task 009](../tasks/open/009-bare-wire-implementation.md).
+Golden vectors are cheaper than a full second client and catch encoding mistakes early. They complement shipped [task 009](../tasks/done/2026-09/009-bare-wire-implementation.md) TxId goldens.
 
 ## Backwards Compatibility
 
@@ -69,7 +69,7 @@ Fixtures must not include real mainnet private keys. Use throwaway keys checked 
 ## Reference Implementation
 
 - Task: [021-consensus-golden-vectors.md](../tasks/open/021-consensus-golden-vectors.md)
-- Depends on: [009](../tasks/open/009-bare-wire-implementation.md), [GIP-23](gip-23.md)
+- Depends on: [009](../tasks/done/2026-09/009-bare-wire-implementation.md) (**done**), [GIP-23](gip-23.md)
 
 ## History
 

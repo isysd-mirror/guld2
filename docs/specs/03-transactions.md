@@ -100,7 +100,7 @@ ClaimReward {
 1. Mint `amount` to `beneficiary.balance` (once per `ref_hash`).
 2. `inclusion_fee` → **`B.header.miner`** (summed into `B`’s `inclusion_fees` like any tx in `B`).
 
-Miners SHOULD pre-sign at seal time and retain pending claims (~100) across restarts ([task 008](../tasks/open/008-mempool-persistence.md)).
+Miners SHOULD pre-sign at seal time and retain pending claims (~100) across restarts ([task 008](../tasks/done/2026-09/008-mempool-persistence.md)).
 
 ### 3.2 `RegisterUsername`
 

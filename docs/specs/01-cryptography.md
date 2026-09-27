@@ -102,12 +102,11 @@ See [`14-reference-ui.md`](14-reference-ui.md) §5.
 
 **Type conventions (Guld extensions on BARE):**
 
-- `Amount` → `data[16]` — **big-endian u128** quanta (10 decimal GULD places)
+- `Amount` → `u128` — **little-endian** quanta (10 decimal GULD places; BARE uint)
 - `Name` → `str` — UTF-8 NFC, max 64 bytes (validate before encode)
-- `Hash32` → `data[32]`
-- `Pubkey` → `data[32]` (Ed25519)
-- `Signature` → `data[64]`
-- Tx vocabulary → tagged **`union`** at top level (extensibility per BARE guidance)
+- Wire v1 signatures / most hashes → `str` (`0x`-hex), matching JSON-RPC field forms
+- `ClaimReward.ref_hash` → `data[32]` raw `Hash32`
+- Tx vocabulary → tagged **`union`** at top level (`schemas/guld/v1/tx.bare`)
 
 **TxId:**
 
@@ -115,7 +114,7 @@ See [`14-reference-ui.md`](14-reference-ui.md) §5.
 TxId = SHA256("guld/tx_id/v1" ‖ 0x00 ‖ bare_encode(Tx))
 ```
 
-**Interim (pre-activation):** reference code still uses `serde_json` for P2P — MUST NOT be treated as frozen. Migration via spec-17 `activation_height` and P2P protocol id bump (e.g. `/guld/tx/2.0.0`).
+**Activation:** dual-wire P2P — JSON `/guld/tx|block/1.0.0` + BARE `/guld/tx|block/2.0.0`; consensus `TxId` always from BARE ([task 009](../tasks/done/2026-09/009-bare-wire-implementation.md)). HTTP / JSON-RPC stay JSON at the boundary.
 
 JSON-RPC conventions until clients ship BARE:
 

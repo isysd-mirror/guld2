@@ -58,18 +58,16 @@ Source pass: external review + [GIP-23](../gips/gip-23.md)–[26](../gips/gip-26
 
 | Pri | Task | Spec / GIP | Notes |
 |-----|------|------------|-------|
-| **P0** | [009](./open/009-bare-wire-implementation.md) | A2/A4, GIP-4 | Stable `TxId`; P2P wire |
-| **P0** | [012](./open/012-simba-genesis-ceremony.md) | spec 15, GIP-14 | G2–G4 block 0 pin |
-| **P1** | [011](./open/011-gip-22-miner-rewards.md) | GIP-22 | Core path landed — finish checklist / footguns ([020](./open/020-remove-credit-miner-footguns.md)) |
-| **P1** | [008](./open/008-mempool-persistence.md) | spec 12, GIP-19 | ~100 pending claims after GIP-22 |
-| **P2** | [021](./open/021-consensus-golden-vectors.md) | [GIP-26](../gips/gip-26.md) | After BARE (009) |
+| **P0** | [012](./open/012-simba-genesis-ceremony.md) | spec 15, GIP-14 | G2–G4 landed — optional CI only |
+| **P1** | [007](./open/007-simba-beta-public-readiness.md) | — | D1–D6 done; keep open for optional 012 CI / host pin |
+| **P2** | [021](./open/021-consensus-golden-vectors.md) | [GIP-26](../gips/gip-26.md) | After BARE (009 **done**) |
 | **P2** | [002](./open/002-wallet-send-contacts.md)–[005](./open/005-human-first-ux.md) | spec 14, GIP-20 | UX; defer past Simba lock |
 | **P2** | [004](./open/004-rpc-search-accounts.md) | GIP-20 | Prefix search UI |
-| **P3** | [020](./open/020-remove-credit-miner-footguns.md) | GIP-22 | Dead `credit_miner` / stale comments |
 
-**Done recently:** [010](./done/2026-09/010-header-timestamp-validation.md) (MTP + 2 h), [013](./done/2026-09/013-chain-reorg-implementation.md) + [019](./done/2026-09/019-dual-miner-reorg-integration-test.md) (reorg), [014](./done/2026-09/014-enforce-difficulty-on-import.md) (GIP-23 schedule), [015](./done/2026-09/015-reconcile-docs-with-code.md) (docs ↔ code), [016](./done/2026-09/016-reconcile-genesis-x-vs-manifest.md) (`x` = row sum), [017](./done/2026-09/017-whitepaper-risks-and-rhetoric.md) (risks / rhetoric), [018](./done/2026-09/018-publish-omitted-buckets-and-negatives.md) (ERC20 + negatives) — archive 2026-09.
+**Done recently:** [011](./done/2026-09/011-gip-22-miner-rewards.md) + [020](./done/2026-09/020-remove-credit-miner-footguns.md) (GIP-22 footguns), [008](./done/2026-09/008-mempool-persistence.md) (mempool.jsonl), [009](./done/2026-09/009-bare-wire-implementation.md) (BARE TxId + dual-wire), [010](./done/2026-09/010-header-timestamp-validation.md) (MTP + 2 h), [013](./done/2026-09/013-chain-reorg-implementation.md) + [019](./done/2026-09/019-dual-miner-reorg-integration-test.md) (reorg), [014](./done/2026-09/014-enforce-difficulty-on-import.md) (GIP-23 schedule), [015](./done/2026-09/015-reconcile-docs-with-code.md) (docs ↔ code), [016](./done/2026-09/016-reconcile-genesis-x-vs-manifest.md) (`x` = row sum), [017](./done/2026-09/017-whitepaper-risks-and-rhetoric.md) (risks / rhetoric), [018](./done/2026-09/018-publish-omitted-buckets-and-negatives.md) (ERC20 + negatives) — archive 2026-09.
 
-**Checklist hub:** [007](./open/007-simba-beta-public-readiness.md) (A1–A11 locked; C = blockers; D = comms).  
+**Checklist hub:** [007](./open/007-simba-beta-public-readiness.md) (A1–A11 locked; C = blockers closed; D = comms done).  
+**Public beta page:** [SIMBA_BETA.md](../SIMBA_BETA.md).  
 **Draft protocol follow-ups:** [GIP-25](../gips/gip-25.md) (attestation diversification — no implementation task until Review).
 
 ## Automation (future)
