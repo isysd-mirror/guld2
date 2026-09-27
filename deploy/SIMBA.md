@@ -14,7 +14,7 @@ Genesis SoT: [`data/genesis/simba/`](../data/genesis/simba/) (committed manifest
 | **testnet** | `--network simba` (`mode: testnet`) | Public QA net; faucet available when a faucet key is configured |
 | **mainnet** | `--network main` (`mode: mainnet`) | Stub until `data/genesis/main/` is locked — no faucet |
 
-The UI reads `mode` / `network` / `faucet` from `GET /api/v1/chain/status` and updates the site banner. Settings can switch API base between peers (testnet and mainnet stay available after launch).
+The UI reads `mode` / `network` / `faucet` from `GET /api/v1/chain/status` and updates the footer network switcher (currency shows as `tGULD` on testnet). Settings can switch API base between peers (testnet and mainnet stay available after launch).
 
 ### Faucet (testnet only)
 
@@ -112,9 +112,9 @@ Do **not** pass `--import-ledger` or `--dev` on Simba — the manifest and block
 |------|----------|---------|-------|
 | **guld.io (this host)** | `/home/isysd/Projects/guld2` | `./.guld-data/simba` | **isysd user unit** [`guld-node-simba.user.service`](guld-node-simba.user.service) → `~/.config/systemd/user/guld-node-simba.service`; HTTP `:8088` (nginx) |
 | **guld.io (prod user)** | `/home/guld/guld` | `/home/guld/guld-data/simba` | system unit [`guld-node-simba.service`](guld-node-simba.service) |
-| **dev laptop** | checkout path | `./.guld-data/simba` | validating peer; optional `--miner` |
+| **dev laptop** | checkout path | `./.guld-data/simba` | validating peer; omit `--miner` — unit [`guld-node-simba-peer.user.service`](guld-node-simba-peer.user.service) |
 
-### Enable Simba on this host (isysd)
+### Enable Simba on this host (isysd bootstrap / miner)
 
 ```bash
 cd /home/isysd/Projects/guld2
@@ -127,6 +127,23 @@ systemctl --user enable --now guld-node-simba.service
 #   sudo ufw allow 4001/tcp comment 'guld-node simba p2p'
 ```
 
+### Enable Simba validating peer (laptop — sync only)
+
+```bash
+cd /home/isysd/Projects/guld   # or your checkout
+cargo build -p guld-node --release
+# After GIP-27 regenesis, wipe any pre-regenesis tip:
+#   rm -rf ./.guld-data/simba
+install -m 0644 deploy/guld-node-simba-peer.user.service \
+  ~/.config/systemd/user/guld-node-simba-peer.service
+systemctl --user daemon-reload
+# Keep running after logout (if Linger=no):
+#   sudo loginctl enable-linger "$USER"
+systemctl --user enable --now guld-node-simba-peer.service
+journalctl --user -u guld-node-simba-peer.service -f
+```
+
+Unit defaults: RPC `127.0.0.1:8546`, HTTP `127.0.0.1:8081`, P2P `:4001`, **no** `--miner`.
 ## 1. Bootstrap on guld.io (first)
 
 Build and install the unit (once):

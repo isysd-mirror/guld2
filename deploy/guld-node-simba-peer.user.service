@@ -1,0 +1,51 @@
+# User unit — Simba validating peer (sync only; does not mine).
+# For a laptop / secondary checkout dialing guld.io. Bootstrap miner unit:
+#   deploy/guld-node-simba.user.service
+#
+# Install (adjust WorkingDirectory if your checkout differs):
+#   cd /home/isysd/Projects/guld
+#   cargo build -p guld-node --release
+#   # Wipe if you still have a pre–GIP-27 datadir tip:
+#   #   rm -rf ./.guld-data/simba
+#   install -m 0644 deploy/guld-node-simba-peer.user.service \
+#     ~/.config/systemd/user/guld-node-simba-peer.service
+#   systemctl --user daemon-reload
+#   # Stay up after logout (needs linger — ask if not set):
+#   #   sudo loginctl enable-linger "$USER"
+#   systemctl --user enable --now guld-node-simba-peer.service
+#   systemctl --user status guld-node-simba-peer.service
+#   journalctl --user -u guld-node-simba-peer.service -f
+#
+# Optional P2P firewall (once):
+#   sudo ufw allow 4001/tcp comment 'guld-node simba p2p'
+#
+# Sanity (default ports below; change if something else owns :8546):
+#   curl -s http://127.0.0.1:8546/ -H 'content-type: application/json' \
+#     -d '{"jsonrpc":"2.0","id":1,"method":"guld_nodeInfo","params":[]}'
+
+[Unit]
+Description=Guld node — Simba validating peer (no miner) chain_id 2
+Documentation=file:///home/isysd/Projects/guld/deploy/SIMBA.md
+After=network-online.target
+Wants=network-online.target
+
+[Service]
+Type=simple
+WorkingDirectory=/home/isysd/Projects/guld
+# No --miner / --faucet: validate + sync from guld.io bootnodes only.
+# --auto-mine false overrides simba.json so we never attempt seals.
+ExecStart=/home/isysd/Projects/guld/target/release/guld-node \
+  --network simba \
+  --datadir ./.guld-data/simba \
+  --rpc 127.0.0.1:8546 \
+  --http 127.0.0.1:8081 \
+  --http-static . \
+  --p2p 0.0.0.0:4001 \
+  --auto-mine false \
+  --keys-pgp archives/keys-pgp
+Restart=on-failure
+RestartSec=5
+LimitNOFILE=65535
+
+[Install]
+WantedBy=default.target

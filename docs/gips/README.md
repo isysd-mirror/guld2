@@ -46,6 +46,7 @@ Small bugs and polish: use [`../tasks/`](../tasks/) instead. Specs remain normat
 | [27](gip-27.md) | Legacy names under pay-or-release | Final | Standards | Core |
 | [28](gip-28.md) | Atomic individual↔group kind conversion | Accepted | Standards | Core |
 | [29](gip-29.md) | Threshold Transfer cosignatures | Accepted | Standards | Core |
+| [30](gip-30.md) | P2P mesh robustness | Accepted | Standards | Networking |
 
 ## Migration note
 
