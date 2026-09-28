@@ -61,6 +61,25 @@ test("readMatchingPassphrase requires match on create", async () => {
   assert.equal(readMatchingPassphrase(fd, { requireConfirm: true, minlength: 8 }), "abcdefgh");
 });
 
+test("rotate archives previous key instead of deleting", () => {
+  const kr = readFileSync(join(root, "src/guld-web-ui/js/lib/keyring.js"), "utf8");
+  assert.match(kr, /archiveRotatedKey/);
+  assert.match(kr, /archivedReason:\s*"rotated"/);
+  const tools = readFileSync(join(root, "src/guld-web-ui/js/lib/keys-tools.js"), "utf8");
+  assert.match(tools, /archiveRotatedKey/);
+  const keys = readFileSync(join(root, "src/guld-web-ui/js/keys-page.js"), "utf8");
+  assert.match(keys, /Archived keys/);
+});
+
+test("group register warns on personal co-signer key reuse", () => {
+  const register = readFileSync(join(root, "src/guld-web-ui/js/register-page.js"), "utf8");
+  assert.match(register, /groupCosignerReuseWarnings/);
+  assert.match(register, /Additional public keys \(keys\[1\]/);
+  assert.match(register, /keys\[0\].*generated on this device/is);
+  assert.match(register, /Total signers = 1/);
+  assert.match(register, /ensureGroupLeadKey/);
+});
+
 test("new keyring flows require matching passphrase confirmation", () => {
   const register = readFileSync(join(root, "src/js/register-page.js"), "utf8");
   assert.match(register, /confirm:\s*true/);
