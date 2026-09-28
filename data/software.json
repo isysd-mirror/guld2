@@ -131,6 +131,15 @@
       "topics": ["javascript", "sdk"]
     },
     {
+      "id": "guld-discord",
+      "title": "guld-discord",
+      "summary": "Discord app — read-only Simba explorer slash commands (status, block, account, tx)",
+      "kind": "software",
+      "home": "here",
+      "href": "/software/guld-discord/",
+      "topics": ["javascript", "discord", "explorer"]
+    },
+    {
       "id": "guld-tic-tac-toe",
       "title": "guld-tic-tac-toe",
       "summary": "Reference leaf dapp — witnessed tic-tac-toe (UpdateMaster per move)",

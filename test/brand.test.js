@@ -33,6 +33,7 @@ test("index has brand-level logo and signup/login CTAs", () => {
   assert.match(actions[1], /Sign up/);
   assert.match(actions[1], /Log in/);
   assert.doesNotMatch(actions[1], /Install|cargo|guld-node/i);
+  assert.match(html, /discord\.gg\/PMCEGjGCQ/);
   assert.doesNotMatch(html, /site-header__nav/);
   assert.doesNotMatch(html, /Coming soon/);
   assert.doesNotMatch(html, /cdn\.jsdelivr|googleapis\.com\/css/i);
@@ -68,10 +69,15 @@ test("header nav is product; docs live in footer", () => {
   );
   assert.deepEqual(
     FOOTER_NAV.map((i) => i.label),
-    ["Build", "Install", "Legacy claim", "Whitepaper", "Specs", "Software", "Docs"],
+    ["Build", "Install", "Discord", "Legacy claim", "Whitepaper", "Specs", "Software", "Docs"],
   );
   assert.equal(FOOTER_NAV.find((i) => i.label === "Build")?.href, "/#developers");
   assert.equal(FOOTER_NAV.find((i) => i.label === "Install")?.href, "/#operators");
+  assert.equal(
+    FOOTER_NAV.find((i) => i.label === "Discord")?.href,
+    "https://discord.gg/PMCEGjGCQ",
+  );
+  assert.equal(FOOTER_NAV.find((i) => i.label === "Discord")?.external, true);
   assert.equal(FOOTER_NAV.find((i) => i.label === "Docs")?.href, "/docs/");
   assert.equal(
     FOOTER_NAV.find((i) => i.label === "Whitepaper")?.href,

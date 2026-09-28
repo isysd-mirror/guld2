@@ -1,6 +1,9 @@
 import { whitepaperDocHref } from "./doc-paths.js";
 
-/** @typedef {{ href: string, label: string }} NavItem */
+/** @typedef {{ href: string, label: string, external?: boolean }} NavItem */
+
+/** Community Discord (informal; not required for mesh membership). */
+export const DISCORD_INVITE_URL = "https://discord.gg/PMCEGjGCQ";
 
 /** Primary product — header only (Wallet + Explorer; gateway injected at runtime). */
 export const HEADER_NAV = [{ href: "/explorer/", label: "Explorer" }];
@@ -9,6 +12,7 @@ export const HEADER_NAV = [{ href: "/explorer/", label: "Explorer" }];
 export const FOOTER_NAV = [
   { href: "/#developers", label: "Build" },
   { href: "/#operators", label: "Install" },
+  { href: DISCORD_INVITE_URL, label: "Discord", external: true },
   { href: "/claim/", label: "Legacy claim" },
   { href: whitepaperDocHref(), label: "Whitepaper" },
   { href: "/specs/", label: "Specs" },
@@ -35,6 +39,7 @@ export function normalizePath(pathname) {
  * @returns {boolean}
  */
 export function isNavActive(href, pathname, hash = "") {
+  if (/^https?:\/\//i.test(href)) return false;
   const current = normalizePath(pathname);
   let url;
   try {

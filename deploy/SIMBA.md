@@ -274,7 +274,7 @@ Point nginx `proxy_pass` at **`127.0.0.1:8080`** (node `--http`), not `:8004`. S
 
 ## Peers / Discord (D6)
 
-No Discord (or other chat) is required to join the mesh. Default: dial **guld.io** via compiled / published bootnodes. Extra multiaddrs in [`data/p2p-bootnodes.json`](../data/p2p-bootnodes.json) are optional fallbacks, not consensus authority. Short public pins + join steps: [`docs/SIMBA_BETA.md`](../docs/SIMBA_BETA.md).
+No Discord (or other chat) is required to join the mesh. Default: dial **guld.io** via compiled / published bootnodes. Extra multiaddrs in [`data/p2p-bootnodes.json`](../data/p2p-bootnodes.json) are optional fallbacks, not consensus authority. Informal community: [discord.gg/PMCEGjGCQ](https://discord.gg/PMCEGjGCQ). Short public pins + join steps: [`docs/SIMBA_BETA.md`](../docs/SIMBA_BETA.md).
 
 ## Next engineering
 

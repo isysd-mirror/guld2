@@ -51,3 +51,7 @@
 	path = src/guld-tic-tac-toe
 	url = https://guld.io/repos/guld-tic-tac-toe.git
 	branch = guld
+[submodule "guld-discord"]
+	path = src/guld-discord
+	url = https://guld.io/repos/guld-discord.git
+	branch = guld

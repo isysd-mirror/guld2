@@ -39,6 +39,10 @@ export class GuldFooter extends HTMLElement {
       const a = document.createElement("a");
       a.href = item.href;
       a.textContent = item.label;
+      if (item.external) {
+        a.target = "_blank";
+        a.rel = "noopener noreferrer";
+      }
       li.append(a);
       list.append(li);
     }

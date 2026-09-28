@@ -48,7 +48,8 @@ There is **no** required Discord for mesh membership. v1 expectation:
 
 - Dial **guld.io** (default bootnodes) — enough for catch-up and gossip.
 - Optional extra multiaddrs in [`data/p2p-bootnodes.json`](../data/p2p-bootnodes.json) (not consensus authority).
-- Community chat, if any, is informal; protocol SoT stays this repo + guld.io.
+- Informal community chat: [discord.gg/PMCEGjGCQ](https://discord.gg/PMCEGjGCQ) (also linked from the site footer and landing page). Protocol SoT stays this repo + guld.io.
+- Optional **guld-discord** bot (read-only explorer slash commands): [`src/guld-discord`](../src/guld-discord/README.md).
 
 ---
 

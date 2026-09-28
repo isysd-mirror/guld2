@@ -56,7 +56,7 @@ function fillWalletSelect(select, selected) {
   if (!accounts.length) {
     const opt = document.createElement("option");
     opt.value = "";
-    opt.textContent = "No key yet — generate below";
+    opt.textContent = "No key yet — generate above";
     select.append(opt);
     return;
   }
@@ -71,6 +71,70 @@ function fillWalletSelect(select, selected) {
   } else if (accounts.length) {
     select.value = keyring.load().activeName || accounts[0].name;
   }
+}
+
+/** Passphrase + generate CTA — same patterns as /register/. */
+function walletKeyPanelHtml() {
+  const stored = keyring.load().accounts;
+  const existing = stored.length > 0;
+  const alreadyOpen = keyring.isUnlocked();
+  const names = stored.map((a) => a.name).filter(Boolean);
+
+  if (alreadyOpen) {
+    return `
+      <p class="wallet__meta">Keyring is unlocked — a new key will be saved with your current passphrase.</p>
+      <p class="wallet__actions wallet__actions--flush">
+        <button type="button" class="btn btn--primary" data-claim-generate>Generate key for this name</button>
+      </p>`;
+  }
+  if (existing) {
+    return `
+      <p class="wallet__meta">This browser already has encrypted keys${
+        names.length ? ` (${names.map((n) => escapeHtml(n)).join(", ")})` : ""
+      }. Unlock with that passphrase to add your claim key.</p>
+      <label>
+        Existing passphrase
+        <input data-claim-pass name="pass" type="password" autocomplete="current-password" minlength="8" required />
+      </label>
+      <p class="wallet__actions wallet__actions--flush">
+        <button type="button" class="btn btn--primary" data-claim-generate>Unlock &amp; generate key</button>
+      </p>
+      <p class="wallet__note">
+        Forgot it? Clear the local keyring and choose a new passphrase. On-chain names stay —
+        re-import private keys later if you still have them.
+      </p>
+      <p class="wallet__actions">
+        <button type="button" class="btn btn--outline" data-claim-clear-keyring>Clear keyring on this browser</button>
+      </p>`;
+  }
+  return `
+    <p class="wallet__meta">Choose a passphrase to encrypt your key in this browser. It never leaves your device.</p>
+    <label>
+      Passphrase
+      <input data-claim-pass name="pass" type="password" autocomplete="new-password" minlength="8" required />
+    </label>
+    <p class="wallet__actions wallet__actions--flush">
+      <button type="button" class="btn btn--primary" data-claim-generate>Generate key for this name</button>
+    </p>`;
+}
+
+/**
+ * @param {HTMLButtonElement | null} btn
+ * @param {() => Promise<void>} handler
+ */
+function bindBusyClick(btn, handler) {
+  if (!(btn instanceof HTMLButtonElement)) return;
+  btn.addEventListener("click", async () => {
+    if (btn.disabled) return;
+    btn.disabled = true;
+    btn.dataset.busy = "true";
+    try {
+      await handler();
+    } finally {
+      btn.disabled = false;
+      delete btn.dataset.busy;
+    }
+  });
 }
 
 function selectedWalletPub() {
@@ -174,18 +238,16 @@ function renderForm() {
 
       <fieldset ${ui.formEnabled ? "" : "disabled"}>
         <legend>Wallet key</legend>
+        <p class="wallet__meta">
+          Same as registration: this browser generates and encrypts keys[0] for your claim.
+          Enter your legacy name above first — the key is stored under that name.
+        </p>
+        ${walletKeyPanelHtml()}
         <label>
           Key for this claim
           <select data-claim-wallet name="walletName"></select>
         </label>
         <p class="wallet__meta" data-claim-pub></p>
-        <label>
-          Passphrase (encrypts key at rest)
-          <input data-claim-pass type="password" autocomplete="new-password" />
-        </label>
-        <div class="wallet__actions">
-          <button type="button" class="btn btn--outline" data-claim-generate>Generate key for this name</button>
-        </div>
       </fieldset>
 
       <fieldset ${ui.formEnabled ? "" : "disabled"}>
@@ -242,29 +304,58 @@ function renderForm() {
     await lookupLegacyName(name);
   });
 
-  hostEl.querySelector("[data-claim-generate]")?.addEventListener("click", async () => {
-    const legacyInput = hostEl.querySelector("[data-claim-name]");
-    const legacyName = legacyInput instanceof HTMLInputElement ? legacyInput.value.trim().toLowerCase() : "";
-    if (!legacyName) {
-      setStatus("Enter your legacy name first.", "error");
-      return;
-    }
-    try {
-      const passEl = hostEl.querySelector("[data-claim-pass]");
-      const pass = passEl instanceof HTMLInputElement ? passEl.value : "";
-      if (!pass) throw new Error("Passphrase required to encrypt your key");
-      const priv = await randomPrivateKey();
-      const pubHex = await pubkeyHex(priv);
-      await keyring.unlock(pass);
-      await keyring.upsertAccount({ name: legacyName, privHex: toHex(priv), pubHex });
-      fillWalletSelect(hostEl.querySelector("[data-claim-wallet]"), legacyName);
-      updatePubLabel();
-      setStatus(`Generated key for ${legacyName}`, "ok");
-      showToast({ title: "Key generated", body: pubHex });
-    } catch (err) {
-      setStatus(/** @type {Error} */ (err).message, "error");
-    }
-  });
+  bindBusyClick(
+    /** @type {HTMLButtonElement | null} */ (hostEl.querySelector("[data-claim-clear-keyring]")),
+    async () => {
+      if (
+        !confirm(
+          "Clear all Guld keys stored in this browser? You will need the private keys to use those names again here.",
+        )
+      ) {
+        return;
+      }
+      keyring.clearAll();
+      renderForm();
+      setStatus("Local keyring cleared — choose a new passphrase.", "ok");
+    },
+  );
+
+  bindBusyClick(
+    /** @type {HTMLButtonElement | null} */ (hostEl.querySelector("[data-claim-generate]")),
+    async () => {
+      const legacyName = getLegacyName();
+      if (!legacyName) {
+        setStatus("Enter your legacy name first.", "error");
+        return;
+      }
+      try {
+        if (!keyring.isUnlocked()) {
+          const passEl = hostEl.querySelector("[data-claim-pass]");
+          const pass = passEl instanceof HTMLInputElement ? passEl.value : "";
+          if (!pass || pass.length < 8) {
+            throw new Error("Passphrase required (at least 8 characters)");
+          }
+          setStatus(
+            walletAccounts().length ? "Unlocking keyring…" : "Generating key…",
+            "pending",
+          );
+          await keyring.unlock(pass);
+        } else {
+          setStatus("Generating key…", "pending");
+        }
+        const priv = await randomPrivateKey();
+        const pubHex = await pubkeyHex(priv);
+        await keyring.upsertAccount({ name: legacyName, privHex: toHex(priv), pubHex });
+        keyring.setActive(legacyName);
+        fillWalletSelect(hostEl.querySelector("[data-claim-wallet]"), legacyName);
+        updatePubLabel();
+        setStatus(`Generated key for ${legacyName}`, "ok");
+        showToast({ title: "Key generated", body: pubHex });
+      } catch (err) {
+        setStatus(/** @type {Error} */ (err).message, "error");
+      }
+    },
+  );
 
   hostEl.querySelector("[data-claim-build]")?.addEventListener("click", async () => {
     const legacyName = getLegacyName();
@@ -426,7 +517,7 @@ function updatePubLabel() {
   const pub = selectedWalletPub();
   const el = hostEl.querySelector("[data-claim-pub]");
   if (el instanceof HTMLElement) {
-    el.textContent = pub ? `pubkey ${pub}` : "Generate a key for your legacy name.";
+    el.textContent = pub ? `pubkey ${pub}` : "Generate a key above for your legacy name.";
   }
 }
 
