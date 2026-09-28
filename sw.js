@@ -1,5 +1,5 @@
 /* Guld.io service worker — offline shell, network-first for pages. */
-const CACHE = "guld-io-v16";
+const CACHE = "guld-io-v18";
 const PRECACHE = [
   "/",
   "/index.html",
@@ -20,6 +20,8 @@ const PRECACHE = [
   "/login/index.html",
   "/settings/",
   "/settings/index.html",
+  "/contacts/",
+  "/contacts/index.html",
   "/claim/",
   "/claim/index.html",
   "/gateway/",
@@ -39,6 +41,7 @@ const PRECACHE = [
   "/src/js/lib/keyring.js",
   "/src/js/lib/keyring-crypto.js",
   "/src/js/lib/qr.js",
+  "/src/js/lib/qr-scan.js",
   "/src/js/lib/rpc.js",
   "/src/js/lib/sponsor.js",
   "/src/js/lib/tx-feedback.js",
@@ -57,9 +60,14 @@ const PRECACHE = [
   "/src/js/components/guld-footer.js",
   "/src/js/vendor/ed25519.js",
   "/src/js/vendor/qrcodegen.js",
+  "/src/js/vendor/jsQR.js",
   "/src/js/wallet-page.js",
   "/src/js/register-page.js",
   "/src/js/login-page.js",
+  "/src/js/keys-page.js",
+  "/src/js/contacts-page.js",
+  "/keys/",
+  "/keys/index.html",
   "/src/js/settings-page.js",
   "/src/js/claim-page.js",
   "/src/js/gateway-page.js",

@@ -27,6 +27,10 @@ Committed height-0 for `--network simba` (`chain_id = 2`).
 Empty `--network simba` datadirs rebuild height-0 from these artifacts and **fail** if the tip drifts from `pins.json`.
 
 **GIP-27:** legacy-locked imports start with `expires_at_height = REGISTRATION_PERIOD` (pay-or-release). Prior tip `0xadbff540…` is obsolete — wipe datadir and resync.
+
+### Known issue — genesis timestamp / first retarget ([task 040](../../../docs/tasks/open/040-simba-genesis-timestamp-retarget.md))
+
+Height-0 `timestamp` is **1770000000** (2026-02-02T02:40:00Z) — post-dated relative to early mining. That skews `actual` for the first difficulty retarget at height **2016** (spec 06 §2.4). **No further Simba regenesis for this.** Mainnet ceremony MUST use real ceremony UTC ([task 031](../../../docs/tasks/open/031-mainnet-genesis-ceremony.md)).
 ## Design
 
 - **Full 1.0 ledger** in `import-manifest.json` (task 007 **A7**). Supply **x = sum(imported rows)** — ERC20 omitted ([`omissions.json`](./omissions.json)); negatives import **0** ([`negatives.json`](./negatives.json)). Narrative: [`docs/fragments/legacy-distribution.md`](../../../docs/fragments/legacy-distribution.md) ([GIP-24](../../../docs/gips/gip-24.md)).

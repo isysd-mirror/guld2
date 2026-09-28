@@ -15,7 +15,13 @@ test("index has brand-level logo and signup/login CTAs", () => {
   assert.match(html, /assets\/shield\.svg/);
   assert.ok(existsSync(join(root, "assets/logo.svg")));
   assert.ok(existsSync(join(root, "assets/shield.svg")));
-  assert.match(html, /Address people by name/i);
+  assert.match(html, /<h1 class="hero__title">Address people by name\.<\/h1>/);
+  assert.match(html, /Address people by name/i); // og / meta may embed the tagline
+  assert.match(html, /id="start"[\s\S]*?<h2>Address people by name<\/h2>/);
+  assert.match(
+    html,
+    /id="thesis"[\s\S]*?<h2>Address people by name\. Commit by hash\. Authorize by proof\.<\/h2>/,
+  );
   assert.match(html, /hero--globe/);
   assert.match(html, /hard fork/i);
   assert.match(html, /Guld 2\.0|2\.0/);
@@ -39,12 +45,26 @@ test("index has brand-level logo and signup/login CTAs", () => {
   assert.doesNotMatch(html, /cdn\.jsdelivr|googleapis\.com\/css/i);
 });
 
+test("key manager shell hosts table + detail routes", () => {
+  assert.ok(existsSync(join(root, "keys/index.html")));
+  assert.ok(existsSync(join(root, "src/js/keys-page.js")));
+  const html = readFileSync(join(root, "keys/index.html"), "utf8");
+  assert.match(html, /data-keys-host/);
+  assert.match(html, /keys-page\.js/);
+  const js = readFileSync(join(root, "src/js/keys-page.js"), "utf8");
+  assert.match(js, /wallet__keys-table/);
+  assert.match(js, /keysDetailHref|\/keys\/#\//);
+  assert.match(js, /wallet__keys-detail/);
+  assert.match(js, /hashchange/);
+});
+
 test("pages share guld-header and guld-footer chrome", () => {
   for (const page of [
     "wallet/index.html",
     "register/index.html",
     "login/index.html",
     "settings/index.html",
+    "keys/index.html",
     "claim/index.html",
     "gateway/index.html",
     "explorer/index.html",

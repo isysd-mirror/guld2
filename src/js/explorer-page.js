@@ -1,6 +1,11 @@
 import "./chrome.js";
 import { startChainLive } from "./lib/chain-events.js";
 import { blockHashHex } from "../guld-js/src/wire/header.js";
+import { findAccountsByPubkey, resolveApiBase } from "./lib/api.js";
+import {
+  classifyPubkeyUsage,
+  normalizePubkeyHex,
+} from "./lib/pubkey-accounts.js";
 import {
   escapeHtml,
   formatTime,
@@ -214,21 +219,42 @@ function refreshStatusLine(view) {
   }
 }
 
+/**
+ * @param {{ height: number, block: object }[]} rows
+ * @param {number} limit
+ */
+async function collectRecentTxs(rows, limit) {
+  /** @type {{ height: number, index: number, tx: Record<string, unknown>, txId?: string }[]} */
+  const recentTxs = [];
+  for (const { height, block } of rows) {
+    const txs = Array.isArray(block.txs) ? block.txs : [];
+    if (!txs.length) continue;
+    let ids = /** @type {string[]} */ ([]);
+    try {
+      ids = await fetchBlockTxIds(height);
+    } catch (err) {
+      console.warn("block tx ids", err);
+    }
+    for (let index = 0; index < txs.length && recentTxs.length < limit; index++) {
+      recentTxs.push({
+        height,
+        index,
+        tx: /** @type {Record<string, unknown>} */ (txs[index]),
+        txId: ids[index] || "",
+      });
+    }
+    if (recentTxs.length >= limit) break;
+  }
+  return recentTxs;
+}
+
 async function refreshHomeBlocks() {
   if (!(hostEl instanceof HTMLElement)) return;
   if (parseRoute().view !== "home") return;
   const from = tipHeight;
   const to = Math.max(0, tipHeight - PAGE_SIZE + 1);
   const rows = await fetchBlockRange(from, to);
-  /** @type {{ height: number, index: number, tx: Record<string, unknown> }[]} */
-  const recentTxs = [];
-  for (const { height, block } of rows) {
-    const txs = Array.isArray(block.txs) ? block.txs : [];
-    txs.forEach((tx, index) => {
-      if (recentTxs.length < HOME_TX_LIMIT) recentTxs.push({ height, index, tx });
-    });
-    if (recentTxs.length >= HOME_TX_LIMIT) break;
-  }
+  const recentTxs = await collectRecentTxs(rows, HOME_TX_LIMIT);
   const blocksSlot = hostEl.querySelector("[data-live-blocks]");
   const txsSlot = hostEl.querySelector("[data-live-confirmed-txs]");
   if (blocksSlot instanceof HTMLElement) {
@@ -248,8 +274,9 @@ async function refreshHomeBlocks() {
  *   | { view: "mempool" }
  *   | { view: "block", height: number }
  *   | { view: "account", name: string }
- *   | { view: "tx", height: number, index: number }
- *   | { view: "pendingTx", id: string }
+ *   | { view: "key", pubkey: string }
+ *   | { view: "tx", id: string }
+ *   | { view: "txLegacy", height: number, index: number }
  * }
  */
 function parseRoute() {
@@ -268,14 +295,26 @@ function parseRoute() {
     parts[2]
   ) {
     const id = parts[2].startsWith("0x") ? parts[2].toLowerCase() : `0x${parts[2].toLowerCase()}`;
-    return { view: "pendingTx", id };
+    return { view: "tx", id };
   }
+  // Legacy bookmark `#/tx/<height>/<index>` — resolve to TxId then redirect.
   if (parts[0] === "tx" && parts[1] != null && parts[2] != null) {
     const height = Number(parts[1]);
     const index = Number(parts[2]);
     if (Number.isFinite(height) && height >= 0 && Number.isFinite(index) && index >= 0) {
-      return { view: "tx", height, index };
+      return { view: "txLegacy", height, index };
     }
+  }
+  // Canonical: `#/tx/<0x…>` (confirmed or mempool).
+  if (parts[0] === "tx" && parts[1] && /^(0x)?[0-9a-fA-F]{64}$/.test(parts[1])) {
+    const id = parts[1].startsWith("0x")
+      ? parts[1].toLowerCase()
+      : `0x${parts[1].toLowerCase()}`;
+    return { view: "tx", id };
+  }
+  if (parts[0] === "key" && parts[1]) {
+    const pk = normalizePubkeyHex(decodeURIComponent(parts[1]));
+    if (pk) return { view: "key", pubkey: pk };
   }
   if (parts[0] === "account" && parts[1]) {
     return { view: "account", name: decodeURIComponent(parts[1]).toLowerCase() };
@@ -293,9 +332,16 @@ function blockHref(height) {
   return `#/block/${height}`;
 }
 
-/** @param {number|string} height @param {number|string} index */
-function txHref(height, index) {
-  return `#/tx/${height}/${index}`;
+/** @param {string} pubkey */
+function keyHref(pubkey) {
+  const pk = normalizePubkeyHex(pubkey);
+  return pk ? `#/key/${encodeURIComponent(pk)}` : "#/";
+}
+
+/** @param {string} id */
+function txHref(id) {
+  const hex = String(id || "").startsWith("0x") ? String(id).toLowerCase() : `0x${String(id || "").toLowerCase()}`;
+  return `#/tx/${encodeURIComponent(hex)}`;
 }
 
 /** @param {string} name */
@@ -312,22 +358,21 @@ function blockLink(height, label) {
   return `<a href="${blockHref(h)}">${escapeHtml(text)}</a>`;
 }
 
-/** @param {number|string} height @param {number|string} index @param {string} [label] */
-function txLink(height, index, label) {
-  const text = label != null ? label : `${height}:${index}`;
-  return `<a href="${txHref(height, index)}">${escapeHtml(text)}</a>`;
+/** @param {string} id @param {string} [label] */
+function txLink(id, label) {
+  if (!id) return escapeHtml(label != null ? label : "—");
+  const text = label != null ? label : shortHash(id, 10);
+  return `<a href="${txHref(id)}"><code>${escapeHtml(text)}</code></a>`;
 }
 
 /** @param {string} id */
 function pendingTxHref(id) {
-  const hex = String(id || "").startsWith("0x") ? String(id) : `0x${id}`;
-  return `#/tx/unconfirmed/${encodeURIComponent(hex)}`;
+  return txHref(id);
 }
 
 /** @param {string} id @param {string} [label] */
 function pendingTxLink(id, label) {
-  const text = label != null ? label : shortHash(id, 10);
-  return `<a href="${pendingTxHref(id)}"><code>${escapeHtml(text)}</code></a>`;
+  return txLink(id, label);
 }
 
 /**
@@ -385,28 +430,23 @@ function linkifyActivityPrimary(row, s) {
 async function navigateLookup(query) {
   const q = query.trim();
   if (!q) return;
-  // tx locator: 12:3 or 12/3
-  const txMatch = q.match(/^(\d+)[:/](\d+)$/);
-  if (txMatch) {
-    location.hash = txHref(txMatch[1], txMatch[2]);
-    return;
-  }
-  // bare block height
+  // bare block height (not height:index — that locator is obsolete)
   if (/^\d+$/.test(q)) {
     location.hash = blockHref(q);
     return;
   }
-  // 0x hash → try tx, then block
+  // 0x hash → try tx, then pubkey accounts, then block
   if (/^(0x)?[0-9a-fA-F]{64}$/.test(q)) {
-    const hex = q.startsWith("0x") ? q : `0x${q}`;
+    const hex = (q.startsWith("0x") ? q : `0x${q}`).toLowerCase();
     try {
       const tx = await rpcCall(rpcUrl, "guld_getTransaction", [hex]);
-      if (tx && tx.height != null && tx.index != null) {
-        location.hash = txHref(tx.height, tx.index);
+      if (tx) {
+        location.hash = txHref(String(tx.tx_id || hex));
         return;
       }
-      if (tx && tx.pending) {
-        location.hash = pendingTxHref(tx.tx_id || hex);
+      const hits = await findAccountsByPubkey(resolveApiBase(), hex, { rpcUrl });
+      if (hits.length) {
+        location.hash = keyHref(hex);
         return;
       }
       const block = await rpcCall(rpcUrl, "guld_getBlockByHash", [hex, false]);
@@ -417,7 +457,7 @@ async function navigateLookup(query) {
     } catch (err) {
       console.warn("hash lookup", err);
     }
-    setStatus("offline", `No tx or block for ${shortHash(hex, 10)}`);
+    setStatus("offline", `No tx, key, or block for ${shortHash(hex, 10)}`);
     return;
   }
   location.hash = accountHref(q.toLowerCase());
@@ -426,9 +466,9 @@ async function navigateLookup(query) {
 async function route() {
   haltLive();
   ticker = currencyTicker(await loadNetworkInfo());
-  // Prefer Bitcoin-style path; keep `#/tx/pending/…` as a one-shot alias.
-  if (/#\/tx\/pending\//i.test(location.hash)) {
-    location.hash = location.hash.replace(/\/tx\/pending\//i, "/tx/unconfirmed/");
+  // Collapse legacy aliases onto `#/tx/<0x…>`.
+  if (/#\/tx\/(pending|unconfirmed)\//i.test(location.hash)) {
+    location.hash = location.hash.replace(/\/tx\/(pending|unconfirmed)\//i, "/tx/");
     return;
   }
   const r = parseRoute();
@@ -438,14 +478,16 @@ async function route() {
   try {
     if (r.view === "block") {
       await renderBlock(r.height);
+    } else if (r.view === "txLegacy") {
+      await redirectLegacyTxLocator(r.height, r.index);
     } else if (r.view === "tx") {
-      await renderTx(r.height, r.index);
-    } else if (r.view === "pendingTx") {
-      await renderPendingTx(r.id);
+      await renderTx(r.id);
     } else if (r.view === "mempool") {
       await renderMempool();
     } else if (r.view === "account") {
       await renderAccount(r.name);
+    } else if (r.view === "key") {
+      await renderKey(r.pubkey);
     } else {
       await renderHome();
     }
@@ -514,7 +556,12 @@ function keysListHtml(keys, heading = "Keys") {
   const items = keys
     .map((k, i) => {
       const hex = String(k);
-      return `<li><span class="explorer__meta">[${i}]</span> ${copyable(hex)}</li>`;
+      const pk = normalizePubkeyHex(hex);
+      const link = pk
+        ? `<a href="${keyHref(pk)}"><code title="${escapeHtml(pk)}">${escapeHtml(shortHash(pk, 10))}</code></a>`
+        : `<code>${escapeHtml(shortHash(hex, 10))}</code>`;
+      return `<li><span class="explorer__meta">[${i}]</span> ${link}
+        <button type="button" class="btn btn--outline btn--small explorer-copy__btn" data-copy="${escapeHtml(hex)}">Copy</button></li>`;
     })
     .join("");
   return `<h3 class="explorer__subhead">${escapeHtml(heading)}</h3>
@@ -592,16 +639,7 @@ async function renderHome() {
   const from = tipHeight;
   const to = Math.max(0, tipHeight - PAGE_SIZE + 1);
   const rows = await fetchBlockRange(from, to);
-
-  /** @type {{ height: number, index: number, tx: Record<string, unknown> }[]} */
-  const recentTxs = [];
-  for (const { height, block } of rows) {
-    const txs = Array.isArray(block.txs) ? block.txs : [];
-    txs.forEach((tx, index) => {
-      if (recentTxs.length < HOME_TX_LIMIT) recentTxs.push({ height, index, tx });
-    });
-    if (recentTxs.length >= HOME_TX_LIMIT) break;
-  }
+  const recentTxs = await collectRecentTxs(rows, HOME_TX_LIMIT);
 
   let mempool = { count: pending, txs: [] };
   try {
@@ -724,8 +762,30 @@ function mempoolTable(items, opts = {}) {
   </table></div>`;
 }
 
+/** @param {number} height @param {number} index */
+async function redirectLegacyTxLocator(height, index) {
+  try {
+    const ids = await fetchBlockTxIds(height);
+    const id = ids[index];
+    if (id) {
+      location.hash = txHref(id);
+      return;
+    }
+  } catch (err) {
+    console.warn("legacy tx locator", err);
+  }
+  if (hostEl instanceof HTMLElement) {
+    setStatus("ok", `Legacy locator ${height}:${index} not found`);
+    hostEl.innerHTML = `
+      <div class="explorer__empty">
+        <p>No transaction at former locator <code>${escapeHtml(`${height}:${index}`)}</code>.</p>
+        <p>Use a <code>0x</code> tx id. ${blockLink(height, `Open block ${height}`)}</p>
+      </div>`;
+  }
+}
+
 /** @param {string} id */
-async function renderPendingTx(id) {
+async function renderTx(id) {
   const info = await rpcCall(rpcUrl, "guld_nodeInfo", []);
   tipHeight = Number(info.height || 0);
   const loc = await rpcCall(rpcUrl, "guld_getTransaction", [id]);
@@ -741,15 +801,20 @@ async function renderPendingTx(id) {
     return;
   }
 
-  // Mined since lookup — bounce to confirmed route.
-  if (!loc.pending && loc.height != null && loc.index != null) {
-    location.hash = txHref(loc.height, loc.index);
+  const txId = String(loc.tx_id || id).toLowerCase();
+  const canonical = txHref(txId);
+  if (location.hash !== canonical) {
+    location.hash = canonical;
+    return;
+  }
+
+  if (!loc.pending) {
+    await renderConfirmedTx(loc, tipHeight);
     return;
   }
 
   const tx = /** @type {Record<string, unknown>} */ (loc.tx || {});
   const s = summarizeTx(tx);
-  const txId = String(loc.tx_id || id);
   setStatus("ok", `Height ${tipHeight.toLocaleString()} · unconfirmed ${shortHash(txId, 10)}`);
   const costs = await protocolCostRows(tx, tipHeight);
 
@@ -767,14 +832,13 @@ async function renderPendingTx(id) {
     <section class="explorer__panel">
       <header class="explorer__panel-head">
         <h2>${escapeHtml(s.type)}</h2>
-        <p>0 confirmations</p>
+        <p>${txLink(txId)} · unconfirmed</p>
       </header>
       <p class="explorer__tx-summary">${linkifyTxPrimary(tx, s.primary)}
         ${costs.summaryHtml || (s.amount !== "—" ? ` · <strong>${escapeHtml(s.amount)}</strong> ${ticker}` : "")}</p>
       <dl class="explorer-kv-grid">
         ${kvRow("Tx id", copyable(txId), { wide: true })}
         ${kvRow("Confirmations", `<span class="num">0</span>`)}
-        ${kvRow("Status", `<span class="tx-pill tx-pill--pending">Unconfirmed</span>`)}
         ${costs.rowsHtml}
         ${txDetailRowsHtml(tx, { omitAmounts: Boolean(costs.rowsHtml) })}
       </dl>
@@ -817,18 +881,20 @@ function blocksTable(rows) {
 }
 
 /**
- * @param {{ height: number, index: number, tx: Record<string, unknown> }[]} items
+ * @param {{ height: number, index: number, tx: Record<string, unknown>, txId?: string }[]} items
  */
 function txsTable(items) {
   if (!items.length) {
     return `<p class="explorer__empty">No confirmed transactions in the recent window.</p>`;
   }
   const body = items
-    .map(({ height, index, tx }) => {
+    .map(({ height, tx, txId }) => {
       const s = summarizeTx(tx);
+      const id = txId || "";
+      const href = id ? txHref(id) : blockHref(height);
       return `<tr>
-        <td class="num">${txLink(height, index)}</td>
-        <td><a href="${txHref(height, index)}"><span class="tx-pill">${escapeHtml(s.type)}</span></a></td>
+        <td class="num">${id ? txLink(id) : blockLink(height)}</td>
+        <td><a href="${href}"><span class="tx-pill">${escapeHtml(s.type)}</span></a></td>
         <td>${linkifyTxPrimary(tx, s.primary)}</td>
         <td class="num">${escapeHtml(s.amount)}</td>
       </tr>`;
@@ -901,10 +967,13 @@ async function renderBlock(height) {
           const s = summarizeTx(tx);
           const fee = quantaToGuld(tx.inclusion_fee || "0");
           const id = txIds[index] || "";
+          const typeCell = id
+            ? `<a href="${txHref(id)}"><span class="tx-pill">${escapeHtml(s.type)}</span></a>`
+            : `<span class="tx-pill">${escapeHtml(s.type)}</span>`;
           return `<tr>
-            <td class="num">${txLink(height, index, String(index))}</td>
-            <td>${id ? copyable(id, { compact: true }) : "—"}</td>
-            <td><a href="${txHref(height, index)}"><span class="tx-pill">${escapeHtml(s.type)}</span></a></td>
+            <td class="num">${escapeHtml(String(index))}</td>
+            <td class="num">${id ? txLink(id) : "—"}</td>
+            <td>${typeCell}</td>
             <td>${linkifyTxPrimary(tx, s.primary)}</td>
             <td class="num">${escapeHtml(s.amount)}</td>
             <td class="num">${escapeHtml(fee)}</td>
@@ -956,107 +1025,114 @@ async function renderBlock(height) {
 }
 
 /**
- * @param {number} height
- * @param {number} index
+ * Confirmed tx detail from `guld_getTransaction` locator.
+ * @param {Record<string, unknown>} loc
+ * @param {number} tipHeight
  */
-async function renderTx(height, index) {
-  const info = await rpcCall(rpcUrl, "guld_nodeInfo", []);
-  tipHeight = Number(info.height || 0);
-
-  const block = await fetchBlock(height);
+async function renderConfirmedTx(loc, tipHeight) {
   if (!(hostEl instanceof HTMLElement)) return;
-  if (!block) {
-    setStatus("ok", `Height ${tipHeight.toLocaleString()} · block missing`);
-    hostEl.innerHTML = `<div class="explorer__empty"><p>Block ${height} not found.</p><p><a href="#/">← Back</a></p></div>`;
-    return;
-  }
 
-  const txs = Array.isArray(block.txs) ? block.txs : [];
-  const tx = txs[index];
-  if (!tx) {
-    setStatus("ok", `Height ${tipHeight.toLocaleString()} · tx missing`);
-    hostEl.innerHTML = `
-      <div class="explorer__empty">
-        <p>No transaction at index ${index} in ${blockLink(height, `block ${height}`)} (${txs.length} txs).</p>
-        <p>${blockLink(height, "← Open block")}</p>
-      </div>`;
-    return;
-  }
+  const txId = String(loc.tx_id || "").toLowerCase();
+  const height = Number(loc.height);
+  const index = Number(loc.index);
+  const tx = /** @type {Record<string, unknown>} */ (loc.tx || {});
+  let blockHash = loc.block_hash ? String(loc.block_hash) : "";
 
   const s = summarizeTx(tx);
-  const header = block.header || {};
-  const conf = tipHeight >= Number(height) ? tipHeight - Number(height) + 1 : 0;
+  const conf = tipHeight >= height ? tipHeight - height + 1 : 0;
   const confLabel = conf === 1 ? "1 confirmation" : `${conf} confirmations`;
-  setStatus("ok", `Height ${tipHeight.toLocaleString()} · tx ${height}:${index} · ${confLabel}`);
+  setStatus("ok", `Height ${tipHeight.toLocaleString()} · ${shortHash(txId, 10)} · ${confLabel}`);
 
-  let txId = "";
-  let blockHash = "";
+  let header = /** @type {Record<string, unknown>} */ ({});
+  let siblingIds = /** @type {string[]} */ ([]);
   try {
-    const ids = await fetchBlockTxIds(height);
-    txId = ids[index] || "";
+    const block = await fetchBlock(height);
+    if (block) {
+      header = /** @type {Record<string, unknown>} */ (block.header || {});
+      siblingIds = await fetchBlockTxIds(height);
+      if (!blockHash) {
+        try {
+          blockHash = await blockHashHex(
+            /** @type {import("../guld-js/src/wire/header.js").HeaderJson} */ (header),
+          );
+        } catch {
+          /* optional */
+        }
+      }
+      const siblings =
+        siblingIds.length > 1
+          ? `<p class="explorer__foot-note">Also in this block:
+              ${siblingIds
+                .map((id, i) => {
+                  const hid = String(id || "").toLowerCase();
+                  return hid === txId || i === index
+                    ? `<strong>${shortHash(hid || String(i), 8)}</strong>`
+                    : txLink(hid, shortHash(hid, 8));
+                })
+                .join(" · ")}</p>`
+          : "";
+
+      const costs = await protocolCostRows(tx, height);
+
+      hostEl.innerHTML = `
+        <nav class="explorer__crumb">
+          <a href="#/">Explorer</a>
+          <span aria-hidden="true">/</span>
+          ${blockLink(height, `Block ${height}`)}
+          <span aria-hidden="true">/</span>
+          <span>${escapeHtml(shortHash(txId, 10))}</span>
+        </nav>
+        <section class="explorer__panel">
+          <header class="explorer__panel-head">
+            <h2>${escapeHtml(s.type)}</h2>
+            <p>${txLink(txId)} · ${blockLink(height, `block ${height}`)} · ${escapeHtml(confLabel)} · ${escapeHtml(formatTime(header.timestamp))}</p>
+          </header>
+          <p class="explorer__tx-summary">${linkifyTxPrimary(tx, s.primary)}
+            ${costs.summaryHtml || (s.amount !== "—" ? ` · <strong>${escapeHtml(s.amount)}</strong> ${ticker}` : "")}</p>
+          <dl class="explorer-kv-grid">
+            ${kvRow("Tx id", copyable(txId), { wide: true })}
+            ${blockHash ? kvRow("Block hash", copyable(blockHash), { wide: true }) : ""}
+            ${kvRow("Block", blockLink(height, `block ${height}`))}
+            ${kvRow("Confirmations", `<span class="num">${escapeHtml(String(conf))}</span>`)}
+            ${kvRow("Time", escapeHtml(formatTime(header.timestamp)))}
+            ${header.miner ? kvRow("Miner", nameLink(String(header.miner))) : ""}
+            ${costs.rowsHtml}
+            ${txDetailRowsHtml(tx, { omitAmounts: Boolean(costs.rowsHtml) })}
+          </dl>
+          ${txExtrasHtml(tx)}
+          ${siblings}
+        </section>
+      `;
+      return;
+    }
   } catch (err) {
-    console.warn("tx id", err);
-  }
-  if (txId) {
-    try {
-      const loc = await rpcCall(rpcUrl, "guld_getTransaction", [txId]);
-      if (loc?.block_hash) blockHash = String(loc.block_hash);
-    } catch {
-      /* optional */
-    }
-  }
-  if (!blockHash) {
-    try {
-      blockHash = await blockHashHex(
-        /** @type {import("../guld-js/src/wire/header.js").HeaderJson} */ (header),
-      );
-    } catch {
-      /* optional */
-    }
+    console.warn("confirmed tx block", err);
   }
 
-  const siblings =
-    txs.length > 1
-      ? `<p class="explorer__foot-note">Also in this block:
-          ${txs
-            .map((_, i) =>
-              i === index
-                ? `<strong>${i}</strong>`
-                : txLink(height, i, String(i)),
-            )
-            .join(" · ")}</p>`
-      : "";
-
+  // Locator without block body (degraded).
   const costs = await protocolCostRows(tx, height);
-
   hostEl.innerHTML = `
     <nav class="explorer__crumb">
       <a href="#/">Explorer</a>
       <span aria-hidden="true">/</span>
-      ${blockLink(height, `Block ${height}`)}
-      <span aria-hidden="true">/</span>
-      <span>Tx ${index}</span>
+      <span>${escapeHtml(shortHash(txId, 10))}</span>
     </nav>
     <section class="explorer__panel">
       <header class="explorer__panel-head">
         <h2>${escapeHtml(s.type)}</h2>
-        <p>${txLink(height, index)} · ${blockLink(height, `block ${height}`)} · ${escapeHtml(confLabel)} · ${escapeHtml(formatTime(header.timestamp))}</p>
+        <p>${txLink(txId)} · ${Number.isFinite(height) ? blockLink(height, `block ${height}`) : "—"} · ${escapeHtml(confLabel)}</p>
       </header>
       <p class="explorer__tx-summary">${linkifyTxPrimary(tx, s.primary)}
         ${costs.summaryHtml || (s.amount !== "—" ? ` · <strong>${escapeHtml(s.amount)}</strong> ${ticker}` : "")}</p>
       <dl class="explorer-kv-grid">
-        ${txId ? kvRow("Tx id", copyable(txId), { wide: true }) : kvRow("Locator", copyable(`${height}:${index}`))}
+        ${kvRow("Tx id", copyable(txId), { wide: true })}
         ${blockHash ? kvRow("Block hash", copyable(blockHash), { wide: true }) : ""}
-        ${kvRow("Block", blockLink(height, `block ${height}`))}
-        ${kvRow("Index", `<span class="num">${escapeHtml(String(index))}</span>`)}
+        ${Number.isFinite(height) ? kvRow("Block", blockLink(height, `block ${height}`)) : ""}
         ${kvRow("Confirmations", `<span class="num">${escapeHtml(String(conf))}</span>`)}
-        ${kvRow("Time", escapeHtml(formatTime(header.timestamp)))}
-        ${header.miner ? kvRow("Miner", nameLink(String(header.miner))) : ""}
         ${costs.rowsHtml}
         ${txDetailRowsHtml(tx, { omitAmounts: Boolean(costs.rowsHtml) })}
       </dl>
       ${txExtrasHtml(tx)}
-      ${siblings}
     </section>
   `;
 }
@@ -1287,6 +1363,80 @@ function labelize(key) {
   return key.replace(/_/g, " ").replace(/\b\w/g, (c) => c.toUpperCase());
 }
 
+/** @param {string} pubkey */
+async function renderKey(pubkey) {
+  const pk = normalizePubkeyHex(pubkey);
+  const info = await rpcCall(rpcUrl, "guld_nodeInfo", []);
+  tipHeight = Number(info.height || 0);
+  if (!(hostEl instanceof HTMLElement)) return;
+  if (!pk) {
+    setStatus("ok", `Height ${tipHeight.toLocaleString()} · invalid pubkey`);
+    hostEl.innerHTML = `<div class="explorer__empty"><p>Invalid public key.</p><p><a href="#/">← Back</a></p></div>`;
+    return;
+  }
+
+  const hits = await findAccountsByPubkey(resolveApiBase(), pk, { rpcUrl });
+  const usage = classifyPubkeyUsage(hits);
+  setStatus("ok", `Height ${tipHeight.toLocaleString()} · ${usage.label}`);
+
+  let banner = "";
+  if (usage.kind === "unregistered") {
+    banner = `<aside class="explorer__banner"><p><strong>Unused on chain</strong> — no registered account includes this public key.</p></aside>`;
+  } else if (usage.kind === "reused") {
+    banner = `<aside class="explorer__banner"><p><strong>Key reused</strong> — this pubkey appears on ${hits.length} accounts.</p></aside>`;
+  }
+
+  const rows = hits.length
+    ? hits
+        .map((h) => {
+          const role =
+            String(h.kind).toLowerCase() === "group"
+              ? `cosigner · key ${h.key_index} of ${h.n_keys} · threshold ${h.threshold}`
+              : String(h.kind).toLowerCase() === "individual"
+                ? `personal · key ${h.key_index}`
+                : `${escapeHtml(h.kind)} · key ${h.key_index} of ${h.n_keys}`;
+          const bal =
+            h.balance != null ? `${escapeHtml(quantaToGuld(h.balance))} ${ticker}` : "—";
+          return `<tr>
+            <td>${nameLink(h.name)}</td>
+            <td><span class="tx-pill">${escapeHtml(String(h.kind))}</span></td>
+            <td>${escapeHtml(role)}</td>
+            <td class="num">${bal}</td>
+          </tr>`;
+        })
+        .join("")
+    : "";
+
+  hostEl.innerHTML = `
+    <nav class="explorer__crumb">
+      <a href="#/">Explorer</a>
+      <span aria-hidden="true">/</span>
+      <span>Key</span>
+    </nav>
+    ${banner}
+    <section class="explorer__panel">
+      <header class="explorer__panel-head">
+        <h2>Public key</h2>
+        <p>${escapeHtml(usage.label)}</p>
+      </header>
+      <dl class="explorer-kv-grid">
+        ${kvRow("Pubkey", copyable(pk), { wide: true })}
+        ${kvRow("Accounts", `<span class="num">${hits.length}</span>`)}
+      </dl>
+      ${
+        hits.length
+          ? `<div class="explorer__table-wrap"><table class="explorer-table">
+              <thead><tr>
+                <th>Account</th><th>Kind</th><th>Role</th><th class="num">Balance</th>
+              </tr></thead>
+              <tbody>${rows}</tbody>
+            </table></div>`
+          : `<p class="explorer__empty">No accounts reference this key.</p>`
+      }
+    </section>
+  `;
+}
+
 /** @param {string} name */
 async function renderAccount(name) {
   const info = await rpcCall(rpcUrl, "guld_nodeInfo", []);
@@ -1347,7 +1497,6 @@ async function renderAccount(name) {
           const rec = /** @type {Record<string, unknown>} */ (row);
           const s = summarizeActivity(rec);
           const h = row.height != null ? String(row.height) : "";
-          const idx = row.tx_index;
           const unconfirmed = activityIsUnconfirmed(rec);
           const conf = activityConfirmations(rec, tipHeight);
           const confCell = unconfirmed
@@ -1361,20 +1510,12 @@ async function renderAccount(name) {
               ? blockLink(h, `h${h}`)
               : escapeHtml(formatTime(row.timestamp));
           let txCell = "—";
-          if (unconfirmed && row.tx_id) {
+          if (row.tx_id) {
             const id = String(row.tx_id);
             txCell = `<span class="explorer-copy">
-              <a href="${pendingTxHref(id)}"><code class="explorer-copy__text" title="${escapeHtml(id)}">${escapeHtml(shortHash(id, 10))}</code></a>
+              <a href="${txHref(id)}"><code class="explorer-copy__text" title="${escapeHtml(id)}">${escapeHtml(shortHash(id, 10))}</code></a>
               <button type="button" class="btn btn--outline btn--small explorer-copy__btn" data-copy="${escapeHtml(id)}">Copy</button>
             </span>`;
-          } else if (h && idx != null && Number.isFinite(Number(idx))) {
-            const id = row.tx_id ? String(row.tx_id) : "";
-            txCell = id
-              ? `<span class="explorer-copy">
-                  <a href="${txHref(h, idx)}"><code class="explorer-copy__text" title="${escapeHtml(id)}">${escapeHtml(shortHash(id, 10))}</code></a>
-                  <button type="button" class="btn btn--outline btn--small explorer-copy__btn" data-copy="${escapeHtml(id)}">Copy</button>
-                </span>`
-              : txLink(h, idx, `${h}:${idx}`);
           } else if (h && s.type === "coinbase") {
             txCell = blockLink(h, "coinbase");
           } else if (h) {

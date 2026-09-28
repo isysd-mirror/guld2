@@ -1,0 +1,14 @@
+---
+description: Locked Guld marketing tagline and copy boundaries
+alwaysApply: true
+---
+
+# Brand copy
+
+SoT: [`docs/brand-concepts.md`](../../docs/brand-concepts.md).
+
+- **Marketing tagline (locked):** `Address people by name.`
+- Use it for landing hero, OG/social, ads, Discord about, and other marketing.
+- Do not replace it with the protocol thesis, shorten it to “Address by name.” on marketing surfaces, or invent a competing hero line.
+- **Protocol thesis** (whitepaper/specs only): Address by name. Commit by hash. Authorize by proof.
+- Origin: contributor **cmejia** (`chrissmejia`).

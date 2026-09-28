@@ -47,6 +47,8 @@ Small bugs and polish: use [`../tasks/`](../tasks/) instead. Specs remain normat
 | [28](gip-28.md) | Atomic individual↔group kind conversion | Accepted | Standards | Core |
 | [29](gip-29.md) | Threshold Transfer cosignatures | Accepted | Standards | Core |
 | [30](gip-30.md) | P2P mesh robustness | Accepted | Standards | Networking |
+| [31](gip-31.md) | Contacts address book and private invites | Draft | Standards | Application |
+| [32](gip-32.md) | Shared web UI leaf and extension pairing | Draft | Standards | Application |
 
 ## Migration note
 

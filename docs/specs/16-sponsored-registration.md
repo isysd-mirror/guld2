@@ -1,7 +1,7 @@
 # Spec 16 — Sponsored registration (pay-for-name)
 
 **Status:** draft  
-**Related:** [`03-transactions.md`](03-transactions.md) §3.1, [`07-fees-and-tokenomics.md`](07-fees-and-tokenomics.md)
+**Related:** [`03-transactions.md`](03-transactions.md) §3.1, [`07-fees-and-tokenomics.md`](07-fees-and-tokenomics.md), [`14-reference-ui.md`](14-reference-ui.md) §8.3.2
 
 ## 1. Problem
 
@@ -137,6 +137,16 @@ sequenceDiagram
 **In-person handshake:** registrant shows a QR whose payload is `guld1reg:` + compact JSON (same fields as §4). Sponsor pastes or scans into **Sponsor a name**, verifies, and pays. Remote: copy/paste the pretty JSON via chat.
 
 After inclusion, registrant controls the name via keys they generated locally. Sponsor never receives the private key.
+
+### 5.3 Private invite UX (off-consensus, non-binding)
+
+Reference UI MAY help users **invite a friend over a private channel** (Contacts compose — Spec 14 §8.3.2, [GIP-31](../gips/gip-31.md)). Those links and templates:
+
+- MUST NOT reserve a name, mint an invite code, or authorize a spend by themselves  
+- MAY prefill register wizard hints (`from`, `offer`, `pay`, …)  
+- When the invitee and inviter later complete sponsorship, they MUST still use this spec’s dual-signature registration request / sponsor flow (§4–§5.2)
+
+Optional off-chain “invite code” policy at a paid desk (§4 item 4) remains unrelated: that is registrar policy, not a Contacts private invite.
 
 ### 5.3 Provider models
 

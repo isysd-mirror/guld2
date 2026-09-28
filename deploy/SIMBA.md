@@ -106,6 +106,10 @@ Do **not** pass `--import-ledger` or `--dev` on Simba — the manifest and block
 
 **`--dev` / `--difficulty`:** seal always follows `next_difficulty` (post-genesis starts at **1** from a difficulty-0 genesis). The CLI `--difficulty` flag is status/legacy only and MUST NOT under-claim the schedule. Rapid `--dev-empty-blocks` may raise bits at retarget boundaries (Bitcoin-class); that is consensus-correct.
 
+### Known issue — first retarget skew ([task 040](../docs/tasks/open/040-simba-genesis-timestamp-retarget.md))
+
+Simba height-0 was **post-dated** (`timestamp` **1770000000** / 2026-02-02T02:40:00Z). The opening difficulty retarget at height **2016** therefore used a warped `actual = tip.timestamp − genesis.timestamp`. **No Simba regenesis for this.** Document only; mainnet ceremony MUST stamp genesis with real ceremony UTC ([task 031](../docs/tasks/open/031-mainnet-genesis-ceremony.md)).
+
 ## Paths (conventions)
 
 | Host | Checkout | Datadir | Notes |

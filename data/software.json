@@ -122,6 +122,15 @@
       "topics": ["javascript", "wallet"]
     },
     {
+      "id": "guld-web-ui",
+      "title": "guld-web-ui",
+      "summary": "Shared reference wallet UI (@guld/web-ui) — PWA + extension hosts",
+      "kind": "software",
+      "home": "here",
+      "href": "/software/guld-web-ui/",
+      "topics": ["javascript", "wallet", "ui"]
+    },
+    {
       "id": "guld-js",
       "title": "guld-js",
       "summary": "@guld/js SDK — wire vectors, crypto, HTTP client, tx, leaf helpers",

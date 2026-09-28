@@ -1,6 +1,6 @@
 # Guld FAQ
 
-Short answers for newcomers. Normative detail: [whitepaper](whitepaper/guld-2.0-draft.md) · [specs](specs/README.md).
+**Address people by name.** Short answers for newcomers. Normative detail: [whitepaper](whitepaper/guld-2.0-draft.md) · [specs](specs/README.md).
 
 ## Guld 1.0 and 2.0
 
@@ -29,6 +29,12 @@ Guld 1.0 used **identity- and contribution-weighted proof of stake**. Over time 
 ### Where is the wallet?
 
 The primary wallet is the **static web UI** in this repo (`/wallet/`), served by `guld-node --http-static`. Keys stay on your device.
+
+### How do I invite a friend?
+
+Use **Contacts** (planned `/contacts/` — [GIP-31](gips/gip-31.md)): keep an address book, then share a **private** message with a register link. The invite does **not** reserve a name. Optionally check **Offer to sponsor** so they come back to you for friend-sponsor ([Spec 16](specs/16-sponsored-registration.md)); otherwise the link can steer them to a payment desk on your peer. Design: [contacts-and-private-invite](design/contacts-and-private-invite.md).
+
+Until that UI ships, you can still sponsor someone who pastes a registration request into Wallet → Sponsor a name, or share your OTC invite URL from Settings if you run a desk.
 
 ## Building dapps
 

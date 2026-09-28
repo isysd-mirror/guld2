@@ -1,7 +1,7 @@
 {
   "name": "Guld 2.0",
   "short_name": "Guld",
-  "description": "Guld 2.0 — coming soon. Hard fork of Guld 1.0. Git-backed meta-filesystem.",
+  "description": "Address people by name. Guld 2.0 beta on Simba testnet — keys stay on your device.",
   "start_url": "/",
   "display": "standalone",
   "background_color": "#000000",

@@ -61,6 +61,7 @@ Each `src/guld-*` directory is a submodule. Its **`origin`** is the bare on disk
 | `src/guld-cli` | `repos/guld-cli.git` | `https://guld.io/repos/guld-cli.git` |
 | `src/guld-wallet` | `repos/guld-wallet.git` | `https://guld.io/repos/guld-wallet.git` |
 | `src/guld-extension` | `repos/guld-extension.git` | `https://guld.io/repos/guld-extension.git` |
+| `src/guld-web-ui` | `repos/guld-web-ui.git` | `https://guld.io/repos/guld-web-ui.git` |
 | `src/guld-js` | `repos/guld-js.git` | `https://guld.io/repos/guld-js.git` |
 | `src/guld-discord` | `repos/guld-discord.git` | `https://guld.io/repos/guld-discord.git` |
 | `src/guld-tic-tac-toe` | `repos/guld-tic-tac-toe.git` | `https://guld.io/repos/guld-tic-tac-toe.git` |

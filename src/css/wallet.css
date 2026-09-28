@@ -500,6 +500,60 @@
   font-size: 0.88rem;
 }
 
+.wallet__import-key {
+  display: grid;
+  gap: 0.75rem;
+  margin-bottom: 0.75rem;
+}
+
+.wallet__import-key__actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.5rem;
+  align-items: center;
+}
+
+.wallet__import-key__file-btn {
+  cursor: pointer;
+  margin: 0;
+}
+
+.wallet__import-key__file-btn input {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  opacity: 0;
+  overflow: hidden;
+}
+
+.wallet__import-key__preview {
+  margin: 0;
+  text-align: center;
+}
+
+.wallet__import-key__preview video {
+  display: inline-block;
+  width: 240px;
+  max-width: 100%;
+  height: auto;
+  aspect-ratio: 1;
+  object-fit: cover;
+  border: 1px solid color-mix(in srgb, var(--guld-ink) 12%, transparent);
+  border-radius: 0.35rem;
+  background: #000;
+}
+
+.wallet__import-key__hint {
+  margin: 0;
+  color: var(--guld-primary);
+}
+
+.wallet__import-key__error {
+  margin: 0;
+  color: #b00020;
+  font-size: 0.88rem;
+}
+
 /* Spacing helpers — prefer these over inline style= (CSP style-src 'self') */
 .wallet__spacer {
   margin-top: 1rem;
@@ -578,3 +632,148 @@
   text-decoration: underline;
   text-underline-offset: 0.12em;
 }
+
+/* Key manager */
+.wallet__keys-toolbar {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 0.75rem 1rem;
+  margin: 0 0 1rem;
+}
+
+.wallet__keys-unlock {
+  margin-bottom: 1rem;
+}
+
+.wallet__keys-table-wrap {
+  overflow-x: auto;
+  border: 1px solid color-mix(in srgb, var(--guld-ink) 12%, transparent);
+  border-radius: 0.35rem;
+  background: var(--guld-white);
+  margin: 0 0 1.25rem;
+}
+
+.wallet__keys-table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 0.9rem;
+}
+
+.wallet__keys-table th,
+.wallet__keys-table td {
+  padding: 0.55rem 0.75rem;
+  text-align: left;
+  border-bottom: 1px solid color-mix(in srgb, var(--guld-ink) 10%, transparent);
+  vertical-align: middle;
+}
+
+.wallet__keys-table th {
+  background: var(--guld-mist);
+  color: var(--guld-navy);
+  font-weight: 600;
+  white-space: nowrap;
+}
+
+.wallet__keys-table tr:last-child td {
+  border-bottom: 0;
+}
+
+.wallet__keys-table tr.is-active td {
+  background: color-mix(in srgb, var(--guld-navy) 6%, transparent);
+}
+
+.wallet__keys-mono {
+  font-family: ui-monospace, "Cascadia Code", Menlo, monospace;
+  font-size: 0.85em;
+  word-break: break-all;
+}
+
+.wallet__keys-badge {
+  display: inline-block;
+  margin-right: 0.35rem;
+  padding: 0.1rem 0.45rem;
+  border-radius: 0.2rem;
+  font-size: 0.75rem;
+  font-weight: 600;
+  color: var(--guld-navy);
+  background: color-mix(in srgb, var(--guld-navy) 12%, transparent);
+}
+
+.wallet__keys-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.5rem;
+  align-items: center;
+}
+
+.wallet__keys-actions--bar {
+  margin: 1rem 0 1.25rem;
+}
+
+.wallet__keys-tools {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+}
+
+.wallet__keys-tools .wallet__advanced {
+  margin: 0;
+}
+
+.wallet__keys-back {
+  margin: 0 0 1rem;
+}
+
+.wallet__keys-back a {
+  color: var(--guld-navy);
+  font-weight: 600;
+  text-decoration: none;
+}
+
+.wallet__keys-back a:hover {
+  text-decoration: underline;
+}
+
+.wallet__keys-detail-head h2 {
+  margin: 0 0 1rem;
+  font-size: 1.35rem;
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 0.35rem;
+}
+
+.wallet__keys-dl {
+  margin: 0;
+}
+
+.wallet__keys-dl > div {
+  margin: 0 0 1rem;
+  padding-bottom: 0.75rem;
+  border-bottom: 1px solid color-mix(in srgb, var(--guld-ink) 10%, transparent);
+}
+
+.wallet__keys-dl dt {
+  margin: 0 0 0.35rem;
+  font-size: 0.8rem;
+  font-weight: 600;
+  color: var(--guld-navy);
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+}
+
+.wallet__keys-dl dd {
+  margin: 0;
+}
+
+.wallet__key-map {
+  margin: 0.35rem 0 0;
+  padding-left: 1.1rem;
+}
+
+.wallet__key-map li {
+  margin: 0.25rem 0;
+}
+
+

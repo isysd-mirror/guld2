@@ -1,6 +1,6 @@
 # Guld
 
-**Guld 2.0** — identity-focused **L0** witness substrate: names, PoW anchoring, unbounded leaf dapps, and a static reference wallet.
+**Address people by name.** **Guld 2.0** is an identity-focused **L0** witness substrate: names, PoW anchoring, unbounded leaf dapps, and a static reference wallet.
 
 This repository **is** the open-source project **and** the static website (framework-less JS, web components, no bundler). The **guld.io** domain is a bootstrap mirror of this tree — not a GitHub host, not a consensus hub. Hard fork / 1.0 continuity: [`docs/FAQ.md`](docs/FAQ.md).
 

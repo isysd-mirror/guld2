@@ -1,0 +1,27 @@
+# User unit — guld-discord explorer bot (isysd / Projects/guld2).
+# Install:
+#   install -m 0644 deploy/guld-discord.user.service ~/.config/systemd/user/guld-discord.service
+#   systemctl --user daemon-reload
+#   systemctl --user enable --now guld-discord.service
+#
+# Secrets: src/guld-discord/.env (DISCORD_TOKEN, DISCORD_CLIENT_ID, …) — never commit.
+# Register slash commands once (guild preferred): cd src/guld-discord && npm run register
+# Node path: nvm v24; bump ExecStart if you change the default Node version.
+
+[Unit]
+Description=Guld Discord explorer bot (read-only Simba / guld-node slash commands)
+Documentation=file:///home/isysd/Projects/guld2/src/guld-discord/README.md
+After=network-online.target
+Wants=network-online.target
+
+[Service]
+Type=simple
+WorkingDirectory=/home/isysd/Projects/guld2/src/guld-discord
+EnvironmentFile=-/home/isysd/Projects/guld2/src/guld-discord/.env
+Environment=PATH=/home/isysd/.nvm/versions/node/v24.13.1/bin:/usr/bin:/bin
+ExecStart=/home/isysd/.nvm/versions/node/v24.13.1/bin/node --env-file=.env src/index.js
+Restart=on-failure
+RestartSec=5
+
+[Install]
+WantedBy=default.target

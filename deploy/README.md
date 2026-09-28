@@ -24,6 +24,7 @@ Do **not** add new product routes or git/SPA rules in nginx. Implement them in [
 | `guld-node.service` | **isysd --dev** playground (optional; disable when running Simba) |
 | `guld-node-simba.user.service` | **isysd Simba bootstrap** (mines) — `systemctl --user enable --now guld-node-simba` |
 | `guld-node-simba-peer.user.service` | **Simba validating peer** (no miner) — `systemctl --user enable --now guld-node-simba-peer` |
+| `guld-discord.user.service` | **Discord explorer bot** — `systemctl --user enable --now guld-discord` |
 | `guld-node-simba.service` | System unit template (`User=guld`) — see [`SIMBA.md`](SIMBA.md) |
 | `../scripts/install-bare-hooks.sh` | Symlink `repos/*.git` `post-receive` → auto-pull `guld` + restart Simba |
 | `SOFT_LAUNCH.md` | Operator runbook (prefer this README + HOSTING.md) |

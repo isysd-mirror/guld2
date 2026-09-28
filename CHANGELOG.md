@@ -4,6 +4,7 @@
 
 ### Added
 
+- Import key **QR scanner** (live camera + image upload) on `/keys/` and `/login/`, matching export QR; paste remains under “Can't scan?”
 - **[GIP-20](docs/gips/gip-20.md) Accepted:** local contacts / recent / favorites; Send prefix typeahead (`guld_searchAccounts`); `guld1contact:` QR (spec 14 §8.3.1); tasks [002](docs/tasks/done/2026-09/002-wallet-send-contacts.md)–[004](docs/tasks/done/2026-09/004-rpc-search-accounts.md)
 - Extension **site-login** (`guld1loginreq` / `guld1login`, tag `guld/site_login/v1`) + `/demo/login/` ([030](docs/tasks/done/2026-09/030-extension-site-login.md); leaf changelog `guld-extension` 0.1.2)
 - Threshold **Transfer** cosign ([GIP-29](docs/gips/gip-29.md) / [028](docs/tasks/done/2026-09/028-threshold-transfer-cosign.md)); **ConvertAccountKind** ([GIP-28](docs/gips/gip-28.md) / [034](docs/tasks/done/2026-09/034-convert-account-kind.md))

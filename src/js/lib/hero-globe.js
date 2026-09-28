@@ -5,7 +5,7 @@
  *   the map reveals outward from isysd while the camera zooms out and the
  *   globe starts turning → transfers fly as arcs and a log ticks in the
  *   corner, accelerating → final composition: shield + 2.0 BETA above,
- *   "Address by name. Commit by hash." below.
+ *   "Address people by name." below.
  *
  * Framework-less canvas 2D, time-based (not frame-based). Pauses off-screen
  * and in background tabs; renders a single static frame under reduced motion.

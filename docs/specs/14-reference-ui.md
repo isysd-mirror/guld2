@@ -23,7 +23,7 @@ The **browser extension** is **ecosystem software** (not required to validate th
 | Surface | Normative (spec) | Shipped today |
 |---------|------------------|---------------|
 | **guld.io PWA** | AES-256-GCM keyring + full §8–§10 flows | **Partial** — register (individual + group), send/subs/memo, UpdateMaster/RotateKeys + **cosign workstation**; Transfer cosign shipped |
-| **Browser extension** | Same keyring schema as PWA; site-login | Encrypted keyring + register/sponsor/send; site-login (`guld_login`) + `/demo/login/` |
+| **Browser extension** | Same keyring schema as PWA; site-login; hosts `guld-web-ui`; pairing §10.2 | Full-tab `guld-web-ui`; thin popup; site-login; `guld_pairOffer` |
 | `guld-wallet` (Dioxus desktop) | Encrypted file keyring or OS keychain | Deprecated for default path; legacy claim still supported |
 | Mobile native | Later | PWA covers cross-platform first |
 
@@ -36,15 +36,18 @@ Living feature matrix: **§3**.
 | Surface | Path / package | Role |
 |---------|----------------|------|
 | **Landing** | `/` (`index.html`) | Brand + entry to wallet / register / explorer |
-| **Wallet PWA** | `/wallet/` | Daily: lookup, send, activity, account mgmt, contacts |
+| **Wallet PWA** | `/wallet/` + `src/guld-web-ui/` | Daily: lookup, send, activity, account mgmt |
+| **Contacts** | `/contacts/` | Address book, import, private invite compose ([GIP-31](../gips/gip-31.md)) |
 | **Register** | `/register/` | Individual (and later group) onboarding wizard |
-| **Login / settings** | `/login/`, `/settings/` | Unlock keyring; API base; OTC desk prefs; contacts |
+| **Login / settings** | `/login/`, `/settings/` | Unlock keyring; API base; OTC desk prefs; extension pair; link to contacts |
+| **Key manager** | `/keys/` | Key table + `#/<name>` details; pubkey mapping; import / generate / export |
 | **Gateway** | `/gateway/` | Optional paid registrar desk (spec 16) |
 | **Claim** | `/claim/` | `ClaimLegacy` for 1.0 holders |
 | **Explorer** | `/explorer/` | Blocks, confirmed txs, **mempool**, accounts (hash routes) |
 | **Docs / specs / whitepaper** | `/docs/`, `/specs/`, `/whitepaper/` | Markdown browsers |
 | **Software** | `/software/` | Package catalog + clone URLs |
-| **Browser extension** | `src/guld-extension/` | Same key; dapp site-login |
+| **guld-web-ui** | `src/guld-web-ui/` | Shared wallet UI leaf ([GIP-32](../gips/gip-32.md)) |
+| **Browser extension** | `src/guld-extension/` | Full-tab UI host + dapp site-login + pairing |
 | **Desktop (optional)** | `src/guld-wallet/` | File keyring, PGP claim, external signer |
 | **Node** | `guld-node --http` | Canonical `/api/v1/…`; MUST NOT store keys |
 
@@ -99,9 +102,9 @@ Status: **shipped** | **partial** | **missing** | **out of UI** (node/miner/ops 
 | Exists / fee estimate | `…/exists`; `guld_estimateRegistrationFee` | Register + Send hints | **shipped** |
 | Threshold policy display | account JSON `threshold`, `keys[]` | Explorer + wallet | **shipped** |
 | **Cosign workstation** (collect ≥`threshold` sigs) | Client-side; broadcast when complete | Shared partial-cosign import/export (§9) | **shipped** |
-| Find accounts by pubkey | `guld_findAccountsByPubkey` | Settings / recovery hint | **partial** (RPC shipped; UI missing) |
+| Find accounts by pubkey | `guld_findAccountsByPubkey` / `GET /chain/accounts?pubkey=` | Key manager + explorer `#/key/<0x…>` | **shipped** |
 | Prefix name search | `guld_searchAccounts` | Explorer / wallet Send typeahead | **shipped** |
-| Local contacts / recent / favorites | — (local storage) | Send typeahead + Settings | **shipped** |
+| Local contacts / recent / favorites | — (local storage) | Send typeahead + **`/contacts/`** ([GIP-31](../gips/gip-31.md) Draft) | **partial** — v1 shipped; address book + private invite planned |
 | Cross-chain / bridge dapps (no L0 reserved names — A11) | Spec 13 informative | N/A for Simba wallet | **later** (dapp layer) |
 | Leaf / CAS put-get in wallet | `guld_putObject` / `getObject` | Not required for L0 wallet; leaf host | **later** / ops |
 
@@ -112,8 +115,8 @@ Status: **shipped** | **partial** | **missing** | **out of UI** (node/miner/ops 
 | Tip, chain id, ready | `GET /chain/status` / RPC | Explorer home; wallet status | **shipped** |
 | Block by height | `guld_getBlockByNumber` | `#/block/<h>` | **shipped** |
 | Block by hash | `guld_getBlockByHash` | Deep link / search | **partial** (RPC shipped; explorer UI next) |
-| Tx by height:index | Block body | `#/tx/<h>/<i>` | **shipped** |
-| Tx by id | `guld_getTransaction` | Explorer search + `#/tx/unconfirmed/<id>` | **shipped** |
+| Tx by id | `guld_getTransaction` | Explorer search + `#/tx/<0x…>` (confirmed or mempool) | **shipped** |
+| Tx by height:index | — | Legacy `#/tx/<h>/<i>` redirects to TxId | **deprecated** |
 | Mempool snapshot | `GET /chain/mempool` / `guld_getMempool` | Explorer home + `#/mempool` | **shipped** |
 | Live tip + mempool | `GET /chain/events` (SSE) | Explorer home + `#/mempool` | **shipped** (GIP-19) |
 | Mempool fee hints / weight | `guld_getMempoolFeeHints`, `guld_estimateWeight` | Send fee defaults | **partial** (RPC shipped; fee UI next) |
@@ -140,7 +143,7 @@ Logical ops: [`12-rpc.md`](12-rpc.md). Prefer HTTP where a route exists.
 |---------------|---------------|----------------|-------|
 | Status strip | `GET /chain/status` | `guld_blockNumber`, `guld_chainId`, `guld_ready` | Includes `mode` / `network` / `faucet` |
 | Account card | `GET /chain/accounts/{name}` | `guld_getAccount` | |
-| Activity | `GET …/activity` | `guld_getAccountActivity` | Use `tx_index` for explorer deep links |
+| Activity | `GET …/activity` | `guld_getAccountActivity` | Use `tx_id` for explorer deep links (`#/tx/<0x…>`) |
 | Exists while typing | `GET …/exists` | `guld_accountExists` | Debounce |
 | Registration fee | `GET /chain/fees/registration?…` (when present) | `guld_estimateRegistrationFee` | Pass `kind`, `nKeys` for groups |
 | Broadcast signed tx | `POST /chain/transactions` | `guld_sendTransaction` | **PWA write path** |
@@ -150,7 +153,7 @@ Logical ops: [`12-rpc.md`](12-rpc.md). Prefer HTTP where a route exists.
 | Explorer mempool | `GET /chain/mempool` | `guld_getMempool` | Pending txs until mined |
 | Explorer account | — or HTTP | `guld_getAccount` + activity | |
 | CAS (tools) | — | `guld_putObject` / `guld_getObject` | Not default wallet chrome |
-| Pubkey reverse lookup | — | `guld_findAccountsByPubkey` | Cosign invite / recovery |
+| Pubkey reverse lookup | `GET /chain/accounts?pubkey=` | `guld_findAccountsByPubkey` | Key manager + explorer `#/key/<0x…>` |
 
 **Signing:** all fee-paying txs are built and signed **in the client** (JS/WASM aligned with `guld-client` message tags). The node MUST NOT receive private keys.
 
@@ -165,7 +168,7 @@ Normative crypto: [`01-cryptography.md`](01-cryptography.md) §3.1.
 | Rule | Requirement |
 |------|-------------|
 | Key storage (browser) | **AES-256-GCM** encrypted keyring; **PBKDF2-SHA256** (≥310k iter) from user passphrase; MUST NOT persist `privHex` in plaintext |
-| Unlock / lock | Passphrase unlock loads keys into memory only; lock clears decrypted material |
+| Unlock / lock | One **keyring passphrase** (not per-key) unlocks all keys into memory; **sessionStorage** keeps the tab unlocked across MPA navigations until Lock / clear / tab close. Signing and security actions re-confirm the passphrase. |
 | Multi-key accounts | Keyring MAY hold several named key slots; UI MUST show which `key_index` the device holds for a group |
 | External signing | Unsigned payloads exportable; signed payloads / cosign fragments importable; no key required in browser |
 | Confirmations | User confirms sends, registrations, rotations, and broadcasts of completed cosign sets |
@@ -205,10 +208,16 @@ Normative crypto: [`01-cryptography.md`](01-cryptography.md) §3.1.
 | **Home / Account** | Balance, kind, threshold, expiry hint, keys summary, deep links |
 | **Send** | Transfer + memo; contacts combobox |
 | **Activity** | Local view of `guld_getAccountActivity` |
+| **Contacts** | Link to `/contacts/` — address book, import, **Invite friend** (private share) |
 | **Account tools** | UpdateMaster, RotateKeys, subaccounts, **Cosign**, **Create group** (or link to `/register/?kind=group`) |
-| **Settings** | API base URL, contacts, key backup/export, sponsor a name, advanced / claim |
+| **Settings** | API base URL, OTC desk prefs, link to contacts / key manager, sponsor a name, advanced / claim |
+| **Key manager** (`/keys/`) | Table of local keys; `#/<name>` details (mapping, export, remove); generate / import |
 
-Sponsored friend path remains available from Register and Settings (“Sponsor a name” → paste registration JSON).
+Profile menu: account switcher + links to key manager / wallet / contacts / settings (import/export live on `/keys/`).
+
+Wallet secondary CTA **Invite** MUST open `/contacts/` (compose or list), not an OTC-only URL alone.
+
+Sponsored friend path remains available from Register, Contacts invite (sponsor offer), and Settings / Wallet Advanced (“Sponsor a name” → paste registration JSON).
 
 ### 7.3 Explorer hash routes
 
@@ -216,13 +225,14 @@ Sponsored friend path remains available from Register and Settings (“Sponsor a
 |-------|--------|--------|
 | `#/` | tip + recent blocks/txs + **mempool strip** | home |
 | `#/mempool` | `guld_getMempool` | full unconfirmed list |
-| `#/tx/unconfirmed/<id>` | `guld_getTransaction` (mempool) | unconfirmed tx detail (`#/tx/pending/<id>` alias) |
-| `#/block/<height>` | `guld_getBlockByNumber` | header, miner, tx list |
-| `#/tx/<height>/<index>` | block body | type, amounts, names, memo, cosign count |
-| `#/account/<name>` | account + activity | balance, **kind**, **keys**, **threshold**, expiry, activity |
-| Search box | parse query | name → account; digits → block; `h:i` / `h/i` → tx; `0x…` → mined or unconfirmed tx / block |
+| `#/tx/<0x…>` | `guld_getTransaction` | tx detail (confirmed or mempool); `#/tx/unconfirmed/<id>` and `#/tx/pending/<id>` redirect here |
+| `#/block/<height>` | `guld_getBlockByNumber` | header, miner, tx list (by TxId) |
+| `#/tx/<height>/<index>` | block body → TxId | **legacy** — redirects to `#/tx/<0x…>` |
+| `#/key/<0x…>` | `guld_findAccountsByPubkey` | accounts that include this pubkey (reuse / cosigner role) |
+| `#/account/<name>` | account + activity | balance, **kind**, **keys** (link to `#/key/…`), **threshold**, expiry, activity |
+| Search box | parse query | name → account; digits → block; `0x…` → tx, then pubkey hits, then block |
 
-Wherever a username, block height, or `height:index` locator is shown, link to the matching route. Prefix browse requires `guld_searchAccounts` — not Phase 1 of explorer.
+Wherever a username, block height, TxId, or pubkey is shown, link to the matching route. Do not use `height:index` as a durable locator (reorgs can change it). Prefix browse requires `guld_searchAccounts` — not Phase 1 of explorer.
 
 ---
 
@@ -236,7 +246,7 @@ Empty keyring opens setup:
 |------|-----|--------|
 | **New individual name (default)** | Most users | Passphrase → pick name → fee estimate → keygen (encrypted) **or** export unsigned → sponsor (friend JSON/QR **or** paid desk) → poll until registered |
 | **New group name** | Orgs / multisig | See §8.6 |
-| **Import key** | Returning device | Passphrase + paste secret → encrypt per spec 01 §3.1 |
+| **Import key** | Returning device | Passphrase + scan export QR (or paste secret) → encrypt per spec 01 §3.1 |
 | **Legacy 1.0 claim** | Import holders | `/claim/` (PGP or attestation) |
 | **External signing only** | Paranoid / hardware | Never store key; build requests in browser; sign elsewhere; paste signed JSON / cosign fragments |
 
@@ -246,19 +256,23 @@ Pending registration name + request JSON MUST persist locally so users can leave
 
 **Send:** from unlocked account → `to` name → amount → optional memo → confirm → sign (`threshold==1` spend sig today; n-of-m via §9) → broadcast → append `to` to `recent_recipients`.
 
-**Activity:** list from node; link each item to explorer `#/tx/…` when `tx_index` present.
+**Activity:** list from node; link each item to explorer `#/tx/<0x…>` when `tx_id` is present.
 
 ### 8.3 Contacts & Send UX
 
-Local only — no on-chain friend graph. GIP: [`../gips/gip-20.md`](../gips/gip-20.md).
+Local only — no on-chain friend graph. GIP: [`../gips/gip-20.md`](../gips/gip-20.md) (lookup + typeahead); address book + private invite: [`../gips/gip-31.md`](../gips/gip-31.md), design [`../design/contacts-and-private-invite.md`](../design/contacts-and-private-invite.md).
 
 | Feature | Storage | Chain |
 |---------|---------|--------|
 | **Recent recipients** | Local `recent_recipients[]` | Names only; backfilled from activity counterparties |
-| **Favorites** | Local `contacts[]` with `favorite: true` | — |
-| **Aliases** | `contacts[].alias` | Display only; tx uses canonical `name` |
-| **Send typeahead** | UI | Local favorites → recent → contacts, then `guld_searchAccounts` / `GET /chain/accounts?prefix=` |
+| **Address book** | Local `contacts[]` (`guld.contacts.v2`) | Optional `guldName` link |
+| **Favorites** | `contacts[].favorite` | — |
+| **Display / labels** | `displayName`, `labels`, off-chain emails/phones/socials | Display only; tx uses `guldName` |
+| **Send typeahead** | UI | Local favorites → recent → contacts **with** `guldName`, then `guld_searchAccounts` / `GET /chain/accounts?prefix=` |
 | **Exists hint** | API | Debounced lookup |
+| **Private invite** | Compose on `/contacts/` | Non-binding register URL hints (§8.3.2) |
+
+**v1 shape (shipped today, `guld.contacts.v1`):**
 
 ```json
 {
@@ -271,11 +285,37 @@ Local only — no on-chain friend graph. GIP: [`../gips/gip-20.md`](../gips/gip-
 }
 ```
 
-Storage key: `guld.contacts.v1` (localStorage). Settings: add / remove / alias / favorite; import contact card.
+**v2 shape (GIP-31 — migrate on first load):**
+
+```json
+{
+  "v": 2,
+  "contacts": [
+    {
+      "id": "c_1",
+      "displayName": "Bob",
+      "guldName": "bob",
+      "emails": ["bob@example.com"],
+      "phones": [],
+      "socials": [],
+      "labels": ["friends"],
+      "notes": "",
+      "favorite": true
+    }
+  ],
+  "recent_recipients": [
+    { "name": "carol", "last_sent_at": "2026-09-23T20:00:00Z" }
+  ]
+}
+```
+
+Migration: each v1 `{ name, alias?, favorite? }` → v2 contact with `guldName: name`, `displayName: alias || name`. Storage key MAY remain `guld.contacts.v1` with `"v": 2` inside, or move to `guld.contacts.v2` — implementation MUST read both during transition.
+
+Primary UI: **`/contacts/`** (list, detail, import, invite compose). Settings: link to Contacts + OTC desk prefs; MAY keep a short favorites summary.
 
 #### 8.3.1 Contact card QR (`guld1contact:`)
 
-In-person exchange only — **not** for routine payment. Import saves to local contacts; no chain tx.
+In-person exchange of a **Guld name** only — **not** for routine payment and **not** a full address-book export. Import merges into local contacts; no chain tx.
 
 **Prefix:** `guld1contact:`  
 **Body:** compact JSON (no whitespace required):
@@ -291,7 +331,42 @@ In-person exchange only — **not** for routine payment. Import saves to local c
 | `pub` | no | Optional Ed25519 pubkey hex (`0x…`) for display / recovery hint |
 | `alias` | no | Local display nickname on import |
 
-Reference UI: Settings shows “my contact card” QR when logged in; paste/import field accepts the payload.
+Reference UI: Contacts / Settings shows “my contact card” QR when logged in; paste/import field accepts the payload.
+
+#### 8.3.2 Private registration invite (non-binding)
+
+**Purpose:** Help a user invite a friend over a **private** channel (SMS, email, chat, Web Share) with clear copy and a register link. This is **off-consensus UX**.
+
+**MUST NOT:**
+
+- Reserve or suggest a claimable name in a public growth URL  
+- Mint invite codes, hold names, or bind fees/keys  
+- Authorize sponsorship by itself (sponsorship remains Spec 16 dual-sig when the inviter later signs)
+
+**MAY** prefill register wizard **hints** via query string on the **current peer origin**:
+
+| Param | Role |
+|-------|------|
+| `from` | Inviter Guld name (display / “return the request to …”) |
+| `offer` | `1` = emphasize friend-sponsor path after keygen; `0` = prefer pay desk |
+| `pay` | Optional desk payment link when inviter OTC is configured |
+| `sponsor` | Desk registrar **name** on OTC invites (GIP-8) — not the friend-offer flag |
+| `peer` | Optional absolute origin hint |
+
+**Invite compose** (`/contacts/`):
+
+1. Optional checkbox **Offer to sponsor their registration**.  
+2. Editable message template + absolute register URL.  
+3. Web Share and/or copy message / copy link.
+
+| Mode | Default steering |
+|------|------------------|
+| `offer=1` | Invitee picks name + keys, then sends portable registration request back to `from` (Spec 16 friend sponsor) |
+| `offer=0` | Invitee uses pay desk on this peer when available (`pay` / peer desk); else bootstrap desk |
+
+Default English templates live in the design doc; UI MUST allow edit before share.
+
+Register wizard MUST treat missing/unknown params as absent (no error). Name availability and fees remain live checks at register time.
 
 ### 8.4 UpdateMaster (tip advance)
 
@@ -472,9 +547,21 @@ UI MUST state: cosigners authorize a **specific** statement (tip advance / spend
 |-------|----------|
 | Shipped | Shared encrypted keyring schema; register / sponsor / send |
 | Shipped (§1.4) | Site-login: dapp presents challenge; extension signs under registered key; dapp verifies via node account lookup (§10.1) |
-| Later | Multiple named accounts in extension; group key_index picker; PWA session via extension |
+| Shipped / in progress ([GIP-32](../gips/gip-32.md)) | Shared **`guld-web-ui`** leaf hosted by PWA + extension full tab; confirmed pairing (§10.2); thin popup launcher |
+| Later | Multiple named accounts in extension confirm; group key_index picker; optional PWA extension-only signing mode |
 
 Extension MUST NOT be required to validate blocks. Site-login is **ecosystem** (not a consensus opcode). Format **frozen** at §10.1 (`v: 1`).
+
+### 10.0 Shared reference UI hosts ([GIP-32](../gips/gip-32.md))
+
+| Host | Role |
+|------|------|
+| **PWA (umbrella)** | Primary daily wallet; service worker; installability; marketing chrome; thin route shells under `/wallet/`, `/register/`, … |
+| **guld-extension** | Full-tab host of the same **`guld-web-ui`** leaf; `window.guld` provider; confirm UI; thin popup (status + open wallet) |
+
+Wallet product modules MUST live in `src/guld-web-ui/` (`@guld/web-ui`). Shared code MUST use a **host runtime** (`kind`: `pwa` \| `extension`) for storage, asset bases, and service-worker registration (no-op on extension). Landing, explorer, docs, and software catalog remain umbrella-only.
+
+Design SoT: [`../design/pwa-extension-shared-ui.md`](../design/pwa-extension-shared-ui.md).
 
 ### 10.1 Site-login challenge / response (frozen `v: 1`)
 
@@ -525,7 +612,44 @@ msg = tagged_hash("guld/site_login/v1",
 
 Session cookies / JWTs after verify are **out of band**. Reference demo: `/demo/login/`.
 
-**Non-goals:** consensus validation of login; threshold multi-approve login; free-form `signMessage`; automatic PWA↔extension key sync.
+**Non-goals:** consensus validation of login; threshold multi-approve login; free-form `signMessage`; **silent** PWA↔extension key sync without user confirm (see §10.2 for confirmed pairing).
+
+### 10.2 PWA ↔ extension pairing (`v: 1`)
+
+Ecosystem handoff so the reference PWA and extension can share a keyring (and optionally local contacts/settings) after **explicit user confirmation**. Not a consensus opcode. Design: [`../design/pwa-extension-shared-ui.md`](../design/pwa-extension-shared-ui.md).
+
+**When to offer (reference UI SHOULD):**
+
+1. After successful registration.  
+2. On login / empty-keyring flows when the extension is missing or unpaired.  
+3. Settings → Browser extension.
+
+**Detect:** `window.guld` / `guld#initialized` (same pattern as `/demo/login/`).
+
+**Provider methods:**
+
+| Method | Behavior |
+|--------|----------|
+| `guld_pairStatus` | `{ installed: true, paired: boolean, accounts?: string[] }` (no secrets) |
+| `guld_pairOffer` | Params: pair payload (below). Extension MUST show confirm UI listing account names; on accept, merge into extension keyring storage. Returns `{ ok: true, accounts: string[] }` or error. |
+| `guld_pairPull` | Optional: after confirm, return encrypted keyring export from extension for PWA import (pull direction). |
+
+**Pair payload** (`type: "guld1pair"`):
+
+| Field | Required | Notes |
+|-------|----------|-------|
+| `v` | yes | `1` |
+| `type` | yes | `"guld1pair"` |
+| `keyring` | yes | Same JSON shape as `guld.keyring.v1` (encrypted accounts; no plaintext privkeys) |
+| `contacts` | no | `guld.contacts` v1/v2 JSON (local PII) |
+| `settings` | no | Subset: `apiBase`, `rpcUrl`, gateway desk prefs |
+| `passphrase_hint` | no | Never the passphrase itself — UI only |
+
+The page MUST NOT send plaintext private keys. The user MUST unlock the extension (and PWA keyring as needed) so ciphertext can be re-encrypted under the extension passphrase when schemas differ; if both use the same passphrase, the extension MAY import ciphertext as-is after confirm.
+
+**After pair:** PWA SHOULD prefer `window.guld` for signing when the extension is unlocked and accounts are granted; PWA MUST remain usable offline without the extension. Local pair marker: `guld.extensionPair.v1` (non-secret metadata only).
+
+**Non-goals (v1):** silent/background sync; continuous two-way contacts sync; requiring the extension for PWA use.
 
 ---
 
@@ -552,6 +676,7 @@ Session cookies / JWTs after verify are **out of band**. Reference demo: `/demo/
 11. Account card: kind, threshold, keys, expiry hint; wallet friend-sponsor form  
 12. Extension site-login (`guld1loginreq` / `guld1login` §10.1) + `/demo/login/`  
 13. Contacts / recent / favorites + Send prefix typeahead (`guld_searchAccounts`) + `guld1contact:` QR  
+13b. Contacts address book + private invite (`/contacts/`, GIP-31) — **docs**; implementation task [038](../tasks/open/038-contacts-private-invite.md)  
 
 **Next:**
 

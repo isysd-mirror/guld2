@@ -1,6 +1,6 @@
 # Simba beta
 
-**Public testnet** for Guld 2.0. Not mainnet — balances and tip may reset once more before durable lock.
+**Address people by name.** Public **testnet** for Guld 2.0. Not mainnet — balances and tip may reset once more before durable lock.
 
 | | |
 |--|--|

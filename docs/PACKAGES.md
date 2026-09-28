@@ -43,6 +43,7 @@ Submodule URLs in `.gitmodules` point at **`https://guld.io/repos/<name>.git`**.
 | guld-cli | `src/guld-cli/` | `repos/guld-cli.git` | Rust | Wallet CLI (`guld`) |
 | guld-wallet | `src/guld-wallet/` | `repos/guld-wallet.git` | Rust | Optional Dioxus desktop wallet (on hold) |
 | guld-extension | `src/guld-extension/` | `repos/guld-extension.git` | JS | Browser provider — **not protocol** |
+| guld-web-ui | `src/guld-web-ui/` | `repos/guld-web-ui.git` | JS | Shared reference wallet UI (`@guld/web-ui`) — PWA + extension ([GIP-32](gips/gip-32.md)) |
 | guld-js | `src/guld-js/` | `repos/guld-js.git` | JS | `@guld/js` SDK — wire/crypto/client/tx/cosign/leaf ([036](tasks/done/2026-09/036-guld-js-sdk.md)) |
 | guld-tic-tac-toe | `src/guld-tic-tac-toe/` | `repos/guld-tic-tac-toe.git` | JS | Reference leaf dapp — witnessed tic-tac-toe ([037](tasks/done/2026-09/037-guld-tic-tac-toe.md)) |
 

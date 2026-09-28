@@ -1,7 +1,7 @@
 # Guld 2.0 Whitepaper
 
-**Version:** 0.27  
-**Date:** 2026-09-27  
+**Version:** 0.28  
+**Date:** 2026-09-28  
 **Token:** GULD (native)  
 **Specifications:** [`../specs/README.md`](../specs/README.md) · **Glossary:** [§14](#14-glossary)
 
@@ -11,7 +11,7 @@
 
 ## Abstract
 
-Guld 2.0 is a **global, identity-focused layer-0**: a **PoW-anchored namespace and witness substrate** where people, groups, and unbounded dapps share one address space of **usernames**, **content hashes**, and **enumerated proofs**. Named accounts settle **transfers and grants** under a fixed tx vocabulary (identity-addressed settlement — not a general DeFi VM). The chain records that an account achieved consensus on a new **head** (master hash). It does not interpret why they signed, run their private scripts, or adjudicate their disputes.
+**Address people by name.** Guld 2.0 is a **global, identity-focused layer-0**: a **PoW-anchored namespace and witness substrate** where people, groups, and unbounded dapps share one address space of **usernames**, **content hashes**, and **enumerated proofs**. Named accounts settle **transfers and grants** under a fixed tx vocabulary (identity-addressed settlement — not a general DeFi VM). The chain records that an account achieved consensus on a new **head** (master hash). It does not interpret why they signed, run their private scripts, or adjudicate their disputes.
 
 **Cross-chain and foreign-chain witnessing are not built into Simba v1.** Bridge builders, indexers, and exchange dapps **register ordinary names** (pay letter fees like anyone else) and ship **leaves** that MAY coordinate with Bitcoin, Ethereum, Solana, or other networks off-chain. A hypothetical **guldex** or lightning-style channel dapp **could** read foreign state, build application proofs, and settle by advancing **its** name’s tip—or by posting ordinary Guld txs—but that is **dapp capability**, not a protocol guarantee ([§3.4](#34-addressing-referencing-and-cross-chain-dapp-patterns)). The network is **not a general VM**: it validates fixed transaction schemas, checks hashes and signatures, and applies a small set of built-in state updates. **Everything else**—games, exchanges, rollups-as-leaves, agents—lives in **leaves**, on custom domains. Clients talk to full nodes only over the node’s **HTTP API** or **JSON-RPC** (or a proxy in front)—not consensus opcodes. Between leaves, dapps coordinate however they choose (HTTPS, IPC, in-process, …). Validators stay lean on keys, tips, and balances. Optional git and PGP remain **leaf** tools, not the consensus bus.
 
@@ -37,7 +37,11 @@ Ethereum proved programmable settlement and fee markets. Bitcoin proved open Syb
 
 ### 1.2 Thesis
 
+**Address people by name.** That is the product promise — manners as UX. The protocol expands it into a fixed triad:
+
 **Address by name. Commit by hash. Authorize by proof. Pay a tx fee. Leave leaf law to the leaf — including dapps with no ceiling.**
+
+(“Address by name” here is the first clause of the triad, not a competing slogan. Marketing SoT: [`../brand-concepts.md`](../brand-concepts.md).)
 
 Guld 2.0 is an **L0 witness hub** for **registered identities**: settlement of fast paths and personal chains is “just another hash tip.” Cross-chain stories are **optional dapp designs** ([§3.4](#34-addressing-referencing-and-cross-chain-dapp-patterns)). Preserve historical 1.0 balances where possible; do not carry forward blockchain-in-git or FUSE as the 2.0 product model.
 
@@ -71,7 +75,7 @@ Steps 6–7 are **ecosystem UX** (extension and dapp conventions). They are not 
 
 Comparative sketch for positioning — not a feature checklist or investment advice. Guld 2.0 is an **L0 witness hub** (names, tips, balances, PoW headers) — not a general VM L1. It uses **Bitcoin-parameter PoW** (SHA256d, ≈10 min, 2016-block retarget — [spec 06](../specs/06-blocks-and-consensus.md)); early-network **security budget** (hashrate × depth) is **not** Bitcoin-class ([§11](#11-security-notes-and-risks)). Cross-chain is **dapp-layer** in v1 ([spec 13](../specs/13-foreign-chains.md) informative). Hard fork / 1.0 continuity: [`../FAQ.md`](../FAQ.md).
 
-**Thesis in one row:** address by **name**, commit by **hash**, authorize by **proof** — leaves stay unbounded; the chain witnesses heads rather than re-running leaf politics.
+**Thesis in one row:** address **people** by **name**, commit by **hash**, authorize by **proof** — leaves stay unbounded; the chain witnesses heads rather than re-running leaf politics.
 
 Full comparison table (Guld vs Bitcoin, Ethereum, Solana, Cosmos Hub, …): [`../fragments/chain-comparison.md`](../fragments/chain-comparison.md) ([browse](/docs/?doc=fragments%2Fchain-comparison.md)).
 
@@ -188,7 +192,7 @@ Legacy Guld 1.0 usernames and balances are imported as **claimable pre-mine acco
 
 ### 3.4 Addressing, referencing, and cross-chain dapp patterns
 
-- **Address by name** in UX and high-level txs (`Transfer { to: "alice", amount }`).
+- **Address people by name** in UX and high-level txs (`Transfer { to: "alice", amount }`).
 - **Reference by hash** for tips, trees, and proofs (`master_hash`, CAS oids).
 - Resolvers and indexers may cache name→id; consensus stores the authoritative map.
 
@@ -789,7 +793,7 @@ Account schema, `threshold_cosign_v1` (tips/rotate/**spend**), weight table, and
 
 ## 13. Conclusion
 
-Guld 2.0 is an **L0** where **identity is the product** and **leaves are unlimited**: a PoW-anchored namespace for people and groups, with **dapps that can literally do anything**—including **theoretical** cross-chain indexers, guldex-style settlement, and lightning-/personal-chain hash commits—while the network remains a **witness for registered Guld identities**, not a VM that re-executes leaf politics or mandatory foreign-chain verification. Named-account settlement uses a **Bitcoin-style weight fee** market (not a general DeFi VM). Legacy supply **x ≈ 9.6×10⁵ GULD** is a disclosed pre-mine from the 1.0 ledger (ERC20 bucket omitted), unlocked per user by **key upgrade** ([GIP-14](../gips/gip-14.md); disclosure [GIP-24](../gips/gip-24.md)); PoW issuance follows **`i(y) = max(0.04, (2/3)^(y−1))`** at **10-minute** blocks under Bitcoin-**parameter** retarget; **registration fees** (§8.7) go to miners over an 8-block vest. Scalability follows from keeping validators on keys and hashes; content retention and app logic stay in **leaves**; incentives follow from attributable cosign, fee-rate bidding, registration lottery, and PoW — with security budget treated honestly ([§11](#11-security-notes-and-risks)).
+**Address people by name.** Identity is the product; **leaves are unlimited**. Guld 2.0 is an **L0** PoW-anchored namespace for people and groups, with **dapps that can literally do anything**—including **theoretical** cross-chain indexers, guldex-style settlement, and lightning-/personal-chain hash commits—while the network remains a **witness for registered Guld identities**, not a VM that re-executes leaf politics or mandatory foreign-chain verification. Named-account settlement uses a **Bitcoin-style weight fee** market (not a general DeFi VM). Legacy supply **x ≈ 9.6×10⁵ GULD** is a disclosed pre-mine from the 1.0 ledger (ERC20 bucket omitted), unlocked per user by **key upgrade** ([GIP-14](../gips/gip-14.md); disclosure [GIP-24](../gips/gip-24.md)); PoW issuance follows **`i(y) = max(0.04, (2/3)^(y−1))`** at **10-minute** blocks under Bitcoin-**parameter** retarget; **registration fees** (§8.7) go to miners over an 8-block vest. Scalability follows from keeping validators on keys and hashes; content retention and app logic stay in **leaves**; incentives follow from attributable cosign, fee-rate bidding, registration lottery, and PoW — with security budget treated honestly ([§11](#11-security-notes-and-risks)).
 
 Users join via **sponsored registration**; any funded peer can onboard the next — free (friend) or paid (third-party gateway). The everyday path is whitepaper **§1.4**: PWA wallet on device → extension → many dapps, one name.
 
@@ -827,6 +831,7 @@ Terms are defined for this whitepaper. Normative detail lives in [`../specs/READ
 | **Inclusion fee** | **Weight-based** fee (GULD per virtual byte) paid to the miner for block inclusion—not an EVM gas ISA. |
 | **Indexer** | Off-chain service that caches name lookups, activity, or leaf metadata. Not required for consensus. |
 | **L0 / layer-0** | The Guld witness chain: names, balances, tips, PoW headers—not general app execution. |
+| **Marketing tagline** | Locked product line: **Address people by name.** ([`../brand-concepts.md`](../brand-concepts.md)). Distinct from the protocol triad’s first clause (“Address by name”), which is not a competing slogan. |
 | **Leaf** | Personal or group realm: opaque bytes, local rules, any runtime. Disputes and semantics stay **inside** the leaf. |
 | **Leaf host** | Service that materializes home bytes (clone git/CAS, optional runtime) for clients. Often co-located with a full node; availability is off the consensus path. |
 | **Legacy-locked** | 1.0-imported balance present on-chain but not spendable until `ClaimLegacy` key upgrade (§8.6). |

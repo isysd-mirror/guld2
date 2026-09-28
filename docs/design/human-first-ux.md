@@ -6,9 +6,9 @@
 
 ## 1. North star
 
-> People address people by **name**. The chain witnesses **proof**. The UI never asks a citizen to be a protocol engineer.
+> **Address people by name.** The chain witnesses **proof**. The UI never asks a citizen to be a protocol engineer.
 
-“Address by name. Commit by hash. Authorize by proof.” stays the thesis. Only the **first** clause belongs on the glass by default. Hash and proof are infrastructure — shown on confirm when useful, editable only in Advanced.
+Locked marketing tagline (see [`brand-concepts.md`](../brand-concepts.md)): **Address people by name.** — hero, OG, and other marketing surfaces. Protocol thesis remains “Address by name. Commit by hash. Authorize by proof.”; only the people-by-name line belongs on the glass by default. Hash and proof are infrastructure — shown on confirm when useful, editable only in Advanced.
 
 ## 2. Two modes, one product
 
@@ -34,7 +34,7 @@ Protocol coverage from Spec 14 remains **complete** in Operator / Advanced paths
 
 ### 4.1 Landing (`/`)
 
-**First viewport only:** brand, one headline, one lede, Sign up / Log in.  
+**First viewport only:** brand, headline **Address people by name.**, one lede, Sign up / Log in.  
 **Not in first viewport:** cargo install, hard-fork thesis, leaf-law pillars, node flags.
 
 Quiet text links under the CTAs MAY point to `#developers` / `#operators` / explorer — they must not compete with Sign up / Log in.
@@ -154,7 +154,7 @@ When this plan is accepted:
 1. **Spec 14** — Add § “Default path vs Advanced”; mark JSON/hex paste as MUST NOT be the sole primary path for register-friend and cosign; redefine §8 screens to match journeys above.  
 2. **GIP-5** — New implementation phase: Human-first shell (before or beside extension Phase).  
 3. **GIP-17** — Remains “coverage”; this plan is “interaction quality.”  
-4. **GIP-20** — Contacts / typeahead / `guld1contact:` **shipped** (Accepted). Remaining human-first work is P0/P2/P3 under task [005](../tasks/open/005-human-first-ux.md).  
+4. **GIP-20** — Contacts / typeahead / `guld1contact:` **shipped** (Accepted). Address book + private invite: **[GIP-31](../gips/gip-31.md)** Draft. Remaining human-first chrome is P0/P2/P3 under task [005](../tasks/open/005-human-first-ux.md).  
 5. **Numbered GIP** — Editors assign when ready (`draft` → Accepted).
 
 ## 8. Phased delivery
@@ -162,17 +162,17 @@ When this plan is accepted:
 | Phase | Scope | Exit criteria |
 |-------|--------|----------------|
 | **P0 — Shell & IA** | Citizen/Operator split; strip API/RPC from wallet/register chrome; landing first-viewport diet | Friend can open site and not see cargo/hex on happy path entry |
-| **P1 — Onboard & send** | **Deferred** — register cards / share-first invite / wallet-home rewrite. Name bootstrap is off-channel + chicken-and-egg for now; Send contacts already shipped (GIP-20). | — |
+| **P1 — Onboard & invite** | Contacts address book + **private non-binding invite** ([GIP-31](../gips/gip-31.md), [design](contacts-and-private-invite.md), task [038](../tasks/open/038-contacts-private-invite.md)); register method cards / wallet-home polish as follow-ons | Friend can invite over a private channel without a public name-claim URL; Send contacts already shipped (GIP-20) |
 | **P2 — Manage & multi-party** | Manage drill-ins; cosign sessions; backup export | Threshold flows usable via Share/QR |
 | **P3 — Visual system** | Tokens/type/motion pass across PWA | App feels same family as landing |
 | **P4 — Explorer soften** | **Out of scope** — explorers should stay technical; no citizen-wash pass. | — |
 
-Do **not** ship P3 cosmetics before P0 journeys. **P1** is paused until sponsorship / name acquisition has a clearer citizen channel. **P4** cancelled: technical explorer chrome is correct.
+Do **not** ship P3 cosmetics before P0 journeys. **P1** invite path is **Contacts private invite** (GIP-31) — not a public claim URL. **P4** cancelled: technical explorer chrome is correct.
 
 ## 9. Open decisions (need maintainer call)
 
 1. **Backup format** for citizens: encrypted file only, QR, or both? (Hex remains Advanced.)  
-2. **Invite URL host:** always current peer origin vs `guld.io` bootstrap in shared links?  
+2. **Invite URL host:** always current peer origin for private invite links (GIP-31) vs `guld.io` only as desk fallback when inviter has no OTC.  
 3. **Group create** in P1 or P2?  
 4. **Extension** site-login: parallel track or after P1?
 
