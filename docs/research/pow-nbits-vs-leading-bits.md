@@ -1,7 +1,7 @@
 # Research: `nBits` (compact target) vs leading-zero bits for PoW
 
 **Status:** decided — **leading-zero bits locked for v1** (merged mining via custom tooling / future GIP)  
-**Related:** [spec 06 §2](../specs/06-blocks-and-consensus.md), [bitcoin-guld-comparison.md](./bitcoin-guld-comparison.md), task [007](../tasks/open/007-simba-beta-public-readiness.md) A1
+**Related:** [spec 06 §2](../specs/06-blocks-and-consensus.md), [bitcoin-guld-comparison.md](./bitcoin-guld-comparison.md), [merged-mining-bitcoin.md](./merged-mining-bitcoin.md), task [007](../tasks/open/007-simba-beta-public-readiness.md) A1
 
 ## Question
 

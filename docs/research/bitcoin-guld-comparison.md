@@ -45,7 +45,7 @@ Legend: **Match** = same or intentional Bitcoin-class; **Diverge** = different b
 | Chain work | Σ work(target) | Σ `2^difficulty` | **Adapted** | Same fork-choice role |
 | Fork choice | Most work → height → hash | Same | **Match** | `choose_tip` |
 | Reorg | Longest-work rewind | Forward sync only (reorg TBD) | **Diverge** | Implementation gap, not policy |
-| Merged mining | Namecoin-era pattern | Future GIP (spec 06 §2.5) | **Planned** | User direction: keep SHA256d for compatibility |
+| Merged mining | Namecoin-era pattern | Future GIP (spec 06 §2.5) | **Planned** | Effort notes: [merged-mining-bitcoin.md](./merged-mining-bitcoin.md); keep SHA256d for compatibility |
 
 ---
 

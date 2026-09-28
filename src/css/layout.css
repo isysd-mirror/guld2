@@ -84,7 +84,6 @@ guld-header:has(.site-header--solid) {
 .site-header__brand img {
   height: 2rem;
   width: auto;
-  filter: brightness(0) invert(1);
 }
 
 .site-header__actions {
@@ -582,7 +581,6 @@ guld-footer {
   width: min(16rem, 70vw);
   height: auto;
   margin-bottom: 0.75rem;
-  filter: brightness(0) invert(1);
 }
 
 .hero__version {
@@ -871,7 +869,6 @@ guld-footer {
 .hero__shield {
   width: 3rem;
   height: auto;
-  filter: brightness(0) invert(1);
 }
 
 .site-body--landing .hero__mark .hero__version {
@@ -949,7 +946,7 @@ guld-footer {
 .hero--globe .hero__shield {
   width: auto;
   height: var(--mark-h);
-  filter: brightness(0) invert(1) drop-shadow(0 6px 18px rgba(0, 0, 0, 0.45));
+  filter: drop-shadow(0 6px 18px rgba(0, 0, 0, 0.45));
 }
 
 .site-body--landing .hero--globe .hero__version {

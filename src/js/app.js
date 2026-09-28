@@ -1,4 +1,4 @@
 import "./chrome.js";
-import { mountHeroGlobe } from "./landing-page.js";
+import { mountLanding } from "./landing-page.js";
 
-mountHeroGlobe();
+mountLanding();

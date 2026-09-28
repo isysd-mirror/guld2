@@ -22,6 +22,10 @@ test("isAllowedDocFetch allowlist", () => {
   assert.equal(isAllowedDocFetch("/README.md"), true);
   assert.equal(isAllowedDocFetch("/docs/HOSTING.md"), true);
   assert.equal(isAllowedDocFetch("/docs/specs/00-overview.md"), true);
+  assert.equal(isAllowedDocFetch("/src/guld-js/README.md"), true);
+  assert.equal(isAllowedDocFetch("/src/guld-node/README.md"), true);
+  assert.equal(isAllowedDocFetch("/src/guld-js/src/secret.md"), false);
+  assert.equal(isAllowedDocFetch("/src/../etc/README.md"), false);
   assert.equal(isAllowedDocFetch("/etc/passwd.md"), false);
   assert.equal(isAllowedDocFetch("https://evil.example/x.md"), false);
 });
@@ -47,4 +51,8 @@ test("resolveMarkdownLink and curated routes", () => {
 
   const readme = resolveMarkdownLink("/README.md", "/docs/HOSTING.md");
   assert.equal(readme?.viewer, "/docs/?src=%2FREADME.md");
+
+  const pkg = resolveMarkdownLink("../../src/guld-js/README.md", "/docs/FAQ.md");
+  assert.equal(pkg?.fetch, "/src/guld-js/README.md");
+  assert.equal(pkg?.viewer, "/docs/?src=%2Fsrc%2Fguld-js%2FREADME.md");
 });

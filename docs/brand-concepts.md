@@ -25,8 +25,15 @@ Coined for Guld marketing by contributor **cmejia** (`chrissmejia`). Credit when
 |-------|-----|-----|
 | `--guld-ink` | `#353e55` | Body text |
 | `--guld-navy` | `#264175` | Headings |
-| `--guld-primary` | `#274175` | Links, primary actions |
+| `--guld-primary` | `#274175` | Links, outline chrome |
 | `--guld-theme` | `#000000` | PWA theme-color / deep chrome |
+| `--guld-gold` | `#d0b460` | Marks (logo/shield) and **primary actions** (Send, Sign up) — as on Guld 1.0 |
+| `--guld-gold-bright` | `#e6c15c` | Primary hover |
+| `--guld-on-gold` | `#0b1226` | Text on gold (contrast ≥ 9:1) |
+
+Primary buttons use gold, not navy. Wordmark and shield stay gold on dark chrome — do not force them white.
+
+A dark / forest-green surface treatment (as in the early extension popup) is optional product chrome, not the normative palette.
 
 ## Marks
 

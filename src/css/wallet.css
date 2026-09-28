@@ -4,7 +4,7 @@
   width: min(100%, 40rem);
   max-width: 40rem;
   margin: 0 auto;
-  padding: clamp(1.5rem, 4vw, 2.5rem);
+  padding: clamp(0.65rem, 2vw, 1.1rem) clamp(1.5rem, 4vw, 2.5rem) clamp(1.5rem, 4vw, 2.5rem);
 }
 
 .wallet--wide {
@@ -162,7 +162,8 @@
 }
 
 .wallet__card--summary {
-  margin-bottom: 0.85rem;
+  margin-bottom: 0.35rem;
+  padding: 0.75rem 1rem 0.85rem;
 }
 
 .btn[data-busy="true"] {
@@ -605,9 +606,64 @@
 }
 
 .wallet__chain-status {
-  margin: 0 0 1rem;
+  margin: 1.75rem 0 0;
   font-size: 0.88rem;
   opacity: 0.85;
+}
+
+.wallet__modal {
+  position: fixed;
+  inset: 0;
+  z-index: 80;
+  display: grid;
+  place-items: center;
+  padding: 1rem;
+}
+
+.wallet__modal-backdrop {
+  position: absolute;
+  inset: 0;
+  background: color-mix(in srgb, var(--guld-ink) 45%, transparent);
+}
+
+.wallet__modal-panel {
+  position: relative;
+  z-index: 1;
+  width: min(100%, 22rem);
+  max-height: min(90vh, 36rem);
+  overflow: auto;
+  background: var(--guld-white);
+  border: 1px solid color-mix(in srgb, var(--guld-ink) 14%, transparent);
+  border-radius: 0.35rem;
+  padding: 1.15rem 1.2rem 1.25rem;
+  box-shadow: 0 12px 40px color-mix(in srgb, var(--guld-ink) 22%, transparent);
+}
+
+.wallet__modal-title {
+  margin: 0 0 0.35rem;
+  font-size: 1.15rem;
+  color: var(--guld-navy);
+}
+
+.wallet__modal .wallet__contact-card {
+  margin: 0.75rem 0 1rem;
+  text-align: center;
+}
+
+.wallet__modal .wallet__contact-card img {
+  display: block;
+  margin: 0.5rem auto;
+}
+
+.wallet__modal .wallet__contact-card label {
+  display: grid;
+  gap: 0.25rem;
+  text-align: left;
+  margin-top: 0.75rem;
+}
+
+.wallet__modal .wallet__contact-card input {
+  font-size: 0.78rem;
 }
 
 /* Demo ttt: explorer deep-links in status / meta */

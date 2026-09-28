@@ -10,7 +10,7 @@ const root = join(dirname(fileURLToPath(import.meta.url)), "..");
 
 test("index has brand-level logo and signup/login CTAs", () => {
   const html = readFileSync(join(root, "index.html"), "utf8");
-  const header = readFileSync(join(root, "src/js/components/guld-header.js"), "utf8");
+  const header = readFileSync(join(root, "src/guld-web-ui/js/components/guld-header.js"), "utf8");
   assert.match(header, /assets\/logo\.svg/);
   assert.match(html, /assets\/shield\.svg/);
   assert.ok(existsSync(join(root, "assets/logo.svg")));
@@ -34,8 +34,9 @@ test("index has brand-level logo and signup/login CTAs", () => {
   assert.match(html, /\/demo\/ttt\//);
   assert.match(html, /Build a Guld dapp/i);
   assert.match(html, /cargo run -p guld-node/);
-  const actions = html.match(/<div class="hero__actions">([\s\S]*?)<\/div>/);
+  const actions = html.match(/<div class="hero__actions"[^>]*>([\s\S]*?)<\/div>/);
   assert.ok(actions, "hero actions present");
+  assert.match(html, /class="hero__actions" data-landing-auth/);
   assert.match(actions[1], /Sign up/);
   assert.match(actions[1], /Log in/);
   assert.doesNotMatch(actions[1], /Install|cargo|guld-node/i);
@@ -43,6 +44,12 @@ test("index has brand-level logo and signup/login CTAs", () => {
   assert.doesNotMatch(html, /site-header__nav/);
   assert.doesNotMatch(html, /Coming soon/);
   assert.doesNotMatch(html, /cdn\.jsdelivr|googleapis\.com\/css/i);
+  const landing = readFileSync(join(root, "src/js/landing-page.js"), "utf8");
+  assert.match(landing, /keyring\.load\(\)/);
+  assert.match(landing, /location\.replace\("\/wallet\/"\)/);
+  assert.match(landing, /data-landing-auth/);
+  const app = readFileSync(join(root, "src/js/app.js"), "utf8");
+  assert.match(app, /mountLanding/);
 });
 
 test("key manager shell hosts table + detail routes", () => {
@@ -51,7 +58,7 @@ test("key manager shell hosts table + detail routes", () => {
   const html = readFileSync(join(root, "keys/index.html"), "utf8");
   assert.match(html, /data-keys-host/);
   assert.match(html, /keys-page\.js/);
-  const js = readFileSync(join(root, "src/js/keys-page.js"), "utf8");
+  const js = readFileSync(join(root, "src/guld-web-ui/js/keys-page.js"), "utf8");
   assert.match(js, /wallet__keys-table/);
   assert.match(js, /keysDetailHref|\/keys\/#\//);
   assert.match(js, /wallet__keys-detail/);

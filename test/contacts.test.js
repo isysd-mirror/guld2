@@ -86,11 +86,11 @@ test("parseContactsCsv reads header and bare rows", () => {
 });
 
 test("contacts page and register consume invite surface", () => {
-  const page = readFileSync(join(root, "src/js/contacts-page.js"), "utf8");
+  const page = readFileSync(join(root, "src/guld-web-ui/js/contacts-page.js"), "utf8");
   assert.match(page, /buildPrivateInviteUrl/);
   assert.match(page, /Offer to sponsor/);
 
-  const reg = readFileSync(join(root, "src/js/register-page.js"), "utf8");
+  const reg = readFileSync(join(root, "src/guld-web-ui/js/register-page.js"), "utf8");
   assert.match(reg, /parseInviteHints/);
   assert.match(reg, /inviteHints/);
   assert.match(reg, /paintInviteBanner|inviteBanner/);
@@ -98,7 +98,17 @@ test("contacts page and register consume invite surface", () => {
   const html = readFileSync(join(root, "contacts/index.html"), "utf8");
   assert.match(html, /contacts-page\.js/);
 
-  const settings = readFileSync(join(root, "src/js/settings-page.js"), "utf8");
-  assert.match(settings, /CONTACTS_HREF/);
-  assert.doesNotMatch(settings, /contactName/);
+  const settings = readFileSync(join(root, "src/guld-web-ui/js/settings-page.js"), "utf8");
+  assert.doesNotMatch(settings, /legend>Contacts</);
+  assert.doesNotMatch(settings, /buildContactCard|qrSvgDataUrl|contact-card/);
+
+  const wallet = readFileSync(join(root, "src/guld-web-ui/js/wallet-page.js"), "utf8");
+  assert.match(wallet, /data-show-contact-qr/);
+  assert.match(wallet, /openContactCardModal/);
+  assert.match(wallet, /advancedPanel\}\$\{historyPanel\}/);
+  assert.doesNotMatch(wallet, /contactCardPanel/);
+
+  const contactsUi = readFileSync(join(root, "src/guld-web-ui/js/contacts-page.js"), "utf8");
+  assert.match(contactsUi, /myContactCardDetailsHtml/);
+  assert.match(contactsUi, /id="contact-card"/);
 });

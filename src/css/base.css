@@ -67,13 +67,15 @@ p {
 }
 
 .btn--primary {
-  background: var(--guld-primary);
-  color: var(--guld-white);
+  background: var(--guld-gold);
+  color: var(--guld-on-gold);
+  border-color: var(--guld-gold);
 }
 
 .btn--primary:hover {
-  background: var(--guld-navy);
-  color: var(--guld-white);
+  background: var(--guld-gold-bright);
+  color: var(--guld-on-gold);
+  border-color: var(--guld-gold-bright);
 }
 
 .btn--ghost {
