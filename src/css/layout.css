@@ -654,6 +654,94 @@ guld-footer {
   align-items: center;
 }
 
+.landing-simba.section {
+  padding-top: clamp(1.75rem, 4vw, 2.5rem);
+  padding-bottom: clamp(1.75rem, 4vw, 2.5rem);
+}
+
+.landing-simba h2 {
+  margin-bottom: 0.65rem;
+}
+
+.landing-simba__blocks {
+  max-width: 48rem;
+  margin-top: 0.25rem;
+}
+
+.landing-simba__blocks .explorer__table-wrap {
+  max-height: 11rem;
+  overflow: auto;
+}
+
+.landing-simba__blocks .explorer-table {
+  font-size: 0.82rem;
+}
+
+.landing-simba__blocks .explorer-table th,
+.landing-simba__blocks .explorer-table td {
+  padding: 0.35rem 0.5rem;
+}
+
+.landing-simba__cta {
+  margin-top: 0.85rem;
+}
+
+/* Landing bands: alternate mist/white per column (mobile stack + desktop side-by-side). */
+.landing-band {
+  display: block;
+}
+
+.site-body--landing .landing-band__col {
+  background: var(--guld-white);
+}
+
+.site-body--landing .landing-band__col:nth-child(even) {
+  background: var(--guld-mist);
+}
+
+.site-body--landing .landing-band__col:nth-child(even) .section__callout {
+  background: color-mix(in srgb, var(--guld-primary) 10%, var(--guld-mist));
+}
+
+@media (min-width: 960px) {
+  .landing-band--split {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
+    align-items: stretch;
+  }
+
+  .landing-band--split > .landing-band__col {
+    min-width: 0;
+    display: flex;
+    flex-direction: column;
+  }
+
+  .landing-band--split > .landing-band__col > .section__cta {
+    margin-top: auto;
+    padding-top: 1.25rem;
+  }
+
+  .landing-band--split .landing-simba__blocks {
+    max-width: none;
+  }
+
+  .landing-band--split .landing-simba__blocks .explorer__table-wrap {
+    max-height: 11rem;
+  }
+
+  .landing-band--split .section__callout,
+  .landing-band--split .faq-list,
+  .landing-band--split .install-cmd,
+  .landing-band--split .flow-steps {
+    max-width: none;
+  }
+
+  /* Thesis pillars stack in the column so the pair stays readable */
+  .landing-band--split .pillars {
+    grid-template-columns: 1fr;
+  }
+}
+
 .section__callout {
   margin: 1.25rem 0 0;
   padding: 0.9rem 1.1rem;

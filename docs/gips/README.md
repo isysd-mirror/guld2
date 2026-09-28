@@ -49,6 +49,7 @@ Small bugs and polish: use [`../tasks/`](../tasks/) instead. Specs remain normat
 | [30](gip-30.md) | P2P mesh robustness | Accepted | Standards | Networking |
 | [31](gip-31.md) | Contacts address book and private invites | Draft | Standards | Application |
 | [32](gip-32.md) | Shared web UI leaf and extension pairing | Draft | Standards | Application |
+| [33](gip-33.md) | Voluntary account unregister | Draft | Standards | Core |
 
 ## Migration note
 

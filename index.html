@@ -25,6 +25,7 @@
     <link rel="stylesheet" href="/src/css/tokens.css" />
     <link rel="stylesheet" href="/src/css/base.css" />
     <link rel="stylesheet" href="/src/css/layout.css" />
+    <link rel="stylesheet" href="/src/css/explorer.css" />
     <title>Guld 2.0 beta</title>
   </head>
   <body class="site-body site-body--landing">
@@ -61,6 +62,8 @@
               <span aria-hidden="true"> · </span>
               <a href="/explorer/">Explore the chain</a>
               <span aria-hidden="true"> · </span>
+              <a href="/whitepaper/">Whitepaper</a>
+              <span aria-hidden="true"> · </span>
               <a href="https://discord.gg/PMCEGjGCQ" target="_blank" rel="noopener noreferrer">Discord</a>
             </p>
           </div>
@@ -69,178 +72,196 @@
         <p class="hero__version">2.0 beta</p>
       </section>
 
-      <section id="start" class="section">
-        <h2>Address people by name</h2>
-        <p>
-          On Guld you <strong>address people by name</strong>. Friends send to
-          you the same way they talk about you — no long hex strings on the
-          happy path.
-        </p>
-        <ol class="flow-steps">
-          <li>
-            <h3>Sign up or log in</h3>
-            <p>
-              Claim an available name and protect this device with a passphrase —
-              or unlock a key you already keep here.
-            </p>
-          </li>
-          <li>
-            <h3>Use your wallet</h3>
-            <p>
-              See your balance and activity. Send to people you know; keys never
-              leave the browser unless you export a backup.
-            </p>
-          </li>
-          <li>
-            <h3>Look around</h3>
-            <p>
-              Browse live blocks in the
-              <a href="/explorer/">explorer</a>, or the genesis import under
-              <a href="/explorer/legacy/">legacy block 0</a>.
-            </p>
-          </li>
-        </ol>
-        <p class="section__cta" data-landing-auth>
-          <a class="btn btn--primary" href="/register/">Sign up</a>
-          <a class="btn btn--outline" href="/login/">Log in</a>
-        </p>
-      </section>
-
-      <section id="developers" class="section section--alt">
-        <p class="section__eyebrow">For developers</p>
-        <h2>Build a Guld dapp</h2>
-        <p>
-          Early Guld is a <strong>developer protocol</strong>: register a name, keep
-          app state in a leaf (files + hashes), and tip the chain with
-          <code>UpdateMaster</code> when keys agree. Validators never run your
-          game logic — they witness that the right people authorized the new head.
-        </p>
-        <aside class="section__callout">
+      <div class="landing-band landing-band--split">
+        <section id="start" class="section landing-band__col">
+          <h2>Address people by name</h2>
           <p>
-            <strong>Working proof of concept:</strong>
-            <a href="/demo/ttt/">Witnessed tic-tac-toe</a>
-            on Simba — each move advances the published
-            <code>ttt-demo</code> group tip. Open the board, play on-chain, then
-            confirm the tips in the
-            <a href="/explorer/#/account/ttt-demo">explorer</a>.
+            On Guld you <strong>address people by name</strong>. Friends send to
+            you the same way they talk about you — no long hex strings on the
+            happy path.
           </p>
-        </aside>
-        <ol class="flow-steps">
-          <li>
-            <h3>Use the JS SDK</h3>
-            <p>
-              <code>@guld/js</code> covers HTTP client, cosign, site-login, txs, and
-              leaf <code>master_hash</code> helpers —
-              <a href="/docs/?src=/src/guld-js/README.md">guld-js README</a>.
-            </p>
-          </li>
-          <li>
-            <h3>Ship a leaf, not a VM contract</h3>
-            <p>
-              Put software and state under a home tree. Tip when parties cosign.
-              Pattern notes:
-              <a href="/docs/?src=/docs/research/reference-dapp.md">reference dapp</a>
-              ·
-              <a href="/docs/?src=/docs/specs/11-leaf-host.md">spec 11</a>.
-            </p>
-          </li>
-          <li>
-            <h3>One name across sites</h3>
-            <p>
-              Extension
-              <a href="/demo/login/">site-login demo</a>
-              shows dapps verifying “log in as <em>alice</em>” without a per-site wallet.
-            </p>
-          </li>
-        </ol>
-        <p class="section__cta">
-          <a class="btn btn--primary" href="/demo/ttt/">Play the demo</a>
-          <a class="btn btn--outline" href="/software/#guld-tic-tac-toe">guld-tic-tac-toe</a>
-          <a class="btn btn--outline" href="/docs/?src=/docs/research/reference-dapp.md">How it works</a>
-        </p>
-      </section>
+          <ol class="flow-steps">
+            <li>
+              <h3>Sign up or log in</h3>
+              <p>
+                Claim an available name and protect this device with a passphrase —
+                or unlock a key you already keep here.
+              </p>
+            </li>
+            <li>
+              <h3>Use your wallet</h3>
+              <p>
+                See your balance and activity. Send to people you know; keys never
+                leave the browser unless you export a backup.
+              </p>
+            </li>
+            <li>
+              <h3>Look around</h3>
+              <p>
+                Browse live blocks in the
+                <a href="/explorer/">explorer</a>, or the genesis import under
+                <a href="/explorer/legacy/">legacy block 0</a>.
+              </p>
+            </li>
+          </ol>
+          <p class="section__cta" data-landing-auth>
+            <a class="btn btn--primary" href="/register/">Sign up</a>
+            <a class="btn btn--outline" href="/login/">Log in</a>
+          </p>
+        </section>
 
-      <section id="operators" class="section">
-        <p class="section__eyebrow">For peer operators</p>
-        <h2>Install &amp; run a node</h2>
-        <p>
-          This site is the open-source tree served by your peer. Run
-          <code>guld-node</code> to expose the HTTP API, wallet, explorer, and
-          <code>/repos/</code> package clones.
-        </p>
-        <pre class="install-cmd" tabindex="0"><code>cargo run -p guld-node -- \
+        <section id="simba" class="section landing-band__col landing-simba" aria-label="Simba testnet live">
+          <p class="section__eyebrow">Simba testnet</p>
+          <h2>Simba is live</h2>
+          <div class="landing-simba__blocks" data-landing-blocks>
+            <p class="doc-status">Loading recent blocks…</p>
+          </div>
+          <p class="section__cta landing-simba__cta">
+            <a class="btn btn--primary" href="/explorer/">Open explorer</a>
+            <a class="btn btn--outline" href="/explorer/#/mempool">Mempool</a>
+          </p>
+        </section>
+      </div>
+
+      <div class="landing-band landing-band--split">
+        <section id="developers" class="section landing-band__col">
+          <p class="section__eyebrow">For developers</p>
+          <h2>Build a Guld dapp</h2>
+          <p>
+            Early Guld is a <strong>developer protocol</strong>: register a name, keep
+            app state in a leaf (files + hashes), and tip the chain with
+            <code>UpdateMaster</code> when keys agree. Validators never run your
+            game logic — they witness that the right people authorized the new head.
+          </p>
+          <aside class="section__callout">
+            <p>
+              <strong>Working proof of concept:</strong>
+              <a href="/demo/ttt/">Witnessed tic-tac-toe</a>
+              on Simba — each move advances the published
+              <code>ttt-demo</code> group tip. Open the board, play on-chain, then
+              confirm the tips in the
+              <a href="/explorer/#/account/ttt-demo">explorer</a>.
+            </p>
+          </aside>
+          <ol class="flow-steps">
+            <li>
+              <h3>Use the JS SDK</h3>
+              <p>
+                <code>@guld/js</code> covers HTTP client, cosign, site-login, txs, and
+                leaf <code>master_hash</code> helpers —
+                <a href="/docs/?src=/src/guld-js/README.md">guld-js README</a>.
+              </p>
+            </li>
+            <li>
+              <h3>Ship a leaf, not a VM contract</h3>
+              <p>
+                Put software and state under a home tree. Tip when parties cosign.
+                Pattern notes:
+                <a href="/docs/?src=/docs/research/reference-dapp.md">reference dapp</a>
+                ·
+                <a href="/docs/?src=/docs/specs/11-leaf-host.md">spec 11</a>.
+              </p>
+            </li>
+            <li>
+              <h3>One name across sites</h3>
+              <p>
+                Extension
+                <a href="/demo/login/">site-login demo</a>
+                shows dapps verifying “log in as <em>alice</em>” without a per-site wallet.
+              </p>
+            </li>
+          </ol>
+          <p class="section__cta">
+            <a class="btn btn--primary" href="/demo/ttt/">Play the demo</a>
+            <a class="btn btn--outline" href="/software/#guld-tic-tac-toe">guld-tic-tac-toe</a>
+            <a class="btn btn--outline" href="/docs/?src=/docs/research/reference-dapp.md">How it works</a>
+          </p>
+        </section>
+
+        <section id="operators" class="section landing-band__col">
+          <p class="section__eyebrow">For peer operators</p>
+          <h2>Install &amp; run a node</h2>
+          <p>
+            This site is the open-source tree served by your peer. Run
+            <code>guld-node</code> to expose the HTTP API, wallet, explorer, and
+            <code>/repos/</code> package clones.
+          </p>
+          <pre class="install-cmd" tabindex="0"><code>cargo run -p guld-node -- \
   --datadir ./.guld-data \
   --rpc 127.0.0.1:8545 \
   --http 127.0.0.1:8080 \
   --http-static . \
   --dev \
   --miner alice</code></pre>
-        <p class="section__cta">
-          Then open
-          <a href="http://127.0.0.1:8080/">http://127.0.0.1:8080/</a>.
-          Flags and legacy import:
-          <a href="/docs/?src=/README.md">README</a>
-          ·
-          <a href="/docs/">Docs</a>
-          ·
-          <a href="/settings/">Settings</a>
-        </p>
-      </section>
+          <p class="section__cta">
+            Then open
+            <a href="http://127.0.0.1:8080/">http://127.0.0.1:8080/</a>.
+            Flags and legacy import:
+            <a href="/docs/?src=/README.md">README</a>
+            ·
+            <a href="/docs/">Docs</a>
+            ·
+            <a href="/settings/">Settings</a>
+          </p>
+        </section>
+      </div>
 
-      <section id="thesis" class="section section--alt">
-        <h2>Address people by name. Commit by hash. Authorize by proof.</h2>
-        <p>
-          Leave leaf law to the leaf. Guld 2.0 is a <strong>hard fork</strong> of Guld 1.0: preserve historical
-          balances where possible; move header consensus to open <strong>PoW</strong> while
-          keeping identity-first names, groups, and leaves. Validators stay lean — fixed
-          transaction schemas, hashes, signatures, and a small set of built-in state updates.
-          Custom operations live in leaves.
-        </p>
-        <div class="pillars">
-          <div class="pillar">
-            <h3>Identity-first</h3>
-            <p>Address people by name — transfers and tips bind to usernames and groups, not opaque key hashes alone.</p>
+      <div class="landing-band landing-band--split">
+        <section id="thesis" class="section landing-band__col">
+          <h2>Address people by name. Commit by hash. Authorize by proof.</h2>
+          <p>
+            Leave leaf law to the leaf. Guld 2.0 is a <strong>hard fork</strong> of Guld 1.0: preserve historical
+            balances where possible; move header consensus to open <strong>PoW</strong> while
+            keeping identity-first names, groups, and leaves. Validators stay lean — fixed
+            transaction schemas, hashes, signatures, and a small set of built-in state updates.
+            Custom operations live in leaves.
+          </p>
+          <div class="pillars">
+            <div class="pillar">
+              <h3>Identity-first</h3>
+              <p>Address people by name — transfers and tips bind to usernames and groups, not opaque key hashes alone.</p>
+            </div>
+            <div class="pillar">
+              <h3>Network as witness</h3>
+              <p>Guld verifies enumerated leaf-consensus proofs and records new master hashes.</p>
+            </div>
+            <div class="pillar">
+              <h3>Lean validators</h3>
+              <p>No general VM. No requirement to index social graphs or execute leaf interpreters.</p>
+            </div>
           </div>
-          <div class="pillar">
-            <h3>Network as witness</h3>
-            <p>Guld verifies enumerated leaf-consensus proofs and records new master hashes.</p>
-          </div>
-          <div class="pillar">
-            <h3>Lean validators</h3>
-            <p>No general VM. No requirement to index social graphs or execute leaf interpreters.</p>
-          </div>
-        </div>
-      </section>
+        </section>
 
-      <section id="faq" class="section">
-        <h2>FAQ</h2>
-        <dl class="faq-list">
-          <div class="faq-list__item">
-            <dt>Does Guld 2.0 replace Guld 1.0?</dt>
-            <dd>
-              No. 2.0 is a <strong>hard fork</strong> from a 1.0 ledger snapshot. Guld 1.0
-              keeps running — <strong>1.0 coins and software still work</strong> there.
-            </dd>
-          </div>
-          <div class="faq-list__item">
-            <dt>How do 1.0 balances show up on 2.0?</dt>
-            <dd>
-              Snapshot balances import at 2.0 genesis and unlock when you
-              <a href="/claim/">claim your name</a> (<code>ClaimLegacy</code> key upgrade).
-            </dd>
-          </div>
-          <div class="faq-list__item">
-            <dt>Why PoW instead of 1.0 stake?</dt>
-            <dd>
-              1.0 used identity/contribution-weighted stake; staker agreement broke down and
-              trust fell. 2.0 keeps names and leaves but anchors headers in conservative open PoW.
-            </dd>
-          </div>
-        </dl>
-        <p class="section__cta">
-          <a href="/docs/?src=/docs/FAQ.md">Full FAQ</a>
-        </p>
-      </section>
+        <section id="faq" class="section landing-band__col">
+          <h2>FAQ</h2>
+          <dl class="faq-list">
+            <div class="faq-list__item">
+              <dt>Does Guld 2.0 replace Guld 1.0?</dt>
+              <dd>
+                No. 2.0 is a <strong>hard fork</strong> from a 1.0 ledger snapshot. Guld 1.0
+                keeps running — <strong>1.0 coins and software still work</strong> there.
+              </dd>
+            </div>
+            <div class="faq-list__item">
+              <dt>How do 1.0 balances show up on 2.0?</dt>
+              <dd>
+                Snapshot balances import at 2.0 genesis and unlock when you
+                <a href="/claim/">claim your name</a> (<code>ClaimLegacy</code> key upgrade).
+              </dd>
+            </div>
+            <div class="faq-list__item">
+              <dt>Why PoW instead of 1.0 stake?</dt>
+              <dd>
+                1.0 used identity/contribution-weighted stake; staker agreement broke down and
+                trust fell. 2.0 keeps names and leaves but anchors headers in conservative open PoW.
+              </dd>
+            </div>
+          </dl>
+          <p class="section__cta">
+            <a href="/docs/?src=/docs/FAQ.md">Full FAQ</a>
+          </p>
+        </section>
+      </div>
     </main>
 
     <guld-footer></guld-footer>

@@ -39,6 +39,9 @@
   display: grid;
   gap: 0.25rem;
   font-size: 0.82rem;
+}
+
+.wallet__bar label {
   flex: 1 1 12rem;
 }
 
@@ -55,8 +58,22 @@
 
 .wallet__form {
   display: grid;
-  gap: 1rem;
+  gap: 0.65rem;
   margin-bottom: 1.5rem;
+}
+
+.wallet__field-stack {
+  display: flex;
+  flex-direction: column;
+  gap: 0.2rem;
+}
+
+.wallet__field-stack .wallet__meta:empty {
+  display: none;
+}
+
+.wallet__field-stack .wallet__suggest {
+  margin: 0;
 }
 
 .wallet__form fieldset {
@@ -189,7 +206,26 @@
 .wallet__balance {
   font-size: 1.75rem;
   font-weight: 600;
-  margin: 0.5rem 0;
+  margin: 0.5rem 0 0.15rem;
+}
+
+.wallet__balance-pending {
+  font-size: 0.95rem;
+  font-weight: 500;
+  margin: 0 0 0.35rem;
+  opacity: 0.85;
+}
+
+.wallet__balance-pending[data-sign="in"] {
+  color: color-mix(in srgb, var(--guld-navy) 70%, #2a7a3a);
+}
+
+.wallet__balance-pending[data-sign="out"] {
+  color: color-mix(in srgb, var(--guld-ink) 55%, #8b1e1e);
+}
+
+.wallet__balance-pending[hidden] {
+  display: none;
 }
 
 .wallet__meta {
@@ -416,6 +452,13 @@
   opacity: 0.9;
   color: #fff;
   max-width: none;
+}
+
+.guld-toast__actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.45rem;
+  margin: 0;
 }
 
 .guld-toast__action {

@@ -175,4 +175,4 @@ While `legacy.status = locked`, spend/tip txs MUST be rejected except `ClaimLega
 - Role bitfield vs separate thresholds  
 - Exact Merkle tree layout for homes ([`08-cas-and-homes.md`](08-cas-and-homes.md))  
 - Legacy binding-set format ([`15-ledger-import.md`](15-ledger-import.md))  
-- `CloseSubaccount` (free a live slot) — later
+- Voluntary early release — draft [GIP-33](../gips/gip-33.md) (`UnregisterAccount`; sub slot reclaim)

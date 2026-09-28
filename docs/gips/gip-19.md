@@ -33,7 +33,7 @@ Transport preference: **SSE** (`EventSource`) for server→client push. Uni-dire
 | Surface | Role |
 |---------|------|
 | **Explorer** (`/explorer/`) | Primary: live mempool list + tip height / last block; optional compact “pending” strip on home |
-| **Wallet** (optional later) | “Pending” badge / toast when own tx enters mempool or is mined — same SSE client |
+| **Wallet** | Live balance + activity via same SSE client; unconfirmed delta under confirmed balance |
 | **`guld-node --http`** | Canonical producer: snapshot + event stream under `/api/v1/…` |
 
 ## Transport decision
@@ -124,8 +124,9 @@ Manual Refresh remains for snapshot re-sync; SSE is the default live path.
 
 ### Phase 2 — Wallet awareness (optional)
 
-- [ ] After send: watch stream for own `tx id` → pending → included
-- [ ] No new transport — reuse Phase 1 client
+- [x] After send: watch stream for own `tx id` → pending → included
+- [x] Unconfirmed balance chip under confirmed (hidden when none); soft-refresh activity on SSE
+- [x] No new transport — reuse Phase 1 client (`startChainLive` / `chain-events.js`)
 
 ### Phase 3 — Richer signals (later)
 
@@ -155,7 +156,7 @@ Manual Refresh remains for snapshot re-sync; SSE is the default live path.
 - Exact mempool row JSON + list cap / truncation policy
 - Whether `received_at` is node-local wall clock (document as such)
 - Keepalive interval vs reverse-proxy idle timeouts
-- Whether wallet Phase 2 ships in the same release as explorer Phase 1
+- Whether wallet Phase 2 ships in the same release as explorer Phase 1 — **shipped** (soft-refresh via SSE)
 
 ## History
 

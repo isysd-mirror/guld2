@@ -36,7 +36,7 @@ Each subaccount is a first-class on-chain account (own keys, nonce, balance, `ma
 | Nesting | One level only (`parent.label`) |
 | Group parents | **No** — only `individual` roots may open subs |
 | Fees | Subaccount **flat** `F_sub`; parent individual uses letter **`F_user(L)`** ([GIP-9](gip-9.md)) |
-| Close | Later (not v1) |
+| Close | [GIP-33](gip-33.md) `UnregisterAccount` (draft) |
 
 ### Registration fees (→ miners, 8-block vest)
 
@@ -73,7 +73,7 @@ Parent pays `F_sub + endowment + inclusion_fee`; dual-sig (parent spend + new `k
 
 ## Out of scope (v1)
 
-- Nested subaccounts; group-owned subs; parent spending from sub; CloseSubaccount; height-indexed registration fees
+- Nested subaccounts; group-owned subs; parent spending from sub; height-indexed registration fees
 
 ## Acceptance
 

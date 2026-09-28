@@ -1,6 +1,7 @@
 /**
  * Site chrome wrapper for guld-tic-tac-toe demo.
  * Default: on-chain hot-seat (turns follow state.turn) with Simba demo keys.
+ * Session tx history + SSE so players watch tips queue (GIP-19).
  */
 
 import { createClient } from "../guld-js/src/client.js";
@@ -21,18 +22,26 @@ import {
   playMoveOnChain,
   registerGameGroup,
 } from "../guld-tic-tac-toe/lib/play.js";
+import { startChainLive } from "./lib/chain-events.js";
 import {
-  explorerPendingTxHref,
+  explorerTxHref,
   extractTxId,
   formatTxSubmittedHtml,
 } from "./lib/tx-feedback.js";
-import { escapeHtml } from "./lib/rpc.js";
+import {
+  escapeHtml,
+  resolveRpcUrl,
+  rpcCall,
+  shortHash,
+  txTouchesAccount,
+} from "./lib/rpc.js";
 
 const PKG = "/src/guld-tic-tac-toe";
 
 const statusEl = () => document.querySelector("[data-ttt-status]");
 const boardEl = () => document.querySelector("[data-ttt-board]");
 const metaEl = () => document.querySelector("[data-ttt-meta]");
+const txListEl = () => document.querySelector("[data-ttt-tx-list]");
 
 /** @type {import("../guld-tic-tac-toe/lib/rules.js").GameState} */
 let state = initialState();
@@ -53,6 +62,29 @@ let readyChain = null;
 let optimisticAccount = null;
 /** Serialize submits so nonce chain stays ordered. */
 let submitLock = false;
+
+/**
+ * Session game tips (newest first).
+ * @typedef {{
+ *   id: string,
+ *   kind: "update_master" | "register_group",
+ *   title: string,
+ *   explain: string,
+ *   mark?: string,
+ *   move?: number,
+ *   cell?: number,
+ *   masterHash?: string,
+ *   status: "mempool" | "confirmed" | "dropped",
+ *   at: number,
+ * }} GameTxEntry
+ */
+/** @type {GameTxEntry[]} */
+let gameTxs = [];
+
+/** @type {(() => void) | null} */
+let stopTxLive = null;
+/** @type {ReturnType<typeof setTimeout> | null} */
+let txStatusTimer = null;
 
 /**
  * @param {string} msg plain text, or HTML when html=true
@@ -84,8 +116,148 @@ function shortTx(txid) {
 function txExplorerHtml(txid) {
   const id = String(txid || "").trim();
   if (!id || id === "ok") return "";
-  const href = explorerPendingTxHref(id);
+  const href = explorerTxHref(id);
   return `<a href="${href}">${escapeHtml(shortTx(id))}</a>`;
+}
+
+/** @param {string} id */
+function normTxId(id) {
+  const s = String(id || "").toLowerCase();
+  return s.startsWith("0x") ? s : s ? `0x${s}` : "";
+}
+
+/**
+ * @param {Omit<GameTxEntry, "at" | "status"> & { status?: GameTxEntry["status"] }} entry
+ */
+function pushGameTx(entry) {
+  const id = normTxId(entry.id);
+  if (!id || id === "0xok") return;
+  const existing = gameTxs.findIndex((t) => t.id === id);
+  const row = {
+    ...entry,
+    id,
+    status: entry.status || "mempool",
+    at: Date.now(),
+  };
+  if (existing >= 0) {
+    gameTxs[existing] = { ...gameTxs[existing], ...row };
+  } else {
+    gameTxs.unshift(row);
+  }
+  if (gameTxs.length > 40) gameTxs.length = 40;
+  paintTxHistory();
+  ensureTxLive();
+}
+
+function paintTxHistory() {
+  const list = txListEl();
+  if (!(list instanceof HTMLOListElement) && !(list instanceof HTMLElement)) return;
+  list.replaceChildren();
+  for (const tx of gameTxs) {
+    const li = document.createElement("li");
+    li.className = "ttt__tx-item";
+    li.dataset.status = tx.status;
+    const statusLabel =
+      tx.status === "confirmed"
+        ? "Confirmed"
+        : tx.status === "dropped"
+          ? "Dropped"
+          : "Mempool";
+    li.innerHTML = `
+      <div class="ttt__tx-item-head">
+        <span class="ttt__tx-pill" data-status="${escapeHtml(tx.status)}">${escapeHtml(statusLabel)}</span>
+        <strong>${escapeHtml(tx.title)}</strong>
+      </div>
+      <p class="ttt__tx-explain">${escapeHtml(tx.explain)}</p>
+      <div class="ttt__tx-id">${txExplorerHtml(tx.id)}${
+        tx.masterHash
+          ? ` <span class="ttt__muted">· tip ${escapeHtml(shortHash(tx.masterHash, 8))}</span>`
+          : ""
+      }</div>
+    `;
+    list.append(li);
+  }
+}
+
+function scheduleTxStatusRefresh() {
+  if (txStatusTimer != null) clearTimeout(txStatusTimer);
+  txStatusTimer = setTimeout(() => {
+    txStatusTimer = null;
+    refreshTxStatuses().catch(() => {});
+  }, 300);
+}
+
+async function refreshTxStatuses() {
+  const pending = gameTxs.filter((t) => t.status === "mempool");
+  if (!pending.length) return;
+  const rpcUrl = resolveRpcUrl();
+  let changed = false;
+  await Promise.all(
+    pending.map(async (entry) => {
+      try {
+        const loc = await rpcCall(rpcUrl, "guld_getTransaction", [entry.id]);
+        if (!loc) {
+          // Still unknown or dropped from mempool without locator — leave mempool briefly.
+          return;
+        }
+        if (loc.pending) return;
+        entry.status = "confirmed";
+        changed = true;
+      } catch {
+        /* ignore single failures */
+      }
+    }),
+  );
+  if (changed) paintTxHistory();
+}
+
+function haltTxLive() {
+  if (stopTxLive) {
+    stopTxLive();
+    stopTxLive = null;
+  }
+  if (txStatusTimer != null) {
+    clearTimeout(txStatusTimer);
+    txStatusTimer = null;
+  }
+}
+
+function ensureTxLive() {
+  if (stopTxLive) return;
+  const rpcUrl = resolveRpcUrl();
+  const name = accountName();
+  stopTxLive = startChainLive(rpcUrl, {
+    onNewHeads() {
+      scheduleTxStatusRefresh();
+    },
+    onMempoolAdded(row) {
+      const tx =
+        row?.tx && typeof row.tx === "object"
+          ? /** @type {Record<string, unknown>} */ (row.tx)
+          : null;
+      if (!txTouchesAccount(tx, name)) return;
+      const id = normTxId(row?.id);
+      if (id && gameTxs.some((t) => t.id === id && t.status === "mempool")) {
+        scheduleTxStatusRefresh();
+      }
+    },
+    onMempoolRemoved(data) {
+      const id = normTxId(data?.id);
+      if (!id) return;
+      const entry = gameTxs.find((t) => t.id === id);
+      if (!entry || entry.status !== "mempool") return;
+      const reason = String(data?.reason || "");
+      if (reason === "dropped" || reason === "replaced") {
+        entry.status = "dropped";
+        paintTxHistory();
+        return;
+      }
+      scheduleTxStatusRefresh();
+    },
+    onPollSnapshot() {
+      scheduleTxStatusRefresh();
+    },
+  });
 }
 
 function apiBase() {
@@ -144,7 +316,10 @@ async function connectPeer() {
  * @returns {Promise<void>}
  */
 async function ensureOnChainReady() {
-  if (client && key0 && key1) return;
+  if (client && key0 && key1) {
+    ensureTxLive();
+    return;
+  }
   if (readyChain) return readyChain;
   readyChain = (async () => {
     say("Connecting to peer + loading ttt-demo keys…", "pending");
@@ -153,6 +328,7 @@ async function ensureOnChainReady() {
     const st = await connectPeer();
     const tip = `${st.network || "peer"} · chain ${chainId}`;
     say(`${turnPrompt(state)} On-chain · ${tip}`, "ok");
+    ensureTxLive();
   })().catch((err) => {
     readyChain = null;
     client = null;
@@ -197,6 +373,7 @@ function render() {
       ${txHtml}
     `;
   }
+  paintTxHistory();
 }
 
 async function fetchText(path) {
@@ -220,6 +397,22 @@ async function hashLocal() {
   const code = document.querySelector("[data-ttt-master]");
   if (code) code.textContent = lastMaster;
   return home;
+}
+
+/**
+ * @param {string} mark
+ * @param {number} cellIndex
+ * @param {number} moveNum
+ * @param {string} masterHash
+ */
+function explainMove(mark, cellIndex, moveNum, masterHash) {
+  const cell = cellIndex + 1;
+  const short = shortHash(masterHash, 8);
+  return (
+    `${mark} claims cell ${cell} (move ${moveNum}). ` +
+    `UpdateMaster tips ${accountName()} to leaf hash ${short} — ` +
+    `the peer verifies the player key and fee, not tic-tac-toe rules.`
+  );
 }
 
 async function onCell(index) {
@@ -262,6 +455,19 @@ async function onCell(index) {
         lastMaster = played.home.masterHash;
         lastTxId = extractTxId(played.out) || lastTxId;
         optimisticAccount = played.account;
+        if (lastTxId) {
+          pushGameTx({
+            id: lastTxId,
+            kind: "update_master",
+            title: `${mark} → cell ${index + 1}`,
+            explain: explainMove(mark, index, state.move, lastMaster || ""),
+            mark,
+            move: state.move,
+            cell: index,
+            masterHash: lastMaster || undefined,
+            status: "mempool",
+          });
+        }
         const label = turnPrompt(state);
         say(
           formatTxSubmittedHtml(`${mark} in mempool · ${label}`, played.out) ||
@@ -315,6 +521,7 @@ function bind() {
     lastTxId = null;
     optimisticAccount = null;
     submitLock = false;
+    // Keep session history so players can still see earlier tips.
     render();
     say(turnPrompt(state), "pending");
   });
@@ -354,7 +561,9 @@ function bind() {
   document.querySelector("[data-ttt-connect]")?.addEventListener("click", async () => {
     try {
       readyChain = null;
+      haltTxLive();
       const st = await connectPeer();
+      ensureTxLive();
       say(
         `Connected — network=${st.network || "?"} chain_id=${chainId} height=${st.height}`,
         "ok",
@@ -387,9 +596,10 @@ function bind() {
       const payerName =
         /** @type {HTMLInputElement} */ (document.querySelector("[data-ttt-payer]"))?.value.trim() ||
         "alice";
+      const name = accountName();
       await registerGameGroup({
         client,
-        name: accountName(),
+        name,
         payerName,
         payerPrivHex: payerPriv,
         key0PrivHex: key0,
@@ -397,6 +607,18 @@ function bind() {
         initialMasterHash: home.masterHash,
       }).then((reg) => {
         lastTxId = extractTxId(reg.out) || lastTxId;
+        if (lastTxId) {
+          pushGameTx({
+            id: lastTxId,
+            kind: "register_group",
+            title: `Register ${name}`,
+            explain:
+              `Creates the ${name} group (1-of-2 keys) and sets the first tip to the genesis leaf hash. ` +
+              `Later moves only need UpdateMaster — no more registration.`,
+            masterHash: home.masterHash,
+            status: "mempool",
+          });
+        }
         return reg;
       });
       render();

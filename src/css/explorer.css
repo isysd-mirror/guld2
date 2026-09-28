@@ -157,7 +157,26 @@ form.explorer__search .btn {
 
 .explorer__balance {
   font-size: 1.35rem;
+  margin: 0 0 0.25rem;
+}
+
+.explorer__balance-pending {
+  font-size: 0.95rem;
+  font-weight: 500;
   margin: 0 0 1rem;
+  opacity: 0.85;
+}
+
+.explorer__balance-pending[data-sign="in"] {
+  color: color-mix(in srgb, var(--guld-navy, #1a3a5c) 70%, #2a7a3a);
+}
+
+.explorer__balance-pending[data-sign="out"] {
+  color: color-mix(in srgb, var(--guld-ink, #222) 55%, #8b1e1e);
+}
+
+.explorer__balance-pending[hidden] {
+  display: none;
 }
 
 .explorer__subhead {

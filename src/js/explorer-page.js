@@ -1,5 +1,6 @@
 import "./chrome.js";
 import { startChainLive } from "./lib/chain-events.js";
+import { blocksTableHtml } from "./lib/recent-blocks.js";
 import { blockHashHex } from "../guld-js/src/wire/header.js";
 import { findAccountsByPubkey, resolveApiBase } from "./lib/api.js";
 import {
@@ -17,6 +18,9 @@ import {
   summarizeActivity,
   activityConfirmations,
   activityIsUnconfirmed,
+  pendingBalanceDeltaQuanta,
+  formatPendingBalanceDelta,
+  txTouchesAccount,
 } from "./lib/rpc.js";
 import { currencyTicker, loadNetworkInfo } from "./lib/network.js";
 
@@ -47,6 +51,11 @@ let liveMempoolTotal = 0;
 let liveTransport = "";
 /** @type {ReturnType<typeof setTimeout> | null} */
 let homeBlocksTimer = null;
+/** @type {ReturnType<typeof setTimeout> | null} */
+let detailRefreshTimer = null;
+/** Active detail soft-refresh context (account / tx / block / key). */
+/** @type {Record<string, unknown> | null} */
+let liveDetail = null;
 
 window.addEventListener("hashchange", () => route());
 
@@ -84,7 +93,12 @@ function haltLive() {
     clearTimeout(homeBlocksTimer);
     homeBlocksTimer = null;
   }
+  if (detailRefreshTimer != null) {
+    clearTimeout(detailRefreshTimer);
+    detailRefreshTimer = null;
+  }
   liveTransport = "";
+  liveDetail = null;
 }
 
 /** @param {string | undefined} id */
@@ -145,10 +159,12 @@ function paintLiveMempool(limit) {
 }
 
 /**
- * @param {"home"|"mempool"} view
+ * @param {"home"|"mempool"|"block"|"tx"|"account"|"key"} view
+ * @param {Record<string, unknown>} [ctx]
  */
-function attachLive(view) {
+function attachLive(view, ctx = {}) {
   haltLive();
+  liveDetail = { view, ...ctx };
   const limit = view === "home" ? HOME_TX_LIMIT : 100;
   stopLive = startChainLive(rpcUrl, {
     onTransport(t) {
@@ -169,53 +185,267 @@ function attachLive(view) {
           homeBlocksTimer = null;
           refreshHomeBlocks().catch((err) => console.warn("live blocks", err));
         }, 400);
+      } else if (view === "block") {
+        paintBlockTipNav(Number(ctx.height));
+      } else if (view === "tx") {
+        scheduleDetailRefresh(() => refreshTxLive(String(ctx.id || "")));
+      } else if (view === "account") {
+        scheduleDetailRefresh(() => refreshAccountLive(String(ctx.name || "")));
+      } else if (view === "key") {
+        refreshStatusLine(view);
       }
     },
     onMempoolAdded(row) {
-      const id = normTxId(row?.id);
-      if (!id) return;
-      const wasCached = liveMempool.has(id);
-      liveMempool.set(id, row);
-      // Home keeps a truncated cache; still bump total for true inserts.
-      // Re-delivery of an already-cached row is treated as an update.
-      if (!wasCached) liveMempoolTotal += 1;
-      paintLiveMempool(limit);
-      refreshStatusLine(view);
+      if (view === "home" || view === "mempool") {
+        const id = normTxId(row?.id);
+        if (!id) return;
+        const wasCached = liveMempool.has(id);
+        liveMempool.set(id, row);
+        if (!wasCached) liveMempoolTotal += 1;
+        paintLiveMempool(limit);
+        refreshStatusLine(view);
+        return;
+      }
+      if (view === "account") {
+        const tx =
+          row?.tx && typeof row.tx === "object"
+            ? /** @type {Record<string, unknown>} */ (row.tx)
+            : null;
+        if (!txTouchesAccount(tx, String(ctx.name || ""))) return;
+        scheduleDetailRefresh(() => refreshAccountLive(String(ctx.name || "")), 80);
+      }
     },
     onMempoolRemoved(data) {
-      const id = normTxId(data?.id);
-      if (!id) return;
-      liveMempool.delete(id);
-      // Decrement even when the id was outside the home display window.
-      liveMempoolTotal = Math.max(0, liveMempoolTotal - 1);
-      paintLiveMempool(limit);
-      refreshStatusLine(view);
+      if (view === "home" || view === "mempool") {
+        const id = normTxId(data?.id);
+        if (!id) return;
+        liveMempool.delete(id);
+        liveMempoolTotal = Math.max(0, liveMempoolTotal - 1);
+        paintLiveMempool(limit);
+        refreshStatusLine(view);
+        return;
+      }
+      if (view === "tx" && ctx.pending) {
+        const id = normTxId(data?.id);
+        if (id && id === normTxId(String(ctx.id || ""))) {
+          scheduleDetailRefresh(() => refreshTxLive(String(ctx.id || "")), 80);
+        }
+      }
+      if (view === "account") {
+        const hasPending = hostEl?.querySelector(".tx-pill--pending");
+        if (!hasPending) return;
+        scheduleDetailRefresh(() => refreshAccountLive(String(ctx.name || "")));
+      }
     },
     async onPollSnapshot() {
       const info = await rpcCall(rpcUrl, "guld_nodeInfo", []);
       tipHeight = Number(info.height || tipHeight);
-      const pool = await rpcCall(rpcUrl, "guld_getMempool", [limit]);
-      applyMempoolSnapshot(pool);
-      paintLiveMempool(limit);
+      if (view === "home" || view === "mempool") {
+        const pool = await rpcCall(rpcUrl, "guld_getMempool", [limit]);
+        applyMempoolSnapshot(pool);
+        paintLiveMempool(limit);
+        refreshStatusLine(view);
+        if (view === "home") await refreshHomeBlocks();
+        return;
+      }
       refreshStatusLine(view);
-      if (view === "home") await refreshHomeBlocks();
+      if (view === "block") paintBlockTipNav(Number(ctx.height));
+      if (view === "tx") await refreshTxLive(String(ctx.id || ""));
+      if (view === "account") await refreshAccountLive(String(ctx.name || ""));
     },
   });
 }
 
-/** @param {"home"|"mempool"} view */
+/**
+ * @param {() => void | Promise<void>} fn
+ * @param {number} [ms]
+ */
+function scheduleDetailRefresh(fn, ms = 350) {
+  if (detailRefreshTimer != null) clearTimeout(detailRefreshTimer);
+  detailRefreshTimer = setTimeout(() => {
+    detailRefreshTimer = null;
+    Promise.resolve(fn()).catch((err) => console.warn("detail live", err));
+  }, ms);
+}
+
+/** @param {number} height */
+function paintBlockTipNav(height) {
+  if (!(hostEl instanceof HTMLElement)) return;
+  const nav = hostEl.querySelector("[data-block-nav]");
+  if (!(nav instanceof HTMLElement)) return;
+  const prev =
+    height > 0 ? blockLink(height - 1, `← #${height - 1}`) : `<span></span>`;
+  const next =
+    height < tipHeight ? blockLink(height + 1, `#${height + 1} →`) : `<span></span>`;
+  nav.innerHTML = `${prev}<strong>Block ${height}</strong>${next}`;
+}
+
+/**
+ * Soft-refresh account balance + activity (keep shell).
+ * @param {string} name
+ */
+async function refreshAccountLive(name) {
+  if (!name || liveDetail?.view !== "account" || liveDetail?.name !== name) return;
+  if (!(hostEl instanceof HTMLElement)) return;
+  try {
+    const [balance, activity] = await Promise.all([
+      rpcCall(rpcUrl, "guld_getBalance", [name]),
+      rpcCall(rpcUrl, "guld_getAccountActivity", [name, 25]),
+    ]);
+    if (liveDetail?.view !== "account" || liveDetail?.name !== name) return;
+    const balanceGuld = quantaToGuld(balance || "0");
+    const items = Array.isArray(activity) ? activity : [];
+    const pendingDelta = pendingBalanceDeltaQuanta(
+      /** @type {Record<string, unknown>[]} */ (items),
+    );
+    const balEl = hostEl.querySelector("[data-account-balance]");
+    if (balEl instanceof HTMLElement) {
+      balEl.innerHTML = `<strong>${escapeHtml(balanceGuld)}</strong> ${ticker}`;
+    }
+    const pendEl = hostEl.querySelector("[data-account-pending]");
+    if (pendEl instanceof HTMLElement) {
+      const label = formatPendingBalanceDelta(pendingDelta, ticker);
+      if (!label) {
+        pendEl.hidden = true;
+        pendEl.textContent = "";
+      } else {
+        pendEl.hidden = false;
+        pendEl.textContent = label;
+        pendEl.dataset.sign = pendingDelta > 0n ? "in" : "out";
+      }
+    }
+    const kvBal = hostEl.querySelector("[data-account-kv-balance]");
+    if (kvBal instanceof HTMLElement) {
+      kvBal.textContent = `${balanceGuld} ${ticker}`;
+    }
+    const actEl = hostEl.querySelector("[data-account-activity]");
+    if (actEl instanceof HTMLElement) {
+      actEl.innerHTML = accountActivityTableHtml(items, tipHeight);
+    }
+    refreshStatusLine("account");
+  } catch (err) {
+    console.warn("account live", err);
+  }
+}
+
+/**
+ * Soft-refresh tx view — flip pending → confirmed, or bump confirmations.
+ * @param {string} id
+ */
+async function refreshTxLive(id) {
+  if (!id || liveDetail?.view !== "tx") return;
+  if (normTxId(String(liveDetail.id || "")) !== normTxId(id)) return;
+  try {
+    const loc = await rpcCall(rpcUrl, "guld_getTransaction", [id]);
+    if (liveDetail?.view !== "tx") return;
+    if (!loc) return;
+    if (loc.pending) {
+      refreshStatusLine("tx");
+      return;
+    }
+    // Included: remount confirmed detail (was pending or tip advanced).
+    if (liveDetail.pending || hostEl?.querySelector("[data-tx-pending]")) {
+      await renderConfirmedTx(loc, tipHeight);
+      attachLive("tx", { id: String(loc.tx_id || id).toLowerCase(), pending: false });
+      return;
+    }
+    const height = Number(loc.height);
+    const conf = tipHeight >= height ? tipHeight - height + 1 : 0;
+    const confEl = hostEl?.querySelector("[data-tx-confirmations]");
+    if (confEl instanceof HTMLElement) {
+      confEl.textContent = String(conf);
+    }
+    refreshStatusLine("tx");
+  } catch (err) {
+    console.warn("tx live", err);
+  }
+}
+
+/**
+ * @param {unknown[]} items
+ * @param {number} tip
+ */
+function accountActivityTableHtml(items, tip) {
+  if (!items.length) {
+    return `<p class="explorer__empty">No activity yet.</p>`;
+  }
+  const actRows = items
+    .map((row) => {
+      const rec = /** @type {Record<string, unknown>} */ (row);
+      const s = summarizeActivity(rec);
+      const h = rec.height != null ? String(rec.height) : "";
+      const unconfirmed = activityIsUnconfirmed(rec);
+      const conf = activityConfirmations(rec, tip);
+      const confCell = unconfirmed
+        ? `<span class="tx-pill tx-pill--pending">Unconfirmed</span>`
+        : conf != null
+          ? `<span class="num">${conf}</span>`
+          : "—";
+      const when = unconfirmed
+        ? "—"
+        : h
+          ? blockLink(h, `h${h}`)
+          : escapeHtml(formatTime(/** @type {number|undefined} */ (rec.timestamp)));
+      let txCell = "—";
+      if (rec.tx_id) {
+        const tid = String(rec.tx_id);
+        txCell = `<span class="explorer-copy">
+          <a href="${txHref(tid)}"><code class="explorer-copy__text" title="${escapeHtml(tid)}">${escapeHtml(shortHash(tid, 10))}</code></a>
+          <button type="button" class="btn btn--outline btn--small explorer-copy__btn" data-copy="${escapeHtml(tid)}">Copy</button>
+        </span>`;
+      } else if (h && s.type === "coinbase") {
+        txCell = blockLink(h, "coinbase");
+      } else if (h) {
+        txCell = blockLink(h);
+      }
+      return `<tr>
+        <td><span class="tx-pill${unconfirmed ? " tx-pill--pending" : ""}">${escapeHtml(s.type)}</span></td>
+        <td>${linkifyActivityPrimary(rec, s)}</td>
+        <td class="num">${escapeHtml(s.amount)}</td>
+        <td>${txCell}</td>
+        <td class="num">${confCell}</td>
+        <td class="num">${when}</td>
+      </tr>`;
+    })
+    .join("");
+  return `<div class="explorer__table-wrap"><table class="explorer-table">
+    <thead><tr><th>Type</th><th>Detail</th><th class="num">Amount</th><th>Tx id</th><th class="num">Confirmations</th><th class="num">When</th></tr></thead>
+    <tbody>${actRows}</tbody>
+  </table></div>`;
+}
+
+/** @param {"home"|"mempool"|"block"|"tx"|"account"|"key"} view */
 function refreshStatusLine(view) {
   const n = liveMempoolTotal;
+  const live = transportLabel();
   if (view === "mempool") {
     setStatus(
       "ok",
-      `Height ${tipHeight.toLocaleString()} · mempool ${n}${transportLabel()}`,
+      `Height ${tipHeight.toLocaleString()} · mempool ${n}${live}`,
     );
-  } else {
+  } else if (view === "home") {
     setStatus(
       "ok",
-      `Height ${tipHeight.toLocaleString()} · ${n} unconfirmed${transportLabel()}`,
+      `Height ${tipHeight.toLocaleString()} · ${n} unconfirmed${live}`,
     );
+  } else if (view === "block" && liveDetail?.height != null) {
+    setStatus(
+      "ok",
+      `Height ${tipHeight.toLocaleString()} · viewing block ${liveDetail.height}${live}`,
+    );
+  } else if (view === "tx" && liveDetail?.id) {
+    const pending = Boolean(liveDetail.pending);
+    setStatus(
+      "ok",
+      `Height ${tipHeight.toLocaleString()} · ${pending ? "unconfirmed " : ""}${shortHash(String(liveDetail.id), 10)}${live}`,
+    );
+  } else if (view === "account" && liveDetail?.name) {
+    setStatus(
+      "ok",
+      `Height ${tipHeight.toLocaleString()} · ${liveDetail.name}${live}`,
+    );
+  } else if (view === "key") {
+    setStatus("ok", `Height ${tipHeight.toLocaleString()}${live}`);
   }
 }
 
@@ -798,6 +1028,7 @@ async function renderTx(id) {
         <p>No mempool or chain tx for <code>${escapeHtml(shortHash(id, 14))}</code>.</p>
         <p><a href="#/mempool">← Mempool</a></p>
       </div>`;
+    attachLive("tx", { id, pending: false });
     return;
   }
 
@@ -810,6 +1041,7 @@ async function renderTx(id) {
 
   if (!loc.pending) {
     await renderConfirmedTx(loc, tipHeight);
+    attachLive("tx", { id: txId, pending: false });
     return;
   }
 
@@ -826,8 +1058,8 @@ async function renderTx(id) {
       <span aria-hidden="true">/</span>
       <span>Unconfirmed</span>
     </nav>
-    <aside class="explorer__banner">
-      <p><strong>Unconfirmed</strong> — in the mempool (0 confirmations). Watch for the next block.</p>
+    <aside class="explorer__banner" data-tx-pending>
+      <p><strong>Unconfirmed</strong> — in the mempool (0 confirmations). Updates live when mined.</p>
     </aside>
     <section class="explorer__panel">
       <header class="explorer__panel-head">
@@ -838,46 +1070,26 @@ async function renderTx(id) {
         ${costs.summaryHtml || (s.amount !== "—" ? ` · <strong>${escapeHtml(s.amount)}</strong> ${ticker}` : "")}</p>
       <dl class="explorer-kv-grid">
         ${kvRow("Tx id", copyable(txId), { wide: true })}
-        ${kvRow("Confirmations", `<span class="num">0</span>`)}
+        ${kvRow("Confirmations", `<span class="num" data-tx-confirmations>0</span>`)}
         ${costs.rowsHtml}
         ${txDetailRowsHtml(tx, { omitAmounts: Boolean(costs.rowsHtml) })}
       </dl>
       ${txExtrasHtml(tx)}
     </section>
   `;
+  attachLive("tx", { id: txId, pending: true });
 }
 
 /**
  * @param {{ height: number, block: object }[]} rows
  */
 function blocksTable(rows) {
-  if (!rows.length) {
-    return `<p class="explorer__empty">No blocks yet.</p>`;
-  }
-  const body = rows
-    .map(({ height, block }) => {
-      const h = block.header || {};
-      const txCount = Array.isArray(block.txs) ? block.txs.length : 0;
-      const fees = quantaToGuld(h.inclusion_fees || "0");
-      const legacy =
-        height === 0
-          ? ` <a class="explorer-inline-link" href="/explorer/legacy/">legacy</a>`
-          : "";
-      return `<tr>
-        <td class="num">${blockLink(height)}${legacy}</td>
-        <td>${escapeHtml(formatTime(h.timestamp))}</td>
-        <td>${nameLink(h.miner || "—")}</td>
-        <td class="num">${txCount}</td>
-        <td class="num">${escapeHtml(fees)}</td>
-      </tr>`;
-    })
-    .join("");
-  return `<div class="explorer__table-wrap"><table class="explorer-table">
-    <thead><tr>
-      <th class="num">Height</th><th>Time</th><th>Miner</th><th class="num">Txs</th><th class="num">Fees (${ticker})</th>
-    </tr></thead>
-    <tbody>${body}</tbody>
-  </table></div>`;
+  return blocksTableHtml(rows, {
+    ticker,
+    blockHref,
+    accountHref,
+    legacyHref: "/explorer/legacy/",
+  });
 }
 
 /**
@@ -992,7 +1204,7 @@ async function renderBlock(height) {
       <span aria-hidden="true">/</span>
       <span>Block ${height}</span>
     </nav>
-    <div class="explorer__block-nav">${prev}<strong>Block ${height}</strong>${next}</div>
+    <div class="explorer__block-nav" data-block-nav>${prev}<strong>Block ${height}</strong>${next}</div>
     ${
       isGenesis
         ? `<aside class="explorer__banner">
@@ -1022,6 +1234,8 @@ async function renderBlock(height) {
       }
     </section>
   `;
+  attachLive("block", { height });
+  refreshStatusLine("block");
 }
 
 /**
@@ -1093,7 +1307,7 @@ async function renderConfirmedTx(loc, tipHeight) {
             ${kvRow("Tx id", copyable(txId), { wide: true })}
             ${blockHash ? kvRow("Block hash", copyable(blockHash), { wide: true }) : ""}
             ${kvRow("Block", blockLink(height, `block ${height}`))}
-            ${kvRow("Confirmations", `<span class="num">${escapeHtml(String(conf))}</span>`)}
+            ${kvRow("Confirmations", `<span class="num" data-tx-confirmations>${escapeHtml(String(conf))}</span>`)}
             ${kvRow("Time", escapeHtml(formatTime(header.timestamp)))}
             ${header.miner ? kvRow("Miner", nameLink(String(header.miner))) : ""}
             ${costs.rowsHtml}
@@ -1128,7 +1342,7 @@ async function renderConfirmedTx(loc, tipHeight) {
         ${kvRow("Tx id", copyable(txId), { wide: true })}
         ${blockHash ? kvRow("Block hash", copyable(blockHash), { wide: true }) : ""}
         ${Number.isFinite(height) ? kvRow("Block", blockLink(height, `block ${height}`)) : ""}
-        ${kvRow("Confirmations", `<span class="num">${escapeHtml(String(conf))}</span>`)}
+        ${kvRow("Confirmations", `<span class="num" data-tx-confirmations>${escapeHtml(String(conf))}</span>`)}
         ${costs.rowsHtml}
         ${txDetailRowsHtml(tx, { omitAmounts: Boolean(costs.rowsHtml) })}
       </dl>
@@ -1435,6 +1649,8 @@ async function renderKey(pubkey) {
       }
     </section>
   `;
+  attachLive("key", { pubkey: pk });
+  refreshStatusLine("key");
 }
 
 /** @param {string} name */
@@ -1469,6 +1685,11 @@ async function renderAccount(name) {
   const balance = await rpcCall(rpcUrl, "guld_getBalance", [name]);
   const activity = await rpcCall(rpcUrl, "guld_getAccountActivity", [name, 25]);
   const balanceGuld = quantaToGuld(balance || "0");
+  const items = Array.isArray(activity) ? activity : [];
+  const pendingDelta = pendingBalanceDeltaQuanta(
+    /** @type {Record<string, unknown>[]} */ (items),
+  );
+  const pendingLabel = formatPendingBalanceDelta(pendingDelta, ticker);
   setStatus("ok", `Height ${tipHeight.toLocaleString()} · ${name}`);
 
   const legacy = account.legacy
@@ -1490,49 +1711,6 @@ async function renderAccount(name) {
           ? String(account.parent)
           : "";
 
-  const items = Array.isArray(activity) ? activity : [];
-  const actRows = items.length
-    ? items
-        .map((row) => {
-          const rec = /** @type {Record<string, unknown>} */ (row);
-          const s = summarizeActivity(rec);
-          const h = row.height != null ? String(row.height) : "";
-          const unconfirmed = activityIsUnconfirmed(rec);
-          const conf = activityConfirmations(rec, tipHeight);
-          const confCell = unconfirmed
-            ? `<span class="tx-pill tx-pill--pending">Unconfirmed</span>`
-            : conf != null
-              ? `<span class="num">${conf}</span>`
-              : "—";
-          const when = unconfirmed
-            ? "—"
-            : h
-              ? blockLink(h, `h${h}`)
-              : escapeHtml(formatTime(row.timestamp));
-          let txCell = "—";
-          if (row.tx_id) {
-            const id = String(row.tx_id);
-            txCell = `<span class="explorer-copy">
-              <a href="${txHref(id)}"><code class="explorer-copy__text" title="${escapeHtml(id)}">${escapeHtml(shortHash(id, 10))}</code></a>
-              <button type="button" class="btn btn--outline btn--small explorer-copy__btn" data-copy="${escapeHtml(id)}">Copy</button>
-            </span>`;
-          } else if (h && s.type === "coinbase") {
-            txCell = blockLink(h, "coinbase");
-          } else if (h) {
-            txCell = blockLink(h);
-          }
-          return `<tr>
-            <td><span class="tx-pill${unconfirmed ? " tx-pill--pending" : ""}">${escapeHtml(s.type)}</span></td>
-            <td>${linkifyActivityPrimary(rec, s)}</td>
-            <td class="num">${escapeHtml(s.amount)}</td>
-            <td>${txCell}</td>
-            <td class="num">${confCell}</td>
-            <td class="num">${when}</td>
-          </tr>`;
-        })
-        .join("")
-    : "";
-
   hostEl.innerHTML = `
     <nav class="explorer__crumb">
       <a href="#/">Explorer</a>
@@ -1544,11 +1722,12 @@ async function renderAccount(name) {
         <h2>${escapeHtml(name)}</h2>
         <p>${escapeHtml(String(account.kind || "account"))}</p>
       </header>
-      <p class="explorer__balance"><strong>${escapeHtml(balanceGuld)}</strong> ${ticker}</p>
+      <p class="explorer__balance" data-account-balance><strong>${escapeHtml(balanceGuld)}</strong> ${ticker}</p>
+      <p class="explorer__balance-pending" data-account-pending${pendingLabel ? ` data-sign="${pendingDelta > 0n ? "in" : "out"}"` : " hidden"}>${pendingLabel ? escapeHtml(pendingLabel) : ""}</p>
       <dl class="explorer-kv-grid">
         ${kvRow("Name", `${nameLink(name)} <button type="button" class="btn btn--outline btn--small" data-copy="${escapeHtml(name)}">Copy</button>`)}
         ${kvRow("Kind", escapeHtml(String(account.kind || "—")))}
-        ${kvRow("Balance", `${escapeHtml(balanceGuld)} ${ticker}`)}
+        ${kvRow("Balance", `<span data-account-kv-balance>${escapeHtml(balanceGuld)} ${ticker}</span>`)}
         ${kvRow("Threshold", `<span class="num">${escapeHtml(String(account.threshold ?? "—"))}</span>`)}
         ${kvRow("Nonce", `<span class="num">${escapeHtml(String(account.nonce ?? "—"))}</span>`)}
         ${kvRow("Account id", copyable(String(account.account_id || "—")), { wide: true })}
@@ -1562,16 +1741,13 @@ async function renderAccount(name) {
     </section>
     <section class="explorer__panel">
       <header class="explorer__panel-head"><h2>Recent activity</h2></header>
-      ${
-        actRows
-          ? `<div class="explorer__table-wrap"><table class="explorer-table">
-              <thead><tr><th>Type</th><th>Detail</th><th class="num">Amount</th><th>Tx id</th><th class="num">Confirmations</th><th class="num">When</th></tr></thead>
-              <tbody>${actRows}</tbody>
-            </table></div>`
-          : `<p class="explorer__empty">No activity yet.</p>`
-      }
+      <div data-account-activity>
+      ${accountActivityTableHtml(items, tipHeight)}
+      </div>
     </section>
   `;
+  attachLive("account", { name });
+  refreshStatusLine("account");
 }
 
 route();

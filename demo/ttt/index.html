@@ -37,13 +37,24 @@
         </p>
         <p>
           Click the board — turns alternate X then O. Each move submits an
-          on-chain <code>UpdateMaster</code> tip (see txid → explorer).
+          on-chain <code>UpdateMaster</code> tip; the game transaction list below
+          explains each tip as it queues and confirms.
         </p>
       </header>
       <div class="ttt">
         <p class="wallet__status" data-ttt-status data-state="pending">Loading…</p>
         <div class="ttt__board" data-ttt-board></div>
         <div class="ttt__meta" data-ttt-meta></div>
+        <section class="ttt__tx-history" data-ttt-tx-history aria-live="polite">
+          <h2 class="ttt__tx-title">Game transactions</h2>
+          <p class="ttt__tx-lead">
+            Each on-chain move is an <code>UpdateMaster</code>: the peer checks signatures
+            and tips <code>ttt-demo</code> to a new leaf hash. Board rules stay in the leaf —
+            watch tips queue in the mempool, then confirm in a block.
+          </p>
+          <ol class="ttt__tx-list" data-ttt-tx-list></ol>
+          <p class="ttt__tx-empty" data-ttt-tx-empty>No on-chain tips yet — click a cell to submit the first move.</p>
+        </section>
         <div class="ttt__actions">
           <button type="button" class="btn btn--primary" data-ttt-reset>New game</button>
           <button type="button" class="btn" data-ttt-hash>Hash tip</button>

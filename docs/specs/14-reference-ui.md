@@ -348,6 +348,7 @@ Reference UI: Contacts / Settings shows “my contact card” QR when logged in;
 | Param | Role |
 |-------|------|
 | `from` | Inviter Guld name (display / “return the request to …”) |
+| `name` | Optional username hint — prefills register step 1; not reserved |
 | `offer` | `1` = emphasize friend-sponsor path after keygen; `0` = prefer pay desk |
 | `pay` | Optional desk payment link when inviter OTC is configured |
 | `sponsor` | Desk registrar **name** on OTC invites (GIP-8) — not the friend-offer flag |

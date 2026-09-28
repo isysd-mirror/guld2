@@ -9,6 +9,7 @@ import {
   normalizeContact,
   parseContactsCsv,
   parseInviteHints,
+  sanitizeNameHint,
 } from "../src/js/lib/contacts.js";
 
 const root = join(dirname(fileURLToPath(import.meta.url)), "..");
@@ -42,22 +43,48 @@ test("buildPrivateInviteUrl uses offer= not sponsor=", () => {
   assert.doesNotMatch(desk, /sponsor=/);
 });
 
-test("parseInviteHints reads offer and from", () => {
+test("parseInviteHints reads offer, from, and name hint", () => {
   assert.deepEqual(parseInviteHints("?from=Alice&offer=1"), {
     from: "alice",
     offerSponsor: true,
     pay: null,
+    nameHint: null,
   });
   assert.deepEqual(parseInviteHints("from=bob&offer=0&pay=https://x.test/p"), {
     from: "bob",
     offerSponsor: false,
     pay: "https://x.test/p",
+    nameHint: null,
+  });
+  assert.deepEqual(parseInviteHints("?name=Charlie&from=alice"), {
+    from: "alice",
+    offerSponsor: null,
+    pay: null,
+    nameHint: "charlie",
   });
   assert.deepEqual(parseInviteHints(""), {
     from: null,
     offerSponsor: null,
     pay: null,
+    nameHint: null,
   });
+});
+
+test("buildPrivateInviteUrl includes optional name hint", () => {
+  const url = buildPrivateInviteUrl({
+    from: "alice",
+    offerSponsor: true,
+    nameHint: "charlie",
+    origin: "https://guld.io",
+  });
+  assert.match(url, /name=charlie/);
+  assert.match(url, /from=alice/);
+});
+
+test("sanitizeNameHint rejects invalid names", () => {
+  assert.equal(sanitizeNameHint("Charlie"), "charlie");
+  assert.equal(sanitizeNameHint("bob.mobile"), null);
+  assert.equal(sanitizeNameHint(""), null);
 });
 
 test("buildPrivateInviteMessage mentions from when sponsoring", () => {
@@ -89,6 +116,8 @@ test("contacts page and register consume invite surface", () => {
   const page = readFileSync(join(root, "src/guld-web-ui/js/contacts-page.js"), "utf8");
   assert.match(page, /buildPrivateInviteUrl/);
   assert.match(page, /Offer to sponsor/);
+  assert.match(page, /Suggested username/);
+  assert.match(page, /data-name-hint/);
 
   const reg = readFileSync(join(root, "src/guld-web-ui/js/register-page.js"), "utf8");
   assert.match(reg, /parseInviteHints/);
