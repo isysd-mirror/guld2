@@ -697,20 +697,18 @@ Implemented GIPs (see [index](../gips/README.md)): **5–17**, **19**, **22–24
 
 | Area | Still open | Task / SoT |
 |------|------------|------------|
-| **Core catch-up bundle** | Merkle roots ([GIP-35](../gips/gip-35.md)); `UnregisterAccount`; bio/`UpdateBio`; `attestation_quorum_v1` wire | **[055](../tasks/open/055-simba-single-rule-bundle.md)** (after [042](../tasks/done/2026-09/042-rule-bundle-upgrade-e2e.md)) |
+| **Core catch-up bundle** | Published Simba `H=4444` (Merkle / Unregister / bio / empty quorum wire) — tip digest flips at activation | **[055](../tasks/open/055-simba-single-rule-bundle.md)** — verify post-`H` on ≥2 peers |
 | **Human-first UX** | Citizen/operator chrome beyond landing; cosign Share/QR sessions; backup framing (P1/P4 deferred/cancelled) | [005](../tasks/open/005-human-first-ux.md) |
 | **1.0 → mainnet** | Import manifest audit + locked mainnet genesis; ≥ some attestation cosigners | **[031](../tasks/open/031-mainnet-genesis-ceremony.md)**; [GIP-14](../gips/gip-14.md); [045](../tasks/open/045-gip-25-attestation-cosigners.md) |
 | **Foreign / cross-chain** | Dapp-layer only in v1 (A11); optional SPV/light proof kinds = future GIP | spec 13 informative; §12.5 |
 
 Account schema (incl. **bio**), `UnregisterAccount`, `threshold_cosign_v1` (tips/rotate/**spend**), weight table, and **10 decimals** are **specified for mainnet** — Simba activates Core deltas via [spec 17](../specs/17-protocol-upgrades.md) in **one** bundle ([055](../tasks/open/055-simba-single-rule-bundle.md)).
 
-### 12.3 Near term (docs → e2e → single Simba upgrade)
+### 12.3 Near term (after Simba Core bundle)
 
-1. **Specs / GIPs** — Accepted set folded (GIP-25, 31–34); whitepaper mainnet SoT (**this revision**).  
-2. **Rule-bundle e2e** — disposable mesh publish → miner split → activate → resync ([042](../tasks/open/042-rule-bundle-upgrade-e2e.md)).  
-3. **Implement Core deltas** (working branch OK) — Merkle roots, UnregisterAccount, UpdateBio, attestation_quorum wire.  
-4. **One Simba rule bundle** — miners approve a single `H` ([055](../tasks/open/055-simba-single-rule-bundle.md)).  
-5. **Wallet UX** — Contacts ([038](../tasks/open/038-contacts-private-invite.md)); `guld-web-ui` pair ([039](../tasks/open/039-guld-web-ui-extension-pair.md)); human-first ([005](../tasks/open/005-human-first-ux.md)).
+1. **Post-`H=4444` verify** — tip `guld_rules_hash` → `0xcde6a320…d4d1` on ≥2 peers ([055](../tasks/open/055-simba-single-rule-bundle.md)).  
+2. **Wallet UX** — Contacts ([038](../tasks/done/2026-09/038-contacts-private-invite.md)); `guld-web-ui` pair ([039](../tasks/open/039-guld-web-ui-extension-pair.md)); human-first ([005](../tasks/open/005-human-first-ux.md)).  
+3. **GIP-25 roster** — community cosigners for mainnet ([045](../tasks/open/045-gip-25-attestation-cosigners.md)).
 
 ### 12.4 Before mainnet
 

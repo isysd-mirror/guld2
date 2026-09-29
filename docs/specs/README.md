@@ -58,7 +58,7 @@
 
 ## Implementation matrix (mainnet SoT · Simba catch-up)
 
-Normative text targets **mainnet**. **Code** column reflects the **reference Simba** tree today. Catch-up Core items ship in **one** Simba rule bundle after [042](../tasks/open/042-rule-bundle-upgrade-e2e.md) — see [055](../tasks/open/055-simba-single-rule-bundle.md).
+Normative text targets **mainnet**. **Code** column reflects the **reference Simba** tree today. Catch-up Core bundle **published** with `activation_height = 4444` ([055](../tasks/open/055-simba-single-rule-bundle.md)); tip digest switches at `H` (verify post-activation).
 
 | Area | Spec / GIP | Decision | Code (Simba) | Task |
 |------|------------|----------|--------------|------|
@@ -77,17 +77,17 @@ Normative text targets **mainnet**. **Code** column reflects the **reference Sim
 | Letter fees `F_user` / `F_group` | 07, GIP-9 | Final (A8) | **yes** | — |
 | 1.0 import + ClaimLegacy | 15, GIP-14 | Locked (A5–A7) | **yes** | [016](../tasks/done/2026-09/016-reconcile-genesis-x-vs-manifest.md) done |
 | Distribution disclosure | [GIP-24](../gips/gip-24.md) | Accepted | n/a (docs) | [016](../tasks/done/2026-09/016-reconcile-genesis-x-vs-manifest.md) + [018](../tasks/done/2026-09/018-publish-omitted-buckets-and-negatives.md) done |
-| Attestation diversification | [GIP-25](../gips/gip-25.md) | Accepted | **no** (roster TBD) | [045](../tasks/open/045-gip-25-attestation-cosigners.md); wire in [055](../tasks/open/055-simba-single-rule-bundle.md) |
-| UnregisterAccount | 03 §3.8, [GIP-33](../gips/gip-33.md) | Accepted | **yes** (pre-`H`) | [041](../tasks/open/041-voluntary-unregister.md); activate [055](../tasks/open/055-simba-single-rule-bundle.md) |
-| Account bio / UpdateBio | 02 §3.5, 03 §3.9, [GIP-34](../gips/gip-34.md) | Accepted | **yes** (pre-`H`) | activate [055](../tasks/open/055-simba-single-rule-bundle.md) |
-| Merkle tx/receipt roots | 06 §2.1a, [GIP-35](../gips/gip-35.md) | Accepted | **yes** (dual-path + goldens; live interim until [055](../tasks/open/055-simba-single-rule-bundle.md) `H`) | [043](../tasks/done/2026-09/043-merkle-tx-receipt-roots-gip.md)/[044](../tasks/open/044-merkle-roots-implement-simba-activate.md) → [055](../tasks/open/055-simba-single-rule-bundle.md) |
+| Attestation diversification | [GIP-25](../gips/gip-25.md) | Accepted | **wire yes** (empty roster @`H=4444`); names TBD | [045](../tasks/open/045-gip-25-attestation-cosigners.md); [055](../tasks/open/055-simba-single-rule-bundle.md) |
+| UnregisterAccount | 03 §3.8, [GIP-33](../gips/gip-33.md) | Accepted | **yes** | [041](../tasks/open/041-voluntary-unregister.md); [055](../tasks/open/055-simba-single-rule-bundle.md) |
+| Account bio / UpdateBio | 02 §3.5, 03 §3.9, [GIP-34](../gips/gip-34.md) | Accepted | **yes** | [055](../tasks/open/055-simba-single-rule-bundle.md) |
+| Merkle tx/receipt roots | 06 §2.1a, [GIP-35](../gips/gip-35.md) | Accepted | **yes** (interim until `H=4444`, then `merkle_v1`) | [043](../tasks/done/2026-09/043-merkle-tx-receipt-roots-gip.md)/[044](../tasks/open/044-merkle-roots-implement-simba-activate.md) → [055](../tasks/open/055-simba-single-rule-bundle.md) |
 | Genesis ceremony / block 0 | 15, 05 §6 | G1–G4 + pre-commit smoke | **yes** (Simba) | [012](../tasks/done/2026-09/012-simba-genesis-ceremony.md) done; mainnet [031](../tasks/open/031-mainnet-genesis-ceremony.md) |
 | No foreign genesis names | 13, 02 | Locked (A11) | **yes** | — |
 | Mempool snapshot / persist | 12, GIP-19 | Spec 10 §3.1.1 | **yes** | [008](../tasks/done/2026-09/008-mempool-persistence.md) done |
 | HTTP `/api/v1` + wallet UI | 12, 14, GIP-5/17 | Shipped baseline | **yes** | UX tasks 002–005 |
 | Contacts / private invite | 14 §8.3, [GIP-31](../gips/gip-31.md) | Accepted | **yes** | [038](../tasks/done/2026-09/038-contacts-private-invite.md) done |
 | Shared web-ui + extension pair | 14 §10, [GIP-32](../gips/gip-32.md) | Accepted | **yes** (local); guld.io bare publish | [039](../tasks/open/039-guld-web-ui-extension-pair.md) |
-| Protocol upgrades (height rules) | 17 | Spec + e2e | **yes** (publish→activate→resync) | [042](../tasks/done/2026-09/042-rule-bundle-upgrade-e2e.md) done; live [055](../tasks/open/055-simba-single-rule-bundle.md) |
+| Protocol upgrades (height rules) | 17 | Spec + e2e | **yes** (Simba schedule live: `0` + `4444`) | [042](../tasks/done/2026-09/042-rule-bundle-upgrade-e2e.md) done; [055](../tasks/open/055-simba-single-rule-bundle.md) published |
 | Docs ↔ code sync | — | — | **yes** (2026-09-26) | [015](../tasks/done/2026-09/015-reconcile-docs-with-code.md) done |
 
 **Draft banner:** lift per spec when the row’s **Code** column is **yes** for Simba-critical paths (not all at once) — [048](../tasks/open/048-lift-locked-spec-draft-banners.md).

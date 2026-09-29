@@ -52,8 +52,8 @@ Simba is the intended first production activation: community-visible, reversible
 - [x] Dual-path seal/import green; interim preserved below `H`  
 - [x] GIP-26 vectors (Rust + JS) for Merkle roots + boundary  
 - [x] Disposable upgrade e2e passes with **root-scheme change** as the observable rule delta (or alongside fee delta) — satisfies / extends [042](./042-rule-bundle-upgrade-e2e.md)  
-- [ ] Simba: next bundle published with agreed `H`; post-activation tip verified on ≥2 peers  
-- [x] Docs + specs matrix updated; external-review P0 item closable *(Simba ops notice ships with [055](./055-simba-single-rule-bundle.md))*  
+- [x] Simba: next bundle published with agreed `H=4444`; dual schedule live — **post-activation tip verify still open** ([055](./055-simba-single-rule-bundle.md))
+- [x] Docs + specs matrix updated; external-review P0 item closable *(ops notice filled in [deploy/SIMBA.md](../../deploy/SIMBA.md))*
 
 ## Suggested entry points
 
@@ -71,5 +71,6 @@ Simba is the intended first production activation: community-visible, reversible
            [GIP-35](../gips/gip-35.md) Accepted. Remaining: GIP-26 goldens (Rust+JS) + Simba H.
 2026-09-29: GIP-26 `merkle_roots.jsonl` (empty/single/even/odd) + Rust verify + `@guld/js`
            `wire/merkle.js`; rule_bundle_upgrade asserts published manifest `root_scheme=merkle_v1`.
-           Specs matrix + GIP-26 layout updated. **Only open checkbox:** live Simba `H` via [055](./055-simba-single-rule-bundle.md).
+           Specs matrix + GIP-26 layout updated. Live Simba publish: H=4444 via [055](./055-simba-single-rule-bundle.md)
+           (new digest 0xcde6a320…d4d1). Remaining: post-H tip verify.
 ```

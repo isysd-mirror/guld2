@@ -294,9 +294,26 @@ Point nginx `proxy_pass` at **`127.0.0.1:8080`** (node `--http`), not `:8004`. S
 
 No Discord (or other chat) is required to join the mesh. Default: dial **guld.io** via compiled / published bootnodes. Extra multiaddrs in [`data/p2p-bootnodes.json`](../data/p2p-bootnodes.json) are optional fallbacks, not consensus authority. Informal community: [discord.gg/PMCEGjGCQ](https://discord.gg/PMCEGjGCQ). Short public pins + join steps: [`docs/SIMBA_BETA.md`](../docs/SIMBA_BETA.md).
 
-## Rule-bundle upgrade notice (template)
+## Rule-bundle upgrade notice
 
-Fill when publishing the Core catch-up bundle ([055](../docs/tasks/open/055-simba-single-rule-bundle.md) / [GIP-35](../docs/gips/gip-35.md) Merkle roots). Post to Discord + update [SIMBA_BETA](../docs/SIMBA_BETA.md) pins.
+### Live — Core catch-up @ H=4444 (2026-09-29)
+
+Published on Simba (`guld_publishRulesUpgrade`). Tip hash stays **old** until height **4444**; both peers already carry the dual schedule.
+
+```text
+Simba rule-bundle upgrade
+- Binary: guld-node ≥ umbrella f14b4e3 / leaf 1912417 (rebuild + restart before height 4444)
+- Activation height H: 4444
+- Previous guld_rules_hash: 0x81bebfee4afa6c3f7d22b659eeeeebdf4d320eb9d95a8fa85b8587b9ee62be50
+- New guld_rules_hash: 0xcde6a320d76fb18beb89d7d92d661eb9c0b8cf2a5b1f1622b2f85cfd5826d4d1
+- UpdateMaster tx_id: 0x6c755b6116713b51ebf746a85aa49c958cac03bc15dd596dbacdc1ba9c4c0301
+- Observable deltas: root_scheme → merkle_v1; 1-letter fee 1000→1001; Unregister/UpdateBio in binary; attestation_quorum wire (empty roster / threshold 0 — isysd dual-window continues)
+- Action: pull tip, cargo build -p guld-node --release, restart peer before H; lagging peers stall safely until upgrade
+```
+
+Paste the same block to Discord if you want a human ping. Tracking: [055](../docs/tasks/open/055-simba-single-rule-bundle.md) · pins: [SIMBA_BETA](../docs/SIMBA_BETA.md).
+
+### Template (next upgrade)
 
 ```text
 Simba rule-bundle upgrade
@@ -304,7 +321,7 @@ Simba rule-bundle upgrade
 - Activation height H: <N>
 - Previous guld_rules_hash: 0x…
 - New guld_rules_hash: 0x…
-- Observable deltas: root_scheme → merkle_v1; letter fee bump; Unregister/UpdateBio; attestation_quorum wire (empty roster OK)
+- Observable deltas: …
 - Action: pull tip, rebuild node, restart peer before H; lagging peers stall safely until upgrade
 ```
 

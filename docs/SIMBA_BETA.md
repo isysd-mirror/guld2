@@ -67,7 +67,17 @@ On guld.io when enabled: `GET /api/v1/faucet`, `POST /api/v1/faucet/drip`, `POST
 
 ## Rule-bundle upgrades
 
-Simba tip stays locked; Core catch-up activates by **height** (spec 17), not regenesis. When a bundle is published, operators get binary version, `H`, and old/new `guld_rules_hash` via the notice template in [`deploy/SIMBA.md`](../deploy/SIMBA.md) § Rule-bundle upgrade notice. Tracking: [055](../tasks/open/055-simba-single-rule-bundle.md).
+Simba tip stays locked; Core catch-up activates by **height** (spec 17), not regenesis. Full ops notice: [`deploy/SIMBA.md`](../deploy/SIMBA.md) § Rule-bundle upgrade notice. Tracking: [055](../tasks/open/055-simba-single-rule-bundle.md).
+
+### Core catch-up (published 2026-09-29)
+
+| | |
+|--|--|
+| **Activation height `H`** | `4444` |
+| **Until `H−1` tip hash** | `0x81bebfee4afa6c3f7d22b659eeeeebdf4d320eb9d95a8fa85b8587b9ee62be50` |
+| **From `H` tip hash** | `0xcde6a320d76fb18beb89d7d92d661eb9c0b8cf2a5b1f1622b2f85cfd5826d4d1` |
+| **Binary floor** | umbrella `f14b4e3` / `guld-node` `1912417` (rebuild before `H`) |
+| **Deltas** | Merkle `tx_root`/`receipt_root`; letter-fee bump; Unregister/UpdateBio; empty `attestation_quorum` wire |
 
 Tip-incompatible work (e.g. account-leaf **codec rewrite**) is **not** Simba — see **[Mufasa](MUFASA.md)** and checklist [052](../tasks/open/052-next-testnet-checklist.md).
 
