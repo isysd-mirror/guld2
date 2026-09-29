@@ -33,6 +33,8 @@ schemas/guld/v1/vectors/     # preferred once BARE schemas exist
   tx_id.jsonl                # bare or hex payload → TxId
   header_pow.jsonl           # header fields → block_hash / pow ok
   difficulty.jsonl           # parent + period_start → expected difficulty
+  timestamp.jsonl            # MTP / future-drift reject + accept
+  merkle_roots.jsonl         # interim vs Merkle v1 tx/receipt roots (GIP-35)
   apply/*.json               # optional: pre-state, tx, post-state roots
 ```
 
@@ -53,6 +55,7 @@ Until BARE files ship, vectors MAY live under `testdata/consensus/` with an expl
 | Retarget boundary difficulty | 2 (up/down clamp) |
 | Bad difficulty reject ([GIP-23](gip-23.md)) | 1 |
 | MTP / future timestamp reject | 1 each |
+| Interim vs Merkle v1 roots ([GIP-35](gip-35.md)) | empty + single + even + odd |
 
 ## Rationale
 

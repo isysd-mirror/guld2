@@ -10,12 +10,14 @@
 # Phase 5 — guld-node simba_catchup_sync
 # Genesis — guld-node simba_genesis_smoke (task 012)
 # Vectors — guld-wire + guld-consensus + @guld/js GIP-26 goldens (tasks 021 / 032 / 036)
+# Prop — guld-state / guld-consensus apply+import smoke (task 049)
 #
 # Skip (human only; agents MUST NOT):
 #   GULD_SKIP_LIFECYCLE=1   — all gates
 #   GULD_SKIP_CATCHUP=1     — Phase 5 only
 #   GULD_SKIP_GENESIS=1     — genesis pin smoke only
 #   GULD_SKIP_VECTORS=1     — GIP-26 golden vectors only
+#   GULD_SKIP_PROP=1        — apply/import property smoke (task 049)
 set -euo pipefail
 
 if [[ "${GULD_SKIP_LIFECYCLE:-}" == "1" ]]; then
@@ -55,6 +57,7 @@ run_p2p_suite=0   # phases 3–5
 run_genesis=0
 run_vectors=0     # GIP-26 Rust
 run_vectors_js=0  # GIP-26 @guld/js
+run_prop=0        # apply/import property smoke (049)
 
 if [[ -f "${TOP}/.gitmodules" ]]; then
   staged="$(git diff --cached --name-only)"
@@ -76,6 +79,9 @@ if [[ -f "${TOP}/.gitmodules" ]]; then
     run_vectors=1
     run_vectors_js=1
   fi
+  if echo "$staged" | grep -qE '^src/guld-(state|consensus)(/|$)'; then
+    run_prop=1
+  fi
   if echo "$staged" | grep -qE '^src/guld-js(/|$)'; then
     run_vectors_js=1
   fi
@@ -86,6 +92,7 @@ else
     case "$(pkg_name "${TOP}/Cargo.toml")" in
       guld-state)
         run_state=1
+        run_prop=1
         ;;
       guld-node)
         run_state=1
@@ -105,6 +112,7 @@ else
       guld-wire|guld-consensus)
         run_vectors=1
         run_vectors_js=1
+        run_prop=1
         ;;
       *)
         exit 0
@@ -113,11 +121,18 @@ else
   fi
 fi
 
-if [[ "$run_state" -eq 0 && "$run_node" -eq 0 && "$run_p2p_suite" -eq 0 && "$run_genesis" -eq 0 && "$run_vectors" -eq 0 && "$run_vectors_js" -eq 0 ]]; then
+if [[ "$run_state" -eq 0 && "$run_node" -eq 0 && "$run_p2p_suite" -eq 0 && "$run_genesis" -eq 0 && "$run_vectors" -eq 0 && "$run_vectors_js" -eq 0 && "$run_prop" -eq 0 ]]; then
   exit 0
 fi
 
 cd "$ROOT"
+
+if [[ "$run_prop" -eq 1 && "${GULD_SKIP_PROP:-}" != "1" ]]; then
+  echo "guld pre-commit: Prop — guld-state apply rejection smoke (task 049)" >&2
+  cargo test -p guld-state --test prop_apply
+  echo "guld pre-commit: Prop — guld-consensus import/mempool rejection smoke (task 049)" >&2
+  cargo test -p guld-consensus --test prop_import
+fi
 
 if [[ "$run_vectors" -eq 1 && "${GULD_SKIP_VECTORS:-}" != "1" ]]; then
   echo "guld pre-commit: Vectors — guld-wire tx_id goldens (GIP-26)" >&2

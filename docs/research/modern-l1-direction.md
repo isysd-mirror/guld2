@@ -4,7 +4,7 @@ Status: research (active sketch)
 **Note:** filename kept for link stability; Guld is **L0** (witness substrate below foreign L1s such as Ethereum and Solana).  
 Supersedes as **L0 SoT preference**: treating Postgres + PGP-signed git votes as the network consensus path. Those remain valid for **indexers**, **leaf git hosting**, and **2.0 meta-FS packages** — not for what every block producer must run.
 
-Related: [`postgres-blockchain.md`](postgres-blockchain.md), [`block-window-consensus.md`](block-window-consensus.md), [`storage-scale-git-postgres.md`](storage-scale-git-postgres.md), [`../gips/gip-14.md`](../gips/gip-14.md), [`../UPGRADE_FROM_1.md`](../UPGRADE_FROM_1.md), **draft whitepaper:** [`../whitepaper/guld-2.0-draft.md`](../whitepaper/guld-2.0-draft.md), **specs:** [`../specs/README.md`](../specs/README.md)
+Related: [`postgres-blockchain.md`](postgres-blockchain.md), [`block-window-consensus.md`](block-window-consensus.md), [`storage-scale-git-postgres.md`](storage-scale-git-postgres.md), [`../gips/gip-14.md`](../gips/gip-14.md), [`../UPGRADE_FROM_1.md`](../UPGRADE_FROM_1.md), **whitepaper:** [`../whitepaper/guld-2.0.md`](../whitepaper/guld-2.0.md), **specs:** [`../specs/README.md`](../specs/README.md)
 
 ## Goal bar
 
@@ -224,7 +224,7 @@ Cargo integrates cleanly with git: path deps, git URL deps, and crates.io alike 
 ### Others (short)
 
 - **Kaspa-class DAG-PoW** — if staying PoW but wanting higher block parallelism than Nakamoto single-lane.
-- **Celestia-style DA** — later research only; v1 does **not** put an on-chain DA market on L0 (leaf retention + mandatory `guld` clone).
+- **Celestia-style / L0 DA markets** — **not** Guld 2.0 direction. Content availability stays **leaf/host** forever; do not plan an on-chain pin/DA/slash surface for blobs. Validators only need the active **rule-bundle digest** (`guld_rules_hash`), not a content CDN.
 
 ---
 
@@ -282,7 +282,7 @@ Private groups invent their own meaning of “we agreed.” The chain only check
 - **Proof enumeration** — only listed proof kinds are network-valid; exotic leaf governance must compile down to them  
 - **Breaks continuity** — 2.0 meta-FS PGP/git becomes leaf path; migration map required  
 - **PoW politics / energy** — if PoW is primary election  
-- **CAS availability** — tips without pins can become unavailable data  
+- **CAS availability** — tips without pins can become unavailable data (**intentional:** leaf/host concern, not an L0 DA layer)  
 - **Larger PQ sigs** — if genesis is PQ-native  
 - **Two stacks** — consensus daemon + polyglot leaf tooling  
 
@@ -315,4 +315,4 @@ Older docs remain useful for precedents and for **non-consensus** Postgres/git h
 
 ## Verdict
 
-Build a **modern, lean L0** that **witnesses** account/group heads: SHA-256 trees, opaque CAS leaves (encryption optional, off-protocol), externally verifiable **cosign/proofs**, **Bitcoin-style weight fees**, CAS with optional git inside. Leaves keep their own languages, rules, and disputes. No general network VM. Push PGP/git and Postgres **off the consensus path**. Implement the validator in **Rust**; keep leaf tooling polyglot. Key+hash state at global user counts is realistic; content retention stays in **leaves** (mandatory full clone only for `guld`).
+Build a **modern, lean L0** that **witnesses** account/group heads: SHA-256 trees, opaque CAS leaves (encryption optional, off-protocol), externally verifiable **cosign/proofs**, **Bitcoin-style weight fees**, optional local CAS with git inside leaves. Leaves keep their own languages, rules, and disputes. No general network VM. Push PGP/git and Postgres **off the consensus path**. Implement the validator in **Rust**; keep leaf tooling polyglot. Key+hash state at global user counts is realistic; **content retention stays in leaves**. Validators apply the active **rule bundle** (digest in headers)—that is rules knowledge, **not** an L0 content-availability market.

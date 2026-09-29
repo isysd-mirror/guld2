@@ -73,6 +73,12 @@
       "path": "src/guld-wallet",
       "branch": "main",
       "commit": "89711a0cd8626a761b594e253c571faf96616140"
+    },
+    {
+      "name": "guld-web-ui",
+      "path": "src/guld-web-ui",
+      "branch": "guld",
+      "commit": "1f9aa3d375f1c9be663b9516e4f8a3049c86d2bf"
     }
   ]
 }

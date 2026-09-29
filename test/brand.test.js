@@ -108,7 +108,7 @@ test("header nav is product; docs live in footer", () => {
   assert.equal(FOOTER_NAV.find((i) => i.label === "Docs")?.href, "/docs/");
   assert.equal(
     FOOTER_NAV.find((i) => i.label === "Whitepaper")?.href,
-    "/docs/?doc=whitepaper%2Fguld-2.0-draft.md",
+    "/docs/?doc=whitepaper%2Fguld-2.0.md",
   );
   assert.ok(!FOOTER_NAV.some((i) => /^\/docs\/[^?]+\.md$/i.test(i.href)));
   assert.ok(!HEADER_NAV.some((i) => /whitepaper|specs/i.test(i.label)));
@@ -141,9 +141,9 @@ test("isNavActive and normalizePath", () => {
 
 test("whitepaper redirects to docs viewer", () => {
   assert.ok(existsSync(join(root, "whitepaper/index.html")));
-  assert.ok(existsSync(join(root, "docs/whitepaper/guld-2.0-draft.md")));
+  assert.ok(existsSync(join(root, "docs/whitepaper/guld-2.0.md")));
   const html = readFileSync(join(root, "whitepaper/index.html"), "utf8");
-  assert.match(html, /\/docs\/\?doc=whitepaper%2Fguld-2\.0-draft\.md/);
+  assert.match(html, /\/docs\/\?doc=whitepaper%2Fguld-2\.0\.md/);
   assert.doesNotMatch(html, /whitepaper-page\.js/);
 });
 

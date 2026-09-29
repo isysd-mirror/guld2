@@ -3,7 +3,7 @@
 Disposable dev chains for integration testing. See [`docs/tasks/done/2026-09/006-chain-lifecycle-tests.md`](../../docs/tasks/done/2026-09/006-chain-lifecycle-tests.md).  
 Group multi-sig e2e: [`docs/tasks/done/2026-09/035-group-multisig-lifecycle-e2e.md`](../../docs/tasks/done/2026-09/035-group-multisig-lifecycle-e2e.md).
 
-**CI = pre-commit hooks** (`./scripts/install-dev-hooks.sh`). No hosted pipeline.
+**CI = pre-commit hooks** (`./scripts/install-dev-hooks.sh`). No hosted pipeline required — forge Actions are optional signals only ([`docs/SOURCE_AND_RELEASE.md`](../../docs/SOURCE_AND_RELEASE.md)).
 
 | Layer | Command | Pre-commit |
 |-------|---------|------------|
@@ -18,6 +18,7 @@ Group multi-sig e2e: [`docs/tasks/done/2026-09/035-group-multisig-lifecycle-e2e.
 | Simba genesis pins (Rust) | `cargo test -p guld-node --test simba_genesis_smoke` | Genesis (012) |
 | GIP-26 TxId goldens | `cargo test -p guld-wire --test vectors_tx_id` | Vectors (021) |
 | GIP-26 header/diff/time | `cargo test -p guld-consensus --test vectors_gip26` | Vectors (021) |
+| Apply / import property smoke | `cargo test -p guld-state --test prop_apply`; `cargo test -p guld-consensus --test prop_import` | Prop (049) |
 | Two-node shell smoke | `./scripts/chain-lifecycle/two-node-sync.sh` | — |
 | Dual-miner shell wrapper | `./scripts/chain-lifecycle/dual-miner-reorg.sh` | — |
 | Reorg catch-up shell wrapper | `./scripts/chain-lifecycle/reorg-catchup-no-ban.sh` | — |
@@ -29,4 +30,4 @@ RegisterGroup seal↔import (vesting order): `cargo test -p guld-consensus --tes
 
 Test miners use `--mine-cpu-percent 1` (shared-host Simba policy).
 
-Escape hatches (humans only): `GULD_SKIP_LIFECYCLE=1`, `GULD_SKIP_CATCHUP=1`, `GULD_SKIP_GENESIS=1`.
+Escape hatches (humans only): `GULD_SKIP_LIFECYCLE=1`, `GULD_SKIP_CATCHUP=1`, `GULD_SKIP_GENESIS=1`, `GULD_SKIP_VECTORS=1`, `GULD_SKIP_PROP=1`.

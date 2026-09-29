@@ -87,6 +87,8 @@ F_group(L, n) = F_user(L) × (2 + n)     // n = key count
 | `ConvertAccountKind` → group | Full `F_group(L, n)` for target `n` (same schedule; no credit for prior `F_user`) |
 | `ConvertAccountKind` → individual | Full `F_user(L)` (same schedule; no rebate of prior `F_group`) |
 | `SettleRegistration` (funded) | Full `F_group(L, n)` for **current** `n` |
+| `UnregisterAccount` | **No** protocol registration fee or refund — inclusion fee only ([GIP-33](../gips/gip-33.md)) |
+| `UpdateBio` | Inclusion fee only (bio ≤128 B in weight) ([GIP-34](../gips/gip-34.md)) |
 | `RotateKeys` with `n_new > n_old` | **Delta only:** `F_group(L, n_new) − F_group(L, n_old)` = `F_user(L) × (n_new − n_old)` |
 | `RotateKeys` with `n_new ≤ n_old` | No protocol fee (inclusion only) |
 

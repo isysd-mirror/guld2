@@ -31,6 +31,11 @@ GuldRulesManifest {
   // … existing fee / schema / proof-kind fields …
   previous_rules_hash: Hash32,     // optional link; prior digest active until H−1
   upgrade_class: "soft" | "hard",  // advisory for operators; see §4
+  root_scheme: Option<String>,     // omit/"interim" | "merkle_v1" ([GIP-35](../gips/gip-35.md))
+  attestation_quorum: Option<{     // GIP-25; empty attestors OK on Simba
+    threshold: u16,
+    attestors: Vec<String>,        // 0x-hex Ed25519 pubs
+  }>,
 }
 ```
 
@@ -59,6 +64,21 @@ In practice Guld treats **any** unknown `guld_rules_hash` as fatal for Hello / i
 
 `UpdateMaster` on `guld` that installs a next bundle does **not** by itself change header validation — only height `H` does.
 
+### 5.1 Publishing on keyless `guld` (reference)
+
+The network account is keyless. Reference nodes accept a **permissionless** `UpdateMaster` when:
+
+- `name == "guld"` / `kind == network`
+- `cosignatures` empty and `inclusion_fee == 0` (mempool fee floor exempt)
+- `memo` carries the **HomeTree** object id (`0x`-hex → 32 raw bytes after memo normalize)
+- `new_master_hash == tagged_hash("guld/master_hash/v1", tree_id ‖ zero_meta ‖ schema_u32=1)`
+
+Peers MUST materialize the tree from CAS, then reload `RulesSchedule` from `rules/manifest.v1.json` in that tip. RPC helper: `guld_publishRulesUpgrade` (puts CAS objects, queues the tx, returns blobs for peer `guld_putObject` seeding).
+
+### 5.2 Disposable-net rehearsal
+
+Integration test: `cargo test -p guld-node --test rule_bundle_upgrade` ([042](../tasks/done/2026-09/042-rule-bundle-upgrade-e2e.md)). First **live Simba** activation payload: single Core catch-up bundle ([055](../tasks/open/055-simba-single-rule-bundle.md)).
+
 ## 6. What is *not* an on-chain upgrade
 
 - Wallet UX, HTTP routes, static site, registrar desks  
@@ -67,11 +87,16 @@ In practice Guld treats **any** unknown `guld_rules_hash` as fatal for Hello / i
 
 Those ship in git anytime.
 
-## 7. Testnets (e.g. simba)
+## 7. Testnets
+
+| Net | Role |
+|-----|------|
+| **simba** (`chain_id` 2) | Live public testnet; tip **locked**. Prefer height-activated rule bundles ([§5](#5-activation-procedure-normative), [055](../tasks/open/055-simba-single-rule-bundle.md)). |
+| **mufasa** (planned `chain_id` 3) | Named successor when a change cannot height-activate without tip wipe / global state rehash. Planning: [MUFASA.md](../MUFASA.md); checklist [052](../tasks/open/052-next-testnet-checklist.md). **Not launched.** |
 
 - Freeze genesis `guld_rules_hash` for the lifetime of the named net, **or**  
 - Schedule upgrades with short `activation_height` margins and tagged releases.  
-- Bumping `--chain-id` / network name starts a **new** net (not an in-place upgrade).
+- Bumping `--network` / `chain_id` starts a **new** net (not an in-place upgrade).
 
 ## 8. Open parameters
 

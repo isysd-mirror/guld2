@@ -40,6 +40,7 @@ Account {
   balance: Amount,               // GULD base units
   expires_at_height: u64,        // soft registration; u64::MAX = never
   remotes: Vec<RemoteHint>,      // non-consensus convenience
+  bio: Option<Bytes>,            // ≤128 B opaque profile; [GIP-34](../gips/gip-34.md)
 }
 ```
 
@@ -65,7 +66,7 @@ Each account carries a monotonic **`nonce`** (`u64`, starts at **0** at registra
 
 - `UpdateMaster` — tip advance  
 - `Transfer` — when account is `from`  
-- `RotateKeys`, `ConvertAccountKind`, `SettleRegistration`, `ClaimLegacy`  
+- `RotateKeys`, `ConvertAccountKind`, `UnregisterAccount`, `UpdateBio`, `SettleRegistration`, `ClaimLegacy`  
 - Registration txs — payer (and parent for subaccounts)
 
 **`UpdateMaster` binding:** cosignatures MUST cover the account’s **current** `nonce` (before apply), `prev_master_hash`, and `new_master_hash` ([`04-proofs.md`](04-proofs.md) §3.1). On success: `master_hash ← new`, `nonce++`.
@@ -133,6 +134,27 @@ Hints MUST NOT affect validation. Clients/leaf-hosts MAY use them to fetch bytes
 - Parent pays `F_sub` to register; see [`03-transactions.md`](03-transactions.md) `RegisterSubaccount`.
 - Transfers address the full dotted name (`isysd.mobile`).
 
+### 3.5 Account bio ([GIP-34](../gips/gip-34.md))
+
+Optional `bio: Option<Bytes>` — at most **128** bytes, consensus-opaque. Absent by default (genesis imports, existing accounts until set).
+
+- Set at registration (`RegisterUsername` / `RegisterGroup` / `RegisterSubaccount` MAY include `bio`) or via `UpdateBio` ([spec 03](03-transactions.md) §3.9).
+- `SettleRegistration` renew MUST NOT change `bio`.
+- Consensus MUST NOT parse bio contents; size / weight / signature coverage only.
+- Clears by `UpdateBio` with empty / omit.
+
+### 3.6 Voluntary unregister ([GIP-33](../gips/gip-33.md))
+
+Holders MAY release a name **before** `expires_at_height` via `UnregisterAccount` ([spec 03](03-transactions.md) §3.8):
+
+| Kind | Effect |
+|------|--------|
+| `subaccount` | Remaining balance → parent; delete sub; free one of eight live slots |
+| `individual` / `group` | Delete root; balance MUST equal `inclusion_fee` only (sweep first); no live subs |
+| `network` / legacy-locked / lapsed | Reject — use settle or claim first |
+
+`SettleRegistration` remains the permissionless **overdue** path. Both txs MUST NOT apply to the same name in the same block.
+
 ## 4. Reserved account `guld`
 
 Whitepaper §3.5. The on-chain **`guld`** account is the network identity — not a mirror of developer source repositories.
@@ -174,5 +196,6 @@ While `legacy.status = locked`, spend/tip txs MUST be rejected except `ClaimLega
 
 - Role bitfield vs separate thresholds  
 - Exact Merkle tree layout for homes ([`08-cas-and-homes.md`](08-cas-and-homes.md))  
-- Legacy binding-set format ([`15-ledger-import.md`](15-ledger-import.md))  
-- Voluntary early release — draft [GIP-33](../gips/gip-33.md) (`UnregisterAccount`; sub slot reclaim)
+- Legacy binding-set format ([`15-ledger-import.md`](15-ledger-import.md))
+
+**Locked:** voluntary early release — [GIP-33](../gips/gip-33.md) `UnregisterAccount` (supersedes GIP-12 “CloseSubaccount — later”). Account bio — [GIP-34](../gips/gip-34.md).

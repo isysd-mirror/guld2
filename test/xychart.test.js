@@ -8,7 +8,7 @@ import { parseXyChart } from "../src/js/lib/xychart.js";
 const root = join(dirname(fileURLToPath(import.meta.url)), "..");
 
 test("parseXyChart reads whitepaper inflation chart", () => {
-  const md = readFileSync(join(root, "docs/whitepaper/guld-2.0-draft.md"), "utf8");
+  const md = readFileSync(join(root, "docs/whitepaper/guld-2.0.md"), "utf8");
   const fences = [...md.matchAll(/```mermaid\n([\s\S]*?)```/g)];
   const inflation = fences.map((m) => m[1]).find((src) => /title Inflation rate i\(y\)/.test(src));
   assert.ok(inflation, "expected inflation xychart-beta fence");

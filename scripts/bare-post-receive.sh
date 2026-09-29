@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 # post-receive for repos/*.git — dumb-HTTP refresh, sync local worktree on `guld`,
-# rebuild/restart isysd's guld-node user unit when needed.
+# rebuild/restart the operator's guld-node-simba user unit when the umbrella tip moves.
 #
 # Installed as: repos/<name>.git/hooks/post-receive → symlink to this file
 # (see scripts/install-bare-hooks.sh). Do not put logic only under repos/ (gitignored).

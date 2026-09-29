@@ -1,6 +1,6 @@
 # Guld FAQ
 
-**Address people by name.** Short answers for newcomers. Normative detail: [whitepaper](whitepaper/guld-2.0-draft.md) · [specs](specs/README.md).
+**Address people by name.** Short answers for newcomers. Normative detail: [whitepaper](whitepaper/guld-2.0.md) · [specs](specs/README.md).
 
 ## Guld 1.0 and 2.0
 
@@ -18,13 +18,21 @@ Very, by design of 1.0 history: top ~10 names hold ~63% of imported Simba supply
 
 ### Why move from 1.0 stake to 2.0 PoW?
 
-Guld 1.0 used **identity- and contribution-weighted proof of stake**. Over time **consensus among stakers broke down** and **trust in the network diminished**. Guld 2.0 keeps identity-first names, groups, and leaves, but anchors **header consensus** in open **PoW** — a conservative, widely understood model — so new users can reason about finality without relying on a degraded stake quorum. See [UPGRADE_FROM_1.md](UPGRADE_FROM_1.md) and whitepaper §1.1a.
+Guld 1.0 used **identity- and contribution-weighted proof of stake**. Over time **consensus among stakers broke down** and **trust in the network diminished**. Guld 2.0 keeps identity-first names, groups, and leaves, but anchors **header consensus** in open **PoW** — Bitcoin-**parameter** SHA256d timing (≈10 min / 2016-block retarget), a conservative and widely understood **parameter class**. That is **not** a Bitcoin-class **security budget** claim: rewrite cost tracks empirical hashrate. Early nets will be low-hash. See [UPGRADE_FROM_1.md](UPGRADE_FROM_1.md), whitepaper [§11](whitepaper/guld-2.0.md#11-security-notes-and-risks), and the [security-budget blurb](fragments/security-budget.md).
+
+### Is Guld “as secure as Bitcoin”?
+
+**No.** Same *kinds* of PoW parameters (algorithm family, block interval, retarget shape) ≠ peer-class hashrate or rewrite cost. Launch is **solo SHA256d**; merged mining is **not** a launch requirement. Full wording: [security-budget blurb](fragments/security-budget.md).
 
 ## Using the beta
 
 ### What is Simba?
 
-**Simba** is the public Guld 2.0 **testnet** (`chain_id` 2). Run `guld-node --network simba` and use the wallet/explorer against your peer’s HTTP API. See [deploy/SIMBA.md](../deploy/SIMBA.md).
+**Simba** is the public Guld 2.0 **testnet** (`chain_id` 2). Run `guld-node --network simba` and use the wallet/explorer against your peer’s HTTP API. See [deploy/SIMBA.md](../deploy/SIMBA.md) and [SIMBA_BETA.md](SIMBA_BETA.md). **Simba will not reset again** — tip-incompatible changes ship as **[Mufasa](MUFASA.md)** (named next testnet; not launched yet). Height-activated Core catch-up stays on Simba ([055](tasks/open/055-simba-single-rule-bundle.md)).
+
+### What is Mufasa?
+
+**Mufasa** is the **planned** successor testnet name (`mufasa`, planned `chain_id` 3) for breaks that cannot height-activate on Simba’s locked tip. Not live — no genesis or `--network mufasa` profile yet. Planning: [MUFASA.md](MUFASA.md); launch checklist: [052](tasks/open/052-next-testnet-checklist.md).
 
 ### Where is the wallet?
 
@@ -35,6 +43,12 @@ The primary wallet is the **static web UI** in this repo (`/wallet/`), served by
 Use **Contacts** (planned `/contacts/` — [GIP-31](gips/gip-31.md)): keep an address book, then share a **private** message with a register link. The invite does **not** reserve a name. Optionally check **Offer to sponsor** so they come back to you for friend-sponsor ([Spec 16](specs/16-sponsored-registration.md)); otherwise the link can steer them to a payment desk on your peer. Design: [contacts-and-private-invite](design/contacts-and-private-invite.md).
 
 Until that UI ships, you can still sponsor someone who pastes a registration request into Wallet → Sponsor a name, or share your OTC invite URL from Settings if you run a desk.
+
+## Source and releases
+
+### Where do I clone from? Is GitHub the source of truth?
+
+**No.** Clone from **`https://guld.io/repos/guld.git`** (and package remotes under `/repos/`). Peers in the mesh may host the same tree. GitHub, when present, is an **optional mirror** for discoverability and contributor UX. CI is local pre-commit; releases are maintainer **PGP-signed tags**. Detail: [SOURCE_AND_RELEASE.md](SOURCE_AND_RELEASE.md).
 
 ## Building dapps
 

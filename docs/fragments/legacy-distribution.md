@@ -126,7 +126,7 @@ Import creates **legacy-locked** accounts. Spend requires `ClaimLegacy` ([spec 1
 | PGP-bound (`binding_hint`) | **60** / 2,217 | **≈ 179,439.95** | **≈ 18.7%** |
 | Unbound (attestation) | **2,157** / 2,217 | **≈ 781,535.45** | **≈ 81.3%** |
 
-The unbound majority includes the largest holders — notably **groups** `mizim`, `raadyx`, `tigoctm`, `betatown`, `zimmi` — and nearly all flat 100 GULD package-manager / Equity grants. **Proof of ownership for those names was always off-consensus social context** on 1.0 (npm, GitHub, email, operator knowledge, group membership). 2.0 did not invent that dependency; it **inherited** it. Diversifying attestation is [GIP-25](../gips/gip-25.md) (Draft) — not a reason to haircut or drop grants now.
+The unbound majority includes the largest holders — notably **groups** `mizim`, `raadyx`, `tigoctm`, `betatown`, `zimmi` — and nearly all flat 100 GULD package-manager / Equity grants. **Proof of ownership for those names was always off-consensus social context** on 1.0 (npm, GitHub, email, operator knowledge, group membership). 2.0 did not invent that dependency; it **inherited** it. Diversifying attestation is [GIP-25](../gips/gip-25.md) (**Accepted** — cosigner identities TBD for mainnet) — not a reason to haircut or drop grants now.
 
 ### 5.2 Groups and continuity
 
@@ -243,7 +243,7 @@ See §3 (**2,023** × 100 GULD after hyphen remaps). Remaining rows: small dust 
 |-----|------|
 | [GIP-24](../gips/gip-24.md) | Informational requirement for this brief |
 | [GIP-14](../gips/gip-14.md) / [spec 15](../specs/15-ledger-import.md) | Import + ClaimLegacy rules |
-| [GIP-25](../gips/gip-25.md) | Diversify attestation (Draft) |
+| [GIP-25](../gips/gip-25.md) | Diversify attestation (**Accepted**; roster TBD) |
 | [task 016](../tasks/done/2026-09/016-reconcile-genesis-x-vs-manifest.md) | `x` vs manifest + name-remap (**done**) |
 | [task 018](../tasks/done/2026-09/018-publish-omitted-buckets-and-negatives.md) | Negatives / omissions appendix (**done**) |
 | [`negatives.json`](../../data/genesis/simba/negatives.json) / [`omissions.json`](../../data/genesis/simba/omissions.json) | Machine-readable appendices |

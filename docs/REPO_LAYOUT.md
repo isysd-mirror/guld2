@@ -156,7 +156,7 @@ git -C repos/guld.git update-server-info   # if hook missing
 On this bootstrap host, each `repos/*.git` can run a shared hook that, on push to **`refs/heads/guld`**:
 
 1. `git update-server-info` (dumb HTTP)
-2. Fast-forward the matching worktree (`guld2/` or `src/<name>/`) to that tip (skips if dirty)
+2. Fast-forward the matching worktree (umbrella checkout or `src/<name>/`) to that tip (skips if dirty)
 3. **Umbrella (`repos/guld.git`) only:** `submodule update`, `cargo build -p guld-node`, then `systemctl --user try-restart guld-node-simba.service`
 
 Leaf package pushes sync their worktrees but do **not** rebuild or restart the node (avoids a restart storm). Push the umbrella last.
@@ -208,6 +208,6 @@ GIP: [`gips/gip-7.md`](gips/gip-7.md).
 ## Related
 
 - [`HOSTING.md`](HOSTING.md) — software remotes vs `/srv/guld` content homes  
-- [`PACKAGES.md`](PACKAGES.md) · [`SOFTWARE_FLOW.md`](SOFTWARE_FLOW.md)  
+- [`PACKAGES.md`](PACKAGES.md) · [`SOFTWARE_FLOW.md`](SOFTWARE_FLOW.md) · [`SOURCE_AND_RELEASE.md`](SOURCE_AND_RELEASE.md)  
 - [`gips/gip-3.md`](gips/gip-3.md) · [`gips/gip-7.md`](gips/gip-7.md)  
 - [`../README.md`](../README.md)

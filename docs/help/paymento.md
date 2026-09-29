@@ -38,7 +38,7 @@ cargo run -p guld-node -- \
   …
 ```
 
-`GET /api/v1/registrar` returns the bootstrap link plus public `desks[]` (no secrets).
+`GET /api/v1/registrar` returns the bootstrap link plus public `desks[]` (no secrets). On public peers set `GULD_REGISTRAR_MUTATE_TOKEN` so desk publish requires a Bearer token (Settings → peer desk publish token). Checklist: [faucet-registrar-hardening.md](../fragments/faucet-registrar-hardening.md).
 
 ## 2. Paymento (each merchant store)
 

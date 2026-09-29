@@ -111,10 +111,11 @@ message = tagged_hash(
 | Proof kind | Requirement |
 |------------|-------------|
 | `pgp_cleartext_v1` | OpenPGP cleartext or detached signature over `message` hex, by a key in `archives/keys-pgp/<name>/*.asc`. **Only** when the binding set is non-empty for `name`. |
-| `isysd_attestation_v1` | Ed25519 signature (or threshold cosign JSON) by the live **`isysd`** account over `message`. **Only** when `name` has **no** PGP binding (groups, missed key registration). Custom social proofs (GitHub/npm/notes) are off-consensus context for isysd. |
+| `isysd_attestation_v1` | Ed25519 signature (or threshold cosign JSON) by the live **`isysd`** account over `message`. **Only** when `name` has **no** PGP binding (groups, missed key registration). Custom social proofs (GitHub/npm/notes) are off-consensus context for isysd. **Simba / pre-quorum:** sole attestor until `attestation_quorum_v1` activates with a non-empty roster. |
+| `attestation_quorum_v1` | **M-of-N** cosignature set over `message` under attestor keys published in the active **rule bundle** (or designated attestation group). Unbound names only. **Accepted** ([GIP-25](../gips/gip-25.md)); **cosigner roster for mainnet is TBD** ([045](../tasks/open/045-gip-25-attestation-cosigners.md)). After activation with non-empty roster, unbound claims MUST accept this kind; `isysd_attestation_v1` MAY remain during a dual window then demote per bundle. |
 | `dev_unlock_v1` | Local-dev only; never for mainnet genesis |
 
-**Rules:** PGP-bound names MUST NOT use `isysd_attestation_v1`. Unbound names MUST NOT use `pgp_cleartext_v1`. `ClaimLegacy` remains available while the account still exists and is locked; settle does **not** skip legacy-locked accounts ([GIP-27](../gips/gip-27.md)).
+**Rules:** PGP-bound names MUST NOT use `isysd_attestation_v1` or `attestation_quorum_v1`. Unbound names MUST NOT use `pgp_cleartext_v1`. `ClaimLegacy` remains available while the account still exists and is locked; settle does **not** skip legacy-locked accounts ([GIP-27](../gips/gip-27.md)). `dev_unlock_v1` MUST NOT be enabled on mainnet.
 
 ### 5.2 Effects (atomic)
 
@@ -176,4 +177,6 @@ Alternative encodings (e.g. a dedicated `no_spend_policy` bit without `threshold
 - Canonical manifest encoding (JSON rows + `manifest_hash` SHA-256 — drafted in `guld-legacy`)  
 - Mainnet re-audit of **x** if manifest is regenerated (Simba pin locked — A7)  
 - Repair / omit corrupt `.asc` files under `keys-pgp` (loader skips; list in `BindingSet.skipped`)  
-- Never-claimed name recycle: **done via ordinary settle** ([GIP-27](../gips/gip-27.md)) — no separate abandonment ceremony
+- Never-claimed name recycle: **done via ordinary settle** ([GIP-27](../gips/gip-27.md)) — no separate abandonment ceremony  
+- **GIP-25 roster:** M-of-N, cosigner identities, dual-window length for `isysd_attestation_v1` — community process ([045](../tasks/open/045-gip-25-attestation-cosigners.md)); mechanism Accepted, identities TBD for mainnet  
+- Exact wire encoding of `attestation_quorum_v1` proof bytes in rule-bundle roster (before height activation)

@@ -4,7 +4,7 @@ title: Shared web UI leaf and extension pairing
 description: Extract guld-web-ui for PWA and extension hosts; confirmed keyring pairing.
 author: Guld contributors
 discussions-to: ./README.md
-status: Draft
+status: Accepted
 type: Standards
 category: Application
 created: 2026-09-28
@@ -61,4 +61,5 @@ Normative UI: [`../specs/14-reference-ui.md`](../specs/14-reference-ui.md) §10 
 
 ## History
 
-Advances Spec 14 §10 “PWA session via extension.” Extends [GIP-5](gip-5.md) and [GIP-17](gip-17.md).
+- Advances Spec 14 §10 “PWA session via extension.” Extends [GIP-5](gip-5.md) and [GIP-17](gip-17.md).
+- 2026-09-29: **Accepted** — Application; no consensus change.

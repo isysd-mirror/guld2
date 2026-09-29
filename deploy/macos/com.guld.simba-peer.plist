@@ -1,0 +1,44 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
+<!--
+  Simba validating peer (no miner). Template for scripts/peer/guld-peer.
+  Placeholders __GULD_HOME__ and __HOME__ are substituted at install time.
+-->
+<plist version="1.0">
+<dict>
+  <key>Label</key>
+  <string>com.guld.simba-peer</string>
+  <key>WorkingDirectory</key>
+  <string>__GULD_HOME__</string>
+  <key>ProgramArguments</key>
+  <array>
+    <string>__GULD_HOME__/target/release/guld-node</string>
+    <string>--network</string>
+    <string>simba</string>
+    <string>--datadir</string>
+    <string>./.guld-data/simba</string>
+    <string>--rpc</string>
+    <string>127.0.0.1:8546</string>
+    <string>--http</string>
+    <string>127.0.0.1:8081</string>
+    <string>--http-static</string>
+    <string>.</string>
+    <string>--p2p</string>
+    <string>0.0.0.0:4001</string>
+    <string>--auto-mine</string>
+    <string>false</string>
+    <string>--keys-pgp</string>
+    <string>archives/keys-pgp</string>
+  </array>
+  <key>RunAtLoad</key>
+  <true/>
+  <key>KeepAlive</key>
+  <true/>
+  <key>StandardOutPath</key>
+  <string>__HOME__/Library/Logs/guld/simba-peer.out.log</string>
+  <key>StandardErrorPath</key>
+  <string>__HOME__/Library/Logs/guld/simba-peer.err.log</string>
+  <key>ProcessType</key>
+  <string>Background</string>
+</dict>
+</plist>

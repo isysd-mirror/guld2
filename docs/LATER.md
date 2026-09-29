@@ -4,11 +4,17 @@ Tracked here so Phase 0–4 stay focused. Not blocking the umbrella frame.
 
 Strategic drivers from 1.0: [`UPGRADE_FROM_1.md`](UPGRADE_FROM_1.md).
 
+## Second validating client (long-term)
+
+- Today: one Rust consensus stack; JS `@guld/js` for goldens/SDK ([GIP-26](gips/gip-26.md))
+- External review: multi-impl bar is a maturity goal, not a Simba/mainnet-launch blocker — track here until a GIP/task owns it
+- Related: [research/external-code-review-beta.md](research/external-code-review-beta.md) finding 11
+
 ## Ledger (replace ledger-cli) — research
 
 - **Custom** ledger preferred over external chains as *required* substrate (native rules + **native fees**)
 - **Active sketch:** lean L0 — usernames, master hash, cosign, weight-priced txs, CAS trees; git/PGP/Postgres off consensus path — [`research/modern-l1-direction.md`](research/modern-l1-direction.md)
-- **Draft whitepaper:** [`whitepaper/guld-2.0-draft.md`](whitepaper/guld-2.0-draft.md) (identity DeFi, tokenomics/gas, scale, game theory)
+- **Whitepaper:** [`whitepaper/guld-2.0.md`](whitepaper/guld-2.0.md) (identity DeFi, tokenomics/gas, scale, game theory)
 - **Specs (normative drafts):** [`specs/README.md`](specs/README.md) — components, txs, proofs, node/leaf-host/RPC APIs
 - Snapshot rules/balances from `archives/ledger-guld`
 - Not: blockchain-in-git, FUSE mounts, or ETH/SOL as required substrate

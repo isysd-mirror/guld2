@@ -4,7 +4,7 @@ title: Voluntary account unregister
 description: Signed early release of individual, group, and subaccount names before expiry — frees sub slots without waiting for settle.
 author: Guld contributors
 discussions-to: ../tasks/open/041-voluntary-unregister.md
-status: Draft
+status: Accepted
 type: Standards
 category: Core
 created: 2026-09-28
@@ -40,7 +40,7 @@ UnregisterAccount {
 }
 ```
 
-**Weight:** same class as `SettleRegistration` (minimal — draft: `(0, 2)` base + memo).
+**Weight:** same class as `SettleRegistration` (minimal — `(0, 2)` base + memo).
 
 **Memo:** OPTIONAL; same limits as other user txs ([GIP-16](gip-16.md)).
 
@@ -63,7 +63,7 @@ Additional checks (all kinds):
 
 ### Authorization message
 
-Cosignatures MUST verify under the account’s **current** `keys` / `threshold` over a domain-separated intent (draft tag `guld/unregister_account/v1`) binding at minimum:
+Cosignatures MUST verify under the account’s **current** `keys` / `threshold` over a domain-separated intent (tag `guld/unregister_account/v1`) binding at minimum:
 
 ```text
 name ‖ nonce ‖ chain_id ‖ expires_at_height ‖ inclusion_fee ‖ memo?
@@ -147,10 +147,10 @@ Alternatives considered:
 
 ## Backwards Compatibility
 
-- **New tx variant** — requires node + SDK + wallet updates; activate via [spec 17](../specs/17-protocol-upgrades.md) rule bundle on live networks (Simba: ship before mainnet if possible).
-- **No genesis change.**
-- [GIP-12](gip-12.md) “Close — later” is **superseded** for subaccounts once this GIP is Accepted.
-- Spec deltas (post-Acceptance): [spec 02](../specs/02-identity-and-accounts.md) §6, [spec 03](../specs/03-transactions.md) new §3.4b, [spec 07](../specs/07-fees-and-tokenomics.md) weight row, [spec 14](../specs/14-reference-ui.md) tx table.
+- **New tx variant** — requires node + SDK + wallet updates; activate via [spec 17](../specs/17-protocol-upgrades.md) rule bundle ([055](../tasks/open/055-simba-single-rule-bundle.md) for Simba catch-up).  
+- **No genesis change.**  
+- [GIP-12](gip-12.md) “Close — later” is **superseded** for subaccounts.  
+- Spec deltas: [spec 02](../specs/02-identity-and-accounts.md) §3.6, [spec 03](../specs/03-transactions.md) §3.8, [spec 07](../specs/07-fees-and-tokenomics.md), [spec 14](../specs/14-reference-ui.md).
 
 ## Security Considerations
 
@@ -167,13 +167,14 @@ Alternatives considered:
 
 ## Acceptance
 
-- [ ] GIP Accepted
-- [ ] Spec 02 / 03 / 07 / 14 updated
+- [x] GIP Accepted
+- [x] Spec 02 / 03 / 07 / 14 updated
 - [ ] State apply + tests (sub close frees slot; root rejected with live subs; root with balance > fee rejected)
 - [ ] RPC + wallet UX for subaccount close
-- [ ] Simba rule-bundle activation height chosen
+- [ ] Simba rule-bundle activation height chosen ([055](../tasks/open/055-simba-single-rule-bundle.md))
 
 ## History
 
 - 2026-09-28: Draft — closes GIP-12 “CloseSubaccount — later” intent.
 - Supersedes open parameter in [spec 02](../specs/02-identity-and-accounts.md) §6 (`CloseSubaccount`).
+- 2026-09-29: **Accepted** — activate via rule bundle with other Core upgrades ([055](../tasks/open/055-simba-single-rule-bundle.md)).

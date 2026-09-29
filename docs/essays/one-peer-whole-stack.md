@@ -64,6 +64,6 @@ No waiting for a third party to stand up an explorer before the network is usabl
 | Layout of the tree | [Repo layout](../REPO_LAYOUT.md), [Packages](../PACKAGES.md) |
 | Protocol planes | [Spec 00 — overview](../specs/00-overview.md) |
 | UI map | [Spec 14 — reference UI](../specs/14-reference-ui.md) |
-| Design draft | [Whitepaper](../whitepaper/guld-2.0-draft.md) |
+| Design SoT | [Whitepaper](../whitepaper/guld-2.0.md) |
 
 The neat packaging is a feature. The protocol is why it fits.

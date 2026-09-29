@@ -1,7 +1,7 @@
 # Research: Block windows, useful validation, and optional PoW
 
-Status: research (election / window foil)  
-**L1 preference moved:** [`modern-l1-direction.md`](modern-l1-direction.md) (cosign + gas + PoW-capable lean nodes; git/PGP leaf-only). Weighted git votes / PoS below remain a documented alternative.  
+Status: research (**superseded foil** — election / window sketch)  
+**Not the Guld 2.0 L0 path.** Tip election is **PoW** ([`modern-l1-direction.md`](modern-l1-direction.md), whitepaper §7). Weighted git votes / **bonded stake / slash** below are **historical 1.0-adjacent research only** — they are **not** about CAS data availability and are **not** planned L0 features.  
 Related: [`postgres-blockchain.md`](postgres-blockchain.md), [`../gips/gip-14.md`](../gips/gip-14.md), [`../UPGRADE_FROM_1.md`](../UPGRADE_FROM_1.md)
 
 ## Sketch

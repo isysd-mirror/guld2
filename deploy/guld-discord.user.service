@@ -1,4 +1,6 @@
-# User unit — guld-discord explorer bot (isysd / Projects/guld2).
+# User unit — guld-discord explorer bot.
+# Paths use systemd %h (= $HOME). Default checkout: ~/guld — edit if needed.
+#
 # Install:
 #   install -m 0644 deploy/guld-discord.user.service ~/.config/systemd/user/guld-discord.service
 #   systemctl --user daemon-reload
@@ -6,20 +8,20 @@
 #
 # Secrets: src/guld-discord/.env (DISCORD_TOKEN, DISCORD_CLIENT_ID, …) — never commit.
 # Register slash commands once (guild preferred): cd src/guld-discord && npm run register
-# Node path: nvm v24; bump ExecStart if you change the default Node version.
+# Requires `node` on PATH (nvm, system package, or fnm — do not hardcode a versioned binary).
 
 [Unit]
 Description=Guld Discord explorer bot (read-only Simba / guld-node slash commands)
-Documentation=file:///home/isysd/Projects/guld2/src/guld-discord/README.md
+Documentation=https://guld.io/docs/?doc=../src/guld-discord/README.md
 After=network-online.target
 Wants=network-online.target
 
 [Service]
 Type=simple
-WorkingDirectory=/home/isysd/Projects/guld2/src/guld-discord
-EnvironmentFile=-/home/isysd/Projects/guld2/src/guld-discord/.env
-Environment=PATH=/home/isysd/.nvm/versions/node/v24.13.1/bin:/usr/bin:/bin
-ExecStart=/home/isysd/.nvm/versions/node/v24.13.1/bin/node --env-file=.env src/index.js
+WorkingDirectory=%h/guld/src/guld-discord
+EnvironmentFile=-%h/guld/src/guld-discord/.env
+# Prefer login-shell PATH so nvm/fnm/asdf work without baking in a home path.
+ExecStart=/bin/bash -lc 'exec node --env-file=.env src/index.js'
 Restart=on-failure
 RestartSec=5
 

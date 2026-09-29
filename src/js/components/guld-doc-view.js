@@ -4,6 +4,7 @@ import {
   docsViewerHref,
   isAllowedDocFetch,
   isSafeDocsRelPath,
+  normalizeWhitepaperRelPath,
   whitepaperDocHref,
 } from "../lib/doc-paths.js";
 import { scrollToDocHash } from "../lib/doc-render.js";
@@ -60,10 +61,16 @@ export class GuldDocView extends HTMLElement {
       return { kind: "src", fetch: path };
     }
     if (doc) {
-      if (!isSafeDocsRelPath(doc)) {
+      const rel = normalizeWhitepaperRelPath(doc);
+      if (!isSafeDocsRelPath(rel)) {
         return { kind: "error", message: "Unknown or unsafe document path." };
       }
-      return { kind: "doc", fetch: `/docs/${doc}`, rel: doc };
+      if (rel !== doc) {
+        const u = new URL(globalThis.location.href);
+        u.searchParams.set("doc", rel);
+        globalThis.history.replaceState({}, "", u.pathname + u.search + u.hash);
+      }
+      return { kind: "doc", fetch: `/docs/${rel}`, rel };
     }
     return { kind: "landing" };
   }
@@ -164,7 +171,7 @@ export class GuldDocView extends HTMLElement {
       { href: docsViewerHref("HOSTING.md"), title: "Hosting", blurb: "Node-first peers, remotes, nginx" },
       { href: docsViewerHref("REPO_LAYOUT.md"), title: "Repo layout", blurb: "Umbrella, submodules, bares" },
       { href: docsViewerHref("PACKAGES.md"), title: "Packages", blurb: "Crate and package catalog notes" },
-      { href: whitepaperDocHref(), title: "Whitepaper", blurb: "Guld 2.0 design draft" },
+      { href: whitepaperDocHref(), title: "Whitepaper", blurb: "Guld 2.0 design — current" },
       { href: "/specs/", title: "Specs", blurb: "Normative drafts index" },
       { href: docsSrcHref("/README.md"), title: "README", blurb: "Repository root readme" },
     ];

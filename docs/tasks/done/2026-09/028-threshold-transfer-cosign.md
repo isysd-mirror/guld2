@@ -3,7 +3,7 @@
 Status: done  
 Priority: **high** (P0 — next protocol/UI hole after tips/rotate cosign)  
 Spec: [`../../specs/03-transactions.md`](../../specs/03-transactions.md) §3.6, [`../../specs/14-reference-ui.md`](../../specs/14-reference-ui.md) §9 / §13  
-Whitepaper: [`../../whitepaper/guld-2.0-draft.md`](../../whitepaper/guld-2.0-draft.md) §12.2  
+Whitepaper: [`../../whitepaper/guld-2.0.md`](../../whitepaper/guld-2.0.md) §12.2  
 Surface: `guld-state` / `guld-client` / PWA wallet cosign workstation
 
 ## Problem

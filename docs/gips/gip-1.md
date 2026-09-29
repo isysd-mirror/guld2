@@ -17,7 +17,7 @@ Guld Improvement Proposals (GIPs) are the numbered, versioned documents for prop
 
 Guld is a decentralized protocol. Change proposals need stable citations (**GIP-N**), clear lifecycle statuses, and a separation from:
 
-1. **Normative consolidated specs** ([`../specs/`](../specs/)) and the [whitepaper](../whitepaper/guld-2.0-draft.md)
+1. **Normative consolidated specs** ([`../specs/`](../specs/)) and the [whitepaper](../whitepaper/guld-2.0.md)
 2. **Engineering delivery** ([`../SOFTWARE_FLOW.md`](../SOFTWARE_FLOW.md) — implement, push leaf/umbrella, QA, signed tags)
 3. **On-chain activation** ([spec 17](../specs/17-protocol-upgrades.md) — rule-bundle `activation_height`)
 

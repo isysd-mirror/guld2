@@ -41,15 +41,17 @@ Small bugs and polish: use [`../tasks/`](../tasks/) instead. Specs remain normat
 | [22](gip-22.md) | Deferred miner rewards (ClaimReward) | Accepted | Standards | Core |
 | [23](gip-23.md) | Consensus-enforced difficulty schedule | Accepted | Standards | Core |
 | [24](gip-24.md) | Legacy distribution transparency | Accepted | Informational | — |
-| [25](gip-25.md) | Diversified ClaimLegacy attestation | Draft | Standards | Core |
+| [25](gip-25.md) | Diversified ClaimLegacy attestation | Accepted | Standards | Core |
 | [26](gip-26.md) | Consensus golden vectors | Final | Standards | Interface |
 | [27](gip-27.md) | Legacy names under pay-or-release | Final | Standards | Core |
 | [28](gip-28.md) | Atomic individual↔group kind conversion | Accepted | Standards | Core |
 | [29](gip-29.md) | Threshold Transfer cosignatures | Accepted | Standards | Core |
 | [30](gip-30.md) | P2P mesh robustness | Accepted | Standards | Networking |
-| [31](gip-31.md) | Contacts address book and private invites | Draft | Standards | Application |
-| [32](gip-32.md) | Shared web UI leaf and extension pairing | Draft | Standards | Application |
-| [33](gip-33.md) | Voluntary account unregister | Draft | Standards | Core |
+| [31](gip-31.md) | Contacts address book and private invites | Accepted | Standards | Application |
+| [32](gip-32.md) | Shared web UI leaf and extension pairing | Accepted | Standards | Application |
+| [33](gip-33.md) | Voluntary account unregister | Accepted | Standards | Core |
+| [34](gip-34.md) | Account bio (128-byte name profile) | Accepted | Standards | Core |
+| [35](gip-35.md) | Merkle tx_root and receipt_root | Accepted | Standards | Core |
 
 ## Migration note
 

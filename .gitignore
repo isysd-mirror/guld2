@@ -22,6 +22,7 @@ github-mirror
 **/node_modules/
 **/coverage/
 **/target/
+*.proptest-regressions
 .DS_Store
 *.bak
 repos

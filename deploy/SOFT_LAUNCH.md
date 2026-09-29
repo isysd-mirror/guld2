@@ -2,7 +2,7 @@
 
 **Stack:** `guld-node` (`--http` + `--http-static`) behind nginx TLS · No Docker · **Not** iramillercom CD
 
-Checkout: `/home/isysd/Projects/guld2` (or the published umbrella). You run all `sudo` lines.
+Run these from your **umbrella checkout** (user units default to `~/guld` via systemd `%h/guld`). You run all `sudo` lines.
 
 ## 0. Meta-FS content root
 
@@ -14,10 +14,12 @@ sudo chown guld:guld /srv/guld
 ## 1. Bind mount + nginx snippets
 
 ```bash
-cd /home/isysd/Projects/guld2
+cd ~/guld   # or your umbrella checkout
 sudo ./deploy/install-nginx-snippets.sh
-sudo ./deploy/install-bind-mount.sh
+sudo ./deploy/site/install-bind-mount.sh
 ```
+
+Edit `deploy/site/var-www-guld.io.mount` `What=` to your checkout (or `/srv/guld/checkout`) before enabling the mount — do not commit machine-local paths.
 
 ## 2. HTTP bootstrap (before Certbot)
 
@@ -27,7 +29,7 @@ sudo ln -sf ../sites-available/guld.io /etc/nginx/sites-enabled/guld.io
 sudo nginx -t && sudo systemctl reload nginx
 ```
 
-## 3. guld-node (isysd user unit)
+## 3. guld-node (user unit)
 
 ```bash
 install -m 0644 deploy/guld-node.service ~/.config/systemd/user/guld-node.service
@@ -55,9 +57,9 @@ Certbot failed with “Could not automatically find a matching server block” w
 Certs are already at `/etc/letsencrypt/live/guld.io/`. Install the full HTTPS site:
 
 ```bash
-cd /home/isysd/Projects/guld
+cd ~/guld   # or your umbrella checkout
 sudo ./deploy/install-nginx-snippets.sh
-sudo ./deploy/install-bind-mount.sh
+sudo ./deploy/site/install-bind-mount.sh
 sudo ./deploy/install-nginx-site.sh
 ```
 

@@ -12,6 +12,6 @@
   "tip_hash": "0xf4cdc0172082485ae7b77879aedb1706d9bd7fe3da972409a15e415a3638beb4",
   "accounts": 2218,
   "isysd_claimed": true,
-  "reset_policy": "Simba may reset once before durable beta lock",
-  "note": "2026-09-27 regenesis GIP-27: finite expires_at on legacy imports + expires_at in account SMT leaf; prior tip 0xadbff540 obsolete. Wipe Simba datadir and resync."
+  "reset_policy": "Simba tip locked — no further resets; incompatible changes require a new named testnet",
+  "note": "2026-09-27 regenesis GIP-27: finite expires_at on legacy imports + expires_at in account SMT leaf; prior tip 0xadbff540 obsolete. 2026-09-29: G4 locked — no more Simba resets."
 }

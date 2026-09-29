@@ -3,6 +3,7 @@
 Status: open  
 Priority: high  
 Design: ../design/human-first-ux.md  
+Cosign: ../design/cosign-sessions.md  
 Feedback: ../design/feedback-ux-2026-09.md  
 Spec: ../specs/14-reference-ui.md  
 GIP: (promote when accepted — relates to gip-5, gip-17, gip-20, gip-31)
@@ -17,7 +18,7 @@ Follow [`../design/human-first-ux.md`](../design/human-first-ux.md) phases:
 
 - [ ] **P0** — Citizen/Operator split on landing + app chrome; strip API/RPC from wallet/register shell (shell strip largely done; landing split in progress)
 - [ ] **P1** — Contacts address book + private invite: track under [038](038-contacts-private-invite.md) / [GIP-31](../gips/gip-31.md); register cards / wallet-home polish as follow-ons
-- [ ] **P2** — Manage drill-ins; cosign sessions UX (depends on functional Transfer cosign — [028](../done/2026-09/028-threshold-transfer-cosign.md)); citizen backup export
+- [ ] **P2** — Manage drill-ins; cosign sessions UX per [cosign-sessions.md](../design/cosign-sessions.md) (depends on functional Transfer cosign — [028](../done/2026-09/028-threshold-transfer-cosign.md)); citizen backup export
 - [ ] **P3** — Visual system pass (tokens/type/motion)
 - [ ] Amend Spec 14 default-vs-advanced; promote design doc → numbered GIP
 

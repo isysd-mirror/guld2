@@ -4,9 +4,9 @@
 
 This repository **is** the open-source project **and** the static website (framework-less JS, web components, no bundler). The **guld.io** domain is a bootstrap mirror of this tree — not a GitHub host, not a consensus hub. Hard fork / 1.0 continuity: [`docs/FAQ.md`](docs/FAQ.md).
 
-Design SoT: [`docs/whitepaper/guld-2.0-draft.md`](docs/whitepaper/guld-2.0-draft.md) · [`docs/specs/`](docs/specs/README.md) · [`docs/gips/`](docs/gips/README.md) · [`docs/REPO_LAYOUT.md`](docs/REPO_LAYOUT.md)
+Design SoT: [`docs/whitepaper/guld-2.0.md`](docs/whitepaper/guld-2.0.md) · [`docs/specs/`](docs/specs/README.md) · [`docs/gips/`](docs/gips/README.md) · [`docs/REPO_LAYOUT.md`](docs/REPO_LAYOUT.md)
 
-Contributing: [`CONTRIBUTING.md`](CONTRIBUTING.md) · process: [GIP-1](docs/gips/gip-1.md) · delivery: [`docs/SOFTWARE_FLOW.md`](docs/SOFTWARE_FLOW.md)
+Contributing: [`CONTRIBUTING.md`](CONTRIBUTING.md) · process: [GIP-1](docs/gips/gip-1.md) · delivery: [`docs/SOFTWARE_FLOW.md`](docs/SOFTWARE_FLOW.md) · source / CI / release: [`docs/SOURCE_AND_RELEASE.md`](docs/SOURCE_AND_RELEASE.md)
 
 ## Layout
 
@@ -22,7 +22,7 @@ Contributing: [`CONTRIBUTING.md`](CONTRIBUTING.md) · process: [GIP-1](docs/gips
 | `deploy/` | Operator nginx / bind-mount / publish |
 | `test/` | JS site tests (`node --test`) |
 
-Full map: [`docs/REPO_LAYOUT.md`](docs/REPO_LAYOUT.md) · serving git: [`docs/HOSTING.md`](docs/HOSTING.md).
+Full map: [`docs/REPO_LAYOUT.md`](docs/REPO_LAYOUT.md) · serving git: [`docs/HOSTING.md`](docs/HOSTING.md) · trust / mirrors: [`docs/SOURCE_AND_RELEASE.md`](docs/SOURCE_AND_RELEASE.md).
 
 ## Build a dapp
 
@@ -106,6 +106,7 @@ cargo run -p guld-legacy --bin guld-legacy-export -- \
 
 ```bash
 export PAYMENTO_WEBHOOK_SECRET='…'
+export GULD_REGISTRAR_MUTATE_TOKEN='…'   # recommended on public peers
 cargo run -p guld-node -- \
   --http 127.0.0.1:8080 \
   --http-static . \
@@ -115,7 +116,7 @@ cargo run -p guld-node -- \
 # POST /api/v1/payment-gateway-webhook   ← https://guld.io/api/v1/payment-gateway-webhook
 ```
 
-Details: [`docs/gips/gip-8.md`](docs/gips/gip-8.md).
+Details: [`docs/gips/gip-8.md`](docs/gips/gip-8.md) · ops checklist: [`docs/fragments/faucet-registrar-hardening.md`](docs/fragments/faucet-registrar-hardening.md).
 
 ### Testnet and mainnet (durable)
 

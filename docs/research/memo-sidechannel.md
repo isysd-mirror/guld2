@@ -1,7 +1,7 @@
 # Tx memo as a side-channel for payments, leaves, and proofs
 
 **Status:** research (non-normative)  
-**Related:** [GIP-16](../gips/gip-16.md) (Final), [spec 03 §2.1](../specs/03-transactions.md), [spec 07](../specs/07-fees-and-tokenomics.md), [spec 08](../specs/08-cas-and-homes.md), [spec 11](../specs/11-leaf-host.md), [spec 14 §9](../specs/14-reference-ui.md), [whitepaper §6](../whitepaper/guld-2.0-draft.md)  
+**Related:** [GIP-16](../gips/gip-16.md) (Final), [spec 03 §2.1](../specs/03-transactions.md), [spec 07](../specs/07-fees-and-tokenomics.md), [spec 08](../specs/08-cas-and-homes.md), [spec 11](../specs/11-leaf-host.md), [spec 14 §9](../specs/14-reference-ui.md), [whitepaper §6](../whitepaper/guld-2.0.md), [l0-leaf-trust-boundary.md](./l0-leaf-trust-boundary.md)  
 **Wire:** [`schemas/guld/v1/tx.bare`](../../schemas/guld/v1/tx.bare)
 
 ## Summary
@@ -267,7 +267,7 @@ No consensus requirement—**product opportunity** for nodes and block explorers
 | Lightning invoices | Off-chain + on-chain anchor optional | Name + amount already explicit; memo optional |
 | Guld leaf tip | Unlimited (off L0) | **`UpdateMaster`** for state; memo for **pointers** |
 
-Whitepaper framing ([§6](../whitepaper/guld-2.0-draft.md)): fixed tx vocabulary + optional 64-byte memo; **bulk data and app logic in leaves**.
+Whitepaper framing ([§6](../whitepaper/guld-2.0.md)): fixed tx vocabulary + optional 64-byte memo; **bulk data and app logic in leaves**.
 
 ---
 

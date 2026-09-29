@@ -20,7 +20,7 @@ Replace Guld 1.0 ledger-cli journals with a **custom** ledger suited to full nod
 
 ## Preferred research direction
 
-**Active L0 sketch (2026-03):** lean witness substrate — username + **master hash**, first-class **cosign**, weight-priced txs (not an EVM gas ISA), CAS personal trees (git optional leaf), validators on KV+SMT; Postgres/PGP/git **off** the consensus path. SoT: [`../research/modern-l1-direction.md`](../research/modern-l1-direction.md). Whitepaper: [`../whitepaper/guld-2.0-draft.md`](../whitepaper/guld-2.0-draft.md) §8.6.
+**Active L0 sketch (2026-03):** lean witness substrate — username + **master hash**, first-class **cosign**, weight-priced txs (not an EVM gas ISA), CAS personal trees (git optional leaf), validators on KV+SMT; Postgres/PGP/git **off** the consensus path. SoT: [`../research/modern-l1-direction.md`](../research/modern-l1-direction.md). Whitepaper: [`../whitepaper/guld-2.0.md`](../whitepaper/guld-2.0.md) §8.6.
 
 ### Still useful (non-consensus / transitional)
 
@@ -67,7 +67,7 @@ Full 1.0 ledger in committed manifest (hyphen names remapped):
 | Tip | `0xf4cdc0172082485ae7b77879aedb1706d9bd7fe3da972409a15e415a3638beb4` (GIP-27) |
 | Omitted | ERC20 / foreign-mirror buckets |
 
-Mainnet MAY re-audit before its own genesis ceremony; Simba testnet treats this pin as locked (one more reset OK per G4).
+Mainnet MAY re-audit before its own genesis ceremony; Simba testnet treats this pin as **locked** (no further Simba resets — breaking changes → new testnet).
 
 ## Normative claim profiles (spec 15 §5.1)
 

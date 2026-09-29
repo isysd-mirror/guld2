@@ -1,19 +1,20 @@
 # Research: Merged mining Guld with Bitcoin
 
-**Status:** exploratory — no GIP yet; v1 keeps solo SHA256d  
-**Date:** 2026-09-27  
-**Related:** [spec 06 §2.5](../specs/06-blocks-and-consensus.md), [pow-nbits-vs-leading-bits.md](./pow-nbits-vs-leading-bits.md) (Option C locked), [bitcoin-guld-comparison.md](./bitcoin-guld-comparison.md), [spec 17](../specs/17-protocol-upgrades.md)
+**Status:** exploratory — **out of scope for mainnet launch**; optional post-launch miner bonus; no GIP yet; v1 / mainnet keep solo SHA256d  
+**Date:** 2026-09-27 · **Decision:** 2026-09-29 — not a launch blocker  
+**Related:** [spec 06 §2.5](../specs/06-blocks-and-consensus.md), [pow-nbits-vs-leading-bits.md](./pow-nbits-vs-leading-bits.md) (Option C locked), [bitcoin-guld-comparison.md](./bitcoin-guld-comparison.md), [spec 17](../specs/17-protocol-upgrades.md), [external-code-review-beta.md](./external-code-review-beta.md)
 
 ## Verdict
 
-**Medium difficulty.** Feasible and already anticipated in the protocol docs — not a research moonshot. SHA256d alignment unlocks the path; the hard parts are a careful AuxPoW consensus GIP, a Stratum/target adapter for leading-zero bit difficulty, and convincing Bitcoin pools to enable Guld. Engineering completeness does **not** equal Bitcoin-class security budget.
+**Not required for mainnet.** Merged mining is a **miner convenience / hashrate pathway**, not a protocol necessity: solo SHA256d with Bitcoin-**parameter** timing is the launch PoW. If pursued later, difficulty is **medium** — SHA256d alignment unlocks the path; the hard parts are a careful AuxPoW consensus GIP, a Stratum/target adapter for leading-zero bit difficulty, and convincing Bitcoin pools to enable Guld. Engineering completeness does **not** equal Bitcoin-class security budget.
 
 | Signal | State |
 |--------|--------|
-| Overall difficulty | **Medium** |
+| Mainnet launch dependency | **None** (out of scope) |
+| Overall difficulty (if pursued) | **Medium** |
 | SHA256d alignment | **Done** (spec 06 §2) |
 | AuxPoW implemented | **0%** |
-| Credible first ship | **~2–4 months** (code + Simba pilot) |
+| Credible first ship (post-mainnet) | **~2–4 months** (code + testnet pilot) |
 | Meaningful merge hashrate | **Unknown / social** |
 
 ---
@@ -37,7 +38,7 @@ Historical reference: Namecoin activated merged mining in 2011; coinbase carries
 
 ### Already favorable
 
-- PoW is Bitcoin-class **SHA256d** on a canonical header preimage ([spec 06 §2](../specs/06-blocks-and-consensus.md)). Same search loop ASICs already run.
+- PoW is Bitcoin-**parameter** **SHA256d** on a canonical header preimage ([spec 06 §2](../specs/06-blocks-and-consensus.md)). Same search loop ASICs already run.
 - Timing matches Bitcoin: **600 s** target, **2016-block / 14-day** retarget, **4× clamp**, MTP + 2 h drift, weight ~4M, 100-block reward maturity.
 - Spec 06 §2.5 reserves a future AuxPoW / witness GIP. Locked research prefers **Option C** (keep bit-difficulty; adapt pools) over an immediate `nBits` migration ([pow-nbits-vs-leading-bits.md](./pow-nbits-vs-leading-bits.md)).
 
@@ -178,3 +179,4 @@ See conversion notes in [pow-nbits-vs-leading-bits.md §8](./pow-nbits-vs-leadin
 |------|------|
 | 2026-09-26 | Leading-zero bits locked for v1; merged mining = tooling/GIP, not `nBits` migration |
 | 2026-09-27 | This report: overall effort **medium**; recommend Option C + Namecoin-class AuxPoW GIP; defer Option D |
+| 2026-09-29 | **Out of scope for mainnet launch** — optional post-launch miner bonus; solo SHA256d remains launch PoW |

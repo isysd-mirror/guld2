@@ -13,6 +13,7 @@
 type Tx = Transfer | UpdateMaster | RotateKeys | SettleRegistration
   | RegisterUsername | RegisterGroup | RegisterSubaccount | ClaimLegacy
   | RewardCommit | ClaimReward | ConvertAccountKind
+  | UnregisterAccount | UpdateBio
 
 type Transfer = {
   tag: 0,
@@ -140,6 +141,27 @@ type ConvertAccountKind = {
   new_threshold: u64,
   cosignatures: list<{ key_index: u64, signature: string }>,
   new_key_signature: string,
+  inclusion_fee: u128,
+  memo: optional data,
+}
+
+# GIP-33: voluntary early name release.
+type UnregisterAccount = {
+  tag: 11,
+  version: u8,
+  name: string,
+  cosignatures: list<{ key_index: u64, signature: string }>,
+  inclusion_fee: u128,
+  memo: optional data,
+}
+
+# GIP-34: set/clear ≤128-byte account bio.
+type UpdateBio = {
+  tag: 12,
+  version: u8,
+  name: string,
+  bio: optional data,
+  cosignatures: list<{ key_index: u64, signature: string }>,
   inclusion_fee: u128,
   memo: optional data,
 }

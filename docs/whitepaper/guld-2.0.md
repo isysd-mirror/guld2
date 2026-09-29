@@ -1,21 +1,24 @@
 # Guld 2.0 Whitepaper
 
-**Version:** 0.28  
-**Date:** 2026-09-28  
+**Status:** current (mainnet SoT; Simba catches up via rule bundle)  
+**Version:** 0.30  
+**Date:** 2026-09-29  
 **Token:** GULD (native)  
 **Specifications:** [`../specs/README.md`](../specs/README.md) · **Glossary:** [§14](#14-glossary)
 
 > **Normative detail:** This document explains **product intent**, economics, and security reasoning. **Implementations MUST follow** the numbered specs and accepted GIPs. Exact formulas, wire layouts, genesis pins, and field encodings live in specs — not here. Where this text and a spec disagree, resolve per the hierarchy in [`specs/README.md`](../specs/README.md).
+>
+> **Mainnet SoT:** Specs and this whitepaper describe **mainnet** protocol. **Simba** is a public testnet **snapshot** that trails Accepted Core GIPs until a **single height-activated rule bundle** lands ([055](../tasks/open/055-simba-single-rule-bundle.md)). Tip wipe is not an upgrade path.
 
 ---
 
 ## Abstract
 
-**Address people by name.** Guld 2.0 is a **global, identity-focused layer-0**: a **PoW-anchored namespace and witness substrate** where people, groups, and unbounded dapps share one address space of **usernames**, **content hashes**, and **enumerated proofs**. Named accounts settle **transfers and grants** under a fixed tx vocabulary (identity-addressed settlement — not a general DeFi VM). The chain records that an account achieved consensus on a new **head** (master hash). It does not interpret why they signed, run their private scripts, or adjudicate their disputes.
+**Address people by name.** Guld 2.0 is a **global, identity-focused layer-0**: a **PoW-anchored namespace and witness substrate** where people, groups, and unbounded dapps share one address space of **usernames**, **content hashes**, and **enumerated proofs**. Named accounts settle **transfers and grants** under a fixed tx vocabulary. The chain records that an account achieved consensus on a new **head** (master hash). It does not interpret why they signed, run their private scripts, or adjudicate their disputes.
 
-**Cross-chain and foreign-chain witnessing are not built into Simba v1.** Bridge builders, indexers, and exchange dapps **register ordinary names** (pay letter fees like anyone else) and ship **leaves** that MAY coordinate with Bitcoin, Ethereum, Solana, or other networks off-chain. A hypothetical **guldex** or lightning-style channel dapp **could** read foreign state, build application proofs, and settle by advancing **its** name’s tip—or by posting ordinary Guld txs—but that is **dapp capability**, not a protocol guarantee ([§3.4](#34-addressing-referencing-and-cross-chain-dapp-patterns)). The network is **not a general VM**: it validates fixed transaction schemas, checks hashes and signatures, and applies a small set of built-in state updates. **Everything else**—games, exchanges, rollups-as-leaves, agents—lives in **leaves**, on custom domains. Clients talk to full nodes only over the node’s **HTTP API** or **JSON-RPC** (or a proxy in front)—not consensus opcodes. Between leaves, dapps coordinate however they choose (HTTPS, IPC, in-process, …). Validators stay lean on keys, tips, and balances. Optional git and PGP remain **leaf** tools, not the consensus bus.
+The network is **not a general VM**: it validates fixed transaction schemas, checks hashes and signatures, and applies a small set of built-in state updates. Everything else lives in **leaves**. Cross-chain bridging and foreign-chain witnessing are **optional dapp designs**, not L0 v1 guarantees ([§3.4](#34-addressing-referencing-and-cross-chain-dapp-patterns)). Fees follow a **Bitcoin-style weight market** (GULD per virtual byte). Emission uses **double-SHA256 PoW** with Bitcoin-**parameter** timing — a **parameter class**, not a Bitcoin-class **security budget** claim ([§11](#11-security-notes-and-risks)).
 
-Fees follow a **Bitcoin-style weight market** (GULD per virtual byte), not an EVM gas ISA. Emission uses **double-SHA256 PoW** with Bitcoin-**parameter** timing (≈10 min blocks, 2016-block retarget) — that is a **parameter class**, not a claim of Bitcoin-class **security budget** ([§11](#11-security-notes-and-risks)). Each account is responsible for what it **witnesses** and **cowitnesses**.
+Thesis and design goals: [§1.2](#12-thesis)–[§1.3](#13-design-bar). Clients reach nodes over **HTTP API** / **JSON-RPC** ([§2](#2-architecture-overview)); git and PGP remain **leaf** tools.
 
 ---
 
@@ -71,13 +74,9 @@ This is the product journey the reference stack optimizes for:
 
 Steps 6–7 are **ecosystem UX** (extension and dapp conventions). They are not required for consensus validation; they are required for the intended everyday experience. Friend-only sponsorship and “build from git, never visit guld.io” remain fully valid.
 
-### 1.5 Ecosystem comparison (draft)
+### 1.5 Ecosystem comparison
 
-Comparative sketch for positioning — not a feature checklist or investment advice. Guld 2.0 is an **L0 witness hub** (names, tips, balances, PoW headers) — not a general VM L1. It uses **Bitcoin-parameter PoW** (SHA256d, ≈10 min, 2016-block retarget — [spec 06](../specs/06-blocks-and-consensus.md)); early-network **security budget** (hashrate × depth) is **not** Bitcoin-class ([§11](#11-security-notes-and-risks)). Cross-chain is **dapp-layer** in v1 ([spec 13](../specs/13-foreign-chains.md) informative). Hard fork / 1.0 continuity: [`../FAQ.md`](../FAQ.md).
-
-**Thesis in one row:** address **people** by **name**, commit by **hash**, authorize by **proof** — leaves stay unbounded; the chain witnesses heads rather than re-running leaf politics.
-
-Full comparison table (Guld vs Bitcoin, Ethereum, Solana, Cosmos Hub, …): [`../fragments/chain-comparison.md`](../fragments/chain-comparison.md) ([browse](/docs/?doc=fragments%2Fchain-comparison.md)).
+Positioning sketch (not investment advice): Guld is an **L0 witness hub**, not a general VM L1. Full comparison table (vs Bitcoin, Ethereum, Solana, Cosmos Hub, …): [`../fragments/chain-comparison.md`](../fragments/chain-comparison.md) ([browse](/docs/?doc=fragments%2Fchain-comparison.md)). Hard fork / 1.0 continuity: [`../FAQ.md`](../FAQ.md). Security budget vs parameter class: [§11](#11-security-notes-and-risks).
 
 ### 1.6 Incumbent L1 pathologies (and Guld’s response)
 
@@ -162,7 +161,7 @@ master_hash = SHA256(
 )
 ```
 
-**Primary homes are hash trees at the network layer**, not git objects. The chain stores the **identity record** (name, keys, threshold, `master_hash`, balances)—that is the network’s primary identity file. Home **bytes** live in CAS addressed by SHA-256. Validators need only the tip for validation; **content retention is a leaf concern** (self-host, forge mirrors, leaf contracts)—not an L0 pin market, including account **`guld`** (§3.5).
+**Primary homes are hash trees at the network layer**, not git objects. The chain stores the **identity record** (name, keys, threshold, `master_hash`, balances). Home **bytes** live in CAS; tip ≠ DA ([§8.8](#88-content-retention-leaf-not-l0)), including account **`guld`** ([§3.5](#35-reserved-name-guld-network-identity)).
 
 **Leaf formats under the home** (git repos, game data, HTTP app trees, encrypted blobs, …) are optional and opaque. Git is a fine leaf encoding for free forge hosting; it is **not** the network home format. Other leaf formats—including as the bulk of a personal or group home—are first-class as long as the committed root is SHA-256.
 
@@ -180,15 +179,11 @@ Registering a name consumes **global namespace** and creates durable validator s
 
 **Why scale group fees with signer count:** each additional key enlarges proofs the network must verify for the life of that account (registration now; every threshold tip later). Charging upfront for `n` aligns payment with **proof complexity** the validators will perform.
 
-**Length pricing:** count **letters only** in the root label (`x` = 1, `jorge-luise-gonzalez` = 17 → capped). Short names are scarce and expensive; names with **≥ 6 letters** pay the **1 GULD**/year floor (1.0 continuity for ordinary names). Subaccounts stay cheap so one human can hold multiple custody zones without burning another top-level name. Fees buy **DNS-style pay-or-release** control ([`../gips/gip-11.md`](../gips/gip-11.md)); keep the wallet funded or the name is released. Legacy-locked imports follow the same lease clock ([GIP-27](../gips/gip-27.md)); `ClaimLegacy` unlocks spend while the name remains reserved. No resale market. See §8.7 and [`../specs/07-fees-and-tokenomics.md`](../specs/07-fees-and-tokenomics.md).
+Fee formulas (`F_user`, `F_group`, `F_sub`), letter pricing, and the **8-block miner vest**: [§8.7](#87-registration-fees-miner-lottery) and [spec 07](../specs/07-fees-and-tokenomics.md). Fees buy **DNS-style pay-or-release** control ([GIP-11](../gips/gip-11.md)); legacy-locked imports follow the same lease clock ([GIP-27](../gips/gip-27.md)).
 
-**Miner lottery (8-block vest):** `F_user(L)`, `F_group(L, n)`, `F_sub`, and settle renewals/releases are debited in full at apply, then **credited to miners over 8 consecutive blocks** starting at the inclusion height (`REGISTRATION_FEE_VEST_BLOCKS = 8`). The including miner receives only ~1/8 in that block's coinbase; recovering the full fee requires winning all eight. No burn. Inclusion fees stay one-shot to the including miner.
+**Bootstrap (no name yet):** registration requires a **sponsor** with GULD. The future name holder signs a **registration intent** (`guld/register/intent/v1`); the sponsor signs the spend (`guld/register/v1`). Both signatures are required on-chain — see [`../specs/16-sponsored-registration.md`](../specs/16-sponsored-registration.md). Friend-sponsor or optional paid desk: [§4.6](#46-optional-paid-registrar-any-peer) / [GIP-8](../gips/gip-8.md).
 
-**Bootstrap (no name yet):** registration requires a **sponsor** with GULD. The future name holder signs a **registration intent** (`guld/register/intent/v1`); the sponsor signs the spend (`guld/register/v1`). Both signatures are required on-chain — see [`../specs/16-sponsored-registration.md`](../specs/16-sponsored-registration.md).
-
-A sponsor is usually a **friend** (or any funded account). Anyone with GULD MAY also run an **optional paid registrar**: the newcomer pays via a **third-party payment service** (BTC/ETH/SOL/USDT/fiat); after payment, automation submits the **same** sponsor tx. Early on, guld.io / **isysd** may be a convenient first desk — not a privileged one. Everyday users can turn the same feature on against their own node. The desk is **not** consensus authority, **not** required to join, and **turn-offable**. The first user can still build from git and never visit guld.io. See [`../gips/gip-8.md`](../gips/gip-8.md).
-
-Legacy Guld 1.0 usernames and balances are imported as **claimable pre-mine accounts** (§8.6, [`../specs/15-ledger-import.md`](../specs/15-ledger-import.md)). Spend and tip authority activate only after a **key upgrade**: the holder proves control of the 1.0 identity (PGP / legacy binding) and registers Ed25519 (or hybrid) keys. Until then, balances are respected on-chain but **locked**. OpenPGP is not the hot verify path after claim.
+Legacy 1.0 balances import as **claimable pre-mine accounts**; spend unlocks after `ClaimLegacy` ([§8.6](#86-supply-pre-mine-and-issuance), [spec 15](../specs/15-ledger-import.md)).
 
 ### 3.4 Addressing, referencing, and cross-chain dapp patterns
 
@@ -196,29 +191,17 @@ Legacy Guld 1.0 usernames and balances are imported as **claimable pre-mine acco
 - **Reference by hash** for tips, trees, and proofs (`master_hash`, CAS oids).
 - Resolvers and indexers may cache name→id; consensus stores the authoritative map.
 
-**No reserved foreign names (A11).** Guld **does not** genesis-reserve `bitcoin`, `ethereum`, `solana`, or similar labels. Only **`guld`** is a network account. If a bridge team wants a short public name, they **register it** (letter fees, first-come market dynamics) and operate under ordinary cosign rules. Squatting attractive names is a **dapp/ops** problem, not an L0 reservation.
+**No reserved foreign names (A11).** Guld **does not** genesis-reserve `bitcoin`, `ethereum`, `solana`, or similar labels. Only **`guld`** is a network account. If a bridge team wants a short public name, they **register it** (letter fees, first-come) and operate under ordinary cosign rules.
 
-**Cross-chain is a theoretical dapp capability, not Simba v1 consensus.** The patterns below describe what **leaves MAY build** on top of Guld’s name + hash + cosign substrate. They are **not** shipped as mandatory full-node behavior in v1. Informative sketches: [`../specs/13-foreign-chains.md`](../specs/13-foreign-chains.md).
+**Cross-chain is a theoretical dapp capability, not L0 v1 consensus.** Leaves MAY build indexers, bridges, exchange desks (**guldex**-style), lightning-style channels, or personal chains that commit hashes under registered names. L0 stores only **Guld**-authorized tips and ordinary txs — no exchange opcode and no foreign light-client verify in v1. Informative sketches: [`../specs/13-foreign-chains.md`](../specs/13-foreign-chains.md). Future enumerated foreign proof kinds require a GIP and height activation.
 
 | Pattern | What a dapp **could** do | What L0 v1 **does** |
 |---------|--------------------------|---------------------|
 | **Foreign indexer / bridge** | Register e.g. `acme-bridge`; run BTC/ETH/SOL infra off-chain; publish checkpoints in leaf CAS; cosign `UpdateMaster` | Stores only **Guld**-authorized tips for that registered name |
-| **guldex-style exchange** | Leaf logic + external indexers; settle in GULD via `Transfer` | No exchange opcode |
-| **“Lightning”-style channels** | Off-hub state; periodic hash commit under a registered name | Witnesses cosigned head only |
-| **Personal / app chain** | Leaf ledger; checkpoint `master_hash` | Same as any group/individual |
+| **Exchange / channels / app chain** | Leaf ledger or off-hub state; settle via `Transfer` or periodic tip commit | Witnesses cosigned head / ordinary txs only |
 | **Token peg** | Lock/mint, watchers, fraud proofs — separate product | Not implied by the namespace |
 
-A third-party leaf such as a hypothetical **guldex** **could** read foreign chain data (via its own nodes), build **application proofs** about balances or events, and settle by advancing **its** name’s tip—or by posting ordinary Guld txs. Guld does not need a special “exchange opcode”; guldex is a dapp with keys, a home tree, and whatever off-chain indexing it needs. **Future protocol upgrades** MAY add enumerated foreign proof kinds (SPV / light client) — that would require a GIP and height activation, not an assumption in beta.
-
-**Fast paths and personal chains** use the same toolset today:
-
-| Pattern | How it maps |
-|---------|-------------|
-| **Personal / app chain** | A name (or group) whose leaf is a ledger; periodic `UpdateMaster` commits the latest state root to Guld |
-| **“Lightning”-style channels** | A dapp keeps off-Guld updates among parties; periodically settles a hash to Guld — and **may** coordinate with other dapps for multi-asset stories off-L0 |
-| **Side systems / rollups-as-leaves** | Fast execution off the witness hub; hash commitment on Guld when you need global finality under PoW |
-
-The main Guld chain stays a **scarce, weight-priced settlement and naming plane**. Speed, foreign consensus verification, and cross-chain liquidity live in **leaves** (and optional future upgrades), not in every validator.
+The main Guld chain stays a **scarce, weight-priced settlement and naming plane**. Speed, foreign consensus verification, and cross-chain liquidity live in **leaves**.
 ### 3.5 Reserved name: `guld` (network identity)
 
 The username / account **`guld`** is **reserved for the network itself**. It is not available for public registration.
@@ -290,22 +273,11 @@ Additional proof kinds require explicit protocol upgrades.
 
 On most L1s, a “dapp” is trapped inside a **shared VM**: gas meters, opcode sets, and every validator re-executing your logic. That caps ambition—and taxes the whole network for your creativity.
 
-**Guld inverts that.** A dapp is a **leaf** (or a composition of leaves) under one or more names. The chain only asks: *did the right keys authorize this new head, and was the fee paid?* It does **not** ask what the bytes mean.
-
-So a Guld dapp MAY be:
-
-- a static site or full **web app** on a **custom domain**, reading/writing L0 state through a node’s **HTTP API** or **JSON-RPC** (local or remote)  
-- a **native game**, engine, or desktop binary loaded from the home tree  
-- an **agent**, bot, notebook, or long-running service the leaf host starts  
-- encrypted personal vaults, guild tooling, markets, social graphs, DAOs-as-process, research labs, art — **whatever the builders ship**  
-- **cross-dapp** flows over **whatever transport fits between leaves** (HTTPS between domains, IPC, in-process, …)—e.g. lightning ↔ guldex settling off-L0—plus ordinary sponsored/paid registration and transfers when money or names must hit the chain  
-- **cross-chain / settlement dapps** (guldex, lightning-style channels, personal chains) that **could** commit hashes to Guld — **dapp designs**, not L0 guarantees (§3.4)
+**Guld inverts that.** A dapp is a **leaf** (or a composition of leaves) under one or more names. The chain only asks: *did the right keys authorize this new head, and was the fee paid?* It does **not** ask what the bytes mean. So a Guld dapp MAY be a static site or full web app on a custom domain, a native game or desktop binary, an agent or long-running service, encrypted vaults, guild tooling, markets, DAOs-as-process — **whatever the builders ship**. Cross-dapp and cross-chain flows (§3.4) are leaf designs; settlement that must hit L0 uses ordinary proof-bearing txs.
 
 There is **no on-chain language whitelist**, **no gas ISA for app logic**, and **no requirement** that every validator understand your stack. Unsupported leaf types are still valid on-chain; clients that care materialize them; others ignore them.
 
-**Expectation:** dapps on Guld should be **extreme**—far beyond “another Solidity CRUD front-end.” The protocol’s job is identity, money, and witnessed tips. The dapp’s job is the rest of the universe. If it can run on a computer and commit a hash under your keys, it can be a Guld dapp.
-
-One common shape is web-native: users run (or trust) a node; the reference wallet is static files; dapps live on **their** domains; leaf peers coordinate however their stack requires; settlement stays proof-bearing txs on the **P2P mesh**.
+**Expectation:** the protocol’s job is identity, money, and witnessed tips. The dapp’s job is the rest. If it can run on a computer and commit a hash under your keys, it can be a Guld dapp. One common shape: users run (or trust) a node; the reference wallet is static files; dapps live on **their** domains; settlement stays on the **P2P mesh**.
 
 ### 4.2 Witness and cowitness responsibility
 
@@ -343,27 +315,11 @@ The **ultimate client is undefined**: a browser UI, a native game binary, a CLI,
   network validators  (verify proof + fee; store master_hash only)
 ```
 
-**Git as empowerment, not consensus bus**
+**Git as empowerment, not consensus bus.** Individuals or groups can use free git hosting for home or group trees; clients push/fetch to distribute updates and recompute hashes that become the next `master_hash`. Consensus does **not** require forge uptime or git metadata—only a valid proof over the new head. Optional `remotes[]` hints are convenience, not consensus truth.
 
-- Individuals or groups can get **free git hosting** (e.g. GitHub) for their home or group branch.
-- Whatever client they use can **push** there; peers and leaf hosts **clone/fetch** to distribute updates and to recompute or verify tree hashes that become the next `master_hash`.
-- The network may **read** public remotes when helping users sync, but consensus does **not** require GitHub uptime, git commit metadata, or a particular forge—only a valid proof over the new head.
-- Optional: account meta may list **hint URLs** (`remotes[]`) so clients know where to fetch; hints are convenience, not consensus truth.
+**Runtime is leaf-defined.** A leaf might expose HTTP + browser UI, load a game binary, run notebooks, or stay static — or invent something new. Full node software **may** start services for supported leaf types; it need not understand every leaf (§4.1b).
 
-**Runtime is leaf-defined — and unbounded**
-
-A leaf might expose an HTTP server + browser UI, load a game binary, run notebooks, or stay static files — or invent something nobody has shipped yet. The full node package **may** start such services for supported leaf types; it is not obligated to understand every leaf. Unsupported leaves are still valid on-chain as long as heads and proofs verify. See **§4.1b**.
-
-**“Connected to a node that supports their leaves”**
-
-- Wallet-only clients can transfer GULD and read heads from any full node they reach via **HTTP API** or **JSON-RPC**—local or a remote peer they choose to trust for reads.
-- **Contentful** clients need a **leaf host** (often the user’s own full node, or a hosted node they trust) that:
-  - tracks network tip for their name/group  
-  - materializes the matching tree (clone from remotes / CAS / pins)  
-  - optionally runs the leaf’s chosen runtime  
-- Full node software is the default way to get that host locally; third parties may offer “node-as-a-service” for specific leaf kinds without becoming consensus validators.
-
-**Availability:** relying solely on a commercial forge is a **UX bootstrap**, not protocol DA. Serious leaves should mirror or self-host (or contract retention in-leaf); on-chain head can outlive a deleted GitHub repo.
+**“Connected to a node that supports their leaves.”** Wallet-only clients can transfer GULD and read heads from any reachable full node (**HTTP API** / **JSON-RPC**). Contentful clients need a **leaf host** that tracks tip, materializes the tree, and optionally runs the leaf runtime. Relying solely on a commercial forge is a **UX bootstrap**, not protocol DA (§9.4).
 
 ### 4.5 Reference UI and guld.io
 
@@ -382,16 +338,7 @@ Reference clients ([`../specs/14-reference-ui.md`](../specs/14-reference-ui.md);
 
 ### 4.6 Optional paid registrar (any peer)
 
-The bottleneck for a newcomer is finding someone with GULD to sponsor a name. **Any funded account** MAY enable a **paid registrar** in the reference software: connect a **supported third-party payment gateway**, publish a pay link, and on webhook fulfillment submit the portable registration request as payer — identical to friend-sponsor on-chain ([`../gips/gip-8.md`](../gips/gip-8.md)).
-
-guld.io / **isysd** may run this **first** during bootstrap. That does **not** reserve the role:
-
-- Everyday users can turn the same feature on for their own name and domain or localhost mirror.  
-- Friend-sponsor without payment remains fully supported.  
-- Consensus peers are full nodes over P2P, not payment vendors.  
-- Anyone can turn their desk **off**, or use a dedicated self-funding registrar account — no protocol change.
-
-Payment rails and gateway UI are **out of protocol**. They MUST NOT be required by `guld-node` validation.
+The bottleneck for a newcomer is finding someone with GULD to sponsor a name. **Any funded account** MAY enable a **paid registrar** in the reference software: connect a **supported third-party payment gateway**, publish a pay link, and on webhook fulfillment submit the portable registration request as payer — identical to friend-sponsor on-chain ([GIP-8](../gips/gip-8.md)). guld.io / **isysd** may run this first during bootstrap; that does not reserve the role. Friend-sponsor without payment remains fully supported. Payment rails are **out of protocol** and MUST NOT be required by `guld-node` validation.
 
 ---
 
@@ -430,7 +377,7 @@ Fee-paying txs MAY carry an optional opaque **`memo`** (weight-priced). Every tx
 
 Open membership for block proposal uses **Bitcoin-style double-SHA256 PoW** on headers that commit to chain state, txs, active rule bundle, and miner identity. Useful validation (schema + proof verify + state transition) is **eligibility**; PoW elects among valid candidates and prices Sybil spam.
 
-**Target:** ~**10 minutes** per block, **2016-block** difficulty retarget, **median-time-past** + bounded future skew on timestamps ([spec 06](../specs/06-blocks-and-consensus.md) §2–§3). **DAG-PoW** and **merged mining** remain optional future upgrades.
+**Target:** ~**10 minutes** per block, **2016-block** difficulty retarget, **median-time-past** + bounded future skew on timestamps ([spec 06](../specs/06-blocks-and-consensus.md) §2–§3). **DAG-PoW** and **merged mining** remain optional future upgrades — **not** required for mainnet launch (solo SHA256d is enough; merge-mine is a later miner bonus if ever pursued).
 
 ```mermaid
 flowchart TD
@@ -459,7 +406,7 @@ Tip election is **not** PoS. Account **cosign** (threshold keys on tips and spen
 
 ## 8. Tokenomics and fees
 
-The network has a **fixed transaction vocabulary**. There is no user-defined opcode meter and no general-purpose on-chain VM. Validation is: parse schema → check hashes/sigs/proofs → apply built-in delta. That matches a **Bitcoin-style fee market** better than Ethereum gas.
+Fees match the fixed-tx design in [§5](#5-network-validation-not-a-vm): weight-priced inclusion, not an EVM gas ISA.
 
 ### 8.1 Native asset: GULD
 
@@ -592,11 +539,7 @@ The full `F_*` debits at apply, then **vests to miners over 8 blocks** ([GIP-10]
 
 ### 8.8 Content retention (leaf, not L0)
 
-**Locked:** there is **no** network-level pin / data-availability market in consensus.
-
-- **All accounts (including `guld`):** the chain stores the tip (`master_hash`) only. Bytes live in CAS / remotes / leaf hosts when someone chooses to fetch them. **Tip ≠ data availability.** Rule params under `guld` are small; protocol **source code** is not an L0 retention obligation.
-- **Who keeps bytes:** self-host, forge mirrors, BitTorrent-class sharing, or **private leaf contracts** (cosign, escrow `Transfer`s, group policy). Parties who care arrange retention off the consensus path.
-- **Why not L0 pins:** enforcing availability on-chain needs a hard DA protocol; it bloats fixed-tx surface and fights leaf sovereignty. Optional storage markets MAY appear later as **apps/leaves**, not as required L0 txs.
+**Locked:** there is **no** network-level pin / data-availability market in consensus. **Tip ≠ data availability** — the chain stores `master_hash` only; bytes live in CAS / remotes / leaf hosts when someone chooses to fetch them. Protocol **source code** is not an L0 retention obligation. Who keeps bytes: self-host, forge mirrors, BitTorrent-class sharing, or **private leaf contracts**. Enforcing blob availability on-chain needs a hard DA protocol; that is **out of scope for L0** in this design. Optional storage markets MAY appear only as **apps/leaves**. Detail and light-client notes: [§9.4](#94-data-availability-not-an-l0-product).
 
 ---
 ## 9. Scalability analysis
@@ -625,9 +568,9 @@ Retaining **10 historical tips for recently active** accounts only adds marginal
 
 Conflict graph = accounts touched. Alice’s `UpdateMaster` ∥ Bob’s `UpdateMaster`. Contended names/accounts serialize. This matches Solana-style account parallelism without adopting the SVM.
 
-### 9.4 Data availability
+### 9.4 Data availability (not an L0 product)
 
-Scalability of **content** is orthogonal: tips scale with accounts; blobs scale with **leaf hosting and mirrors**. Full nodes fetch CAS bytes only when a client/leaf-host chooses—no mandatory clone of any account home, including **`guld`**. Light clients verify state proofs against headers. **No L0 pin market.**
+See [§8.8](#88-content-retention-leaf-not-l0): tip finality ≠ content permanence. Tips scale with accounts; blobs scale with **leaf hosting and mirrors**. Full nodes validate against headers and state; they are **not** required to store ordinary account home bytes. Light clients verify state proofs against headers. Validators MUST know the **active rule-bundle digest** (`guld_rules_hash`) — a small normative parameter set ([spec 08](../specs/08-cas-and-homes.md) §4 / [spec 17](../specs/17-protocol-upgrades.md)), not a general DA obligation.
 
 ### 9.5 Comparison
 
@@ -676,22 +619,13 @@ Scalability of **content** is orthogonal: tips scale with accounts; blobs scale 
 
 ### 10.5 Username scarcity and registration cost
 
-- Free names ⇒ squatters and spam identities. **`F_user(L)` / `F_group(L, n)` / `F_sub`** (§8.7) make bulk registration painful: letter-based individual fees (1-letter = **1000 GULD**/yr), group fees scaled by **`F_user(L) × (2 + n)`**, **0.1 GULD**/yr per subaccount (max 8), with miner `SettleRegistration` pay-or-release.  
-- No resale market: lose the keys and the name is eventually released when settle finds an empty wallet.  
-- Scaling `F_group` with signer count prices the **proof burden** groups impose on every full node.  
-- Impersonation remains a social problem; cryptographic binding is name→keys on-chain. Apps may add secondary attestations (leaf or indexer)—not consensus-critical.
+Free names ⇒ squatters. **`F_*` fees and pay-or-release** ([§8.7](#87-registration-fees-miner-lottery)) make bulk registration painful; `F_group` scales with signer count to price proof burden. No resale market. Impersonation remains social; cryptographic binding is name→keys on-chain.
 
 ### 10.6 Validator laziness (Verifier’s Dilemma)
 
 - Verification is **cheap and fixed-shape** (schema + sigs + hash checks), so skipping verify is less tempting than for heavy smart-contract re-exec—but still possible.  
 - Invalid blocks are rejected by honest majority hashpower; light clients use state proofs against headers.  
 - Keep proofs small and weight-priced so honest full nodes stay common.
-
-### 10.7 Content availability (leaf)
-
-- Guld does **not** enforce CAS retention at L0.  
-- Tips can outlive missing blobs—**users who care self-host, mirror, or contract in a leaf**.  
-- Altruistic / forge / BitTorrent-class availability is acceptable for public content; private groups use leaf terms.
 
 ### 10.8 Incentive compatibility summary
 
@@ -725,10 +659,10 @@ These are product and ops risks — not exhaustive threat models.
 | Risk | Why it matters | Mitigation / status |
 |------|----------------|---------------------|
 | **Low early hashrate** | Parameter-class PoW ≠ peer-class **security budget**. Shallow reorgs or cheap deep rewrites remain possible until hashpower grows. | Honest disclosure; GIP-23 schedule enforcement; dual-miner reorg tests ([019](../tasks/done/2026-09/019-dual-miner-reorg-integration-test.md) **done**); expect slow trust accretion. |
-| **Premine concentration + attestation gate** | Imported supply is top-heavy; most unlock paths still depend on **`isysd` attestation** when unbound ([GIP-24](../gips/gip-24.md) brief — Accepted Informational). Unclaimed **names** no longer lease forever ([GIP-27](../gips/gip-27.md)). | Publish concentration / unlock split ([`../fragments/legacy-distribution.md`](../fragments/legacy-distribution.md)); diversify attestation ([GIP-25](../gips/gip-25.md) Draft); PGP-bound claims where possible; settle parity **shipped** ([022](../tasks/done/2026-09/022-legacy-settle-parity.md)–[027](../tasks/done/2026-09/027-legacy-parity-comms.md)). |
-| **Tip ≠ data availability** | Headers and account tips do **not** guarantee CAS bytes exist on every peer. Missing blobs break contentful leaves even when GULD tips are final. | Self-host / mirror / leaf retention; mandatory `guld` rule bytes when fetched; do not market tip finality as content permanence. |
+| **Premine concentration + attestation gate** | Imported supply is top-heavy; unbound unlocks historically lean on **`isysd` attestation** ([GIP-24](../gips/gip-24.md) — Accepted Informational). Unclaimed **names** no longer lease forever ([GIP-27](../gips/gip-27.md)). | Publish concentration / unlock split ([`../fragments/legacy-distribution.md`](../fragments/legacy-distribution.md)); diversify via **cosign** ([GIP-25](../gips/gip-25.md) **Accepted** — `attestation_quorum_v1`; cosigner identities **TBD for mainnet** — [045](../tasks/open/045-gip-25-attestation-cosigners.md)); PGP-bound claims where possible; settle parity **shipped**. |
+| **Tip ≠ data availability** | Headers and account tips do **not** guarantee CAS bytes on every peer — **by design** (witness hub, not content CDN). Outsiders may misread this as a missing DA layer. | **Not an L0 TODO.** Content retention is leaf/host/operator ([§9.4](#9-4-data-availability)); do not market tip finality as content permanence; do not add pin markets. Optional demo UX stays in reference leaves. |
 | **Single reference client** | One Rust stack + dual wire; multi-impl bar needs shared fixtures. | BARE `TxId` shipped ([009](../tasks/done/2026-09/009-bare-wire-implementation.md)); GIP-26 vectors **Final** — Rust + JS `@guld/js` consumers ([021](../tasks/done/2026-09/021-consensus-golden-vectors.md) / [032](../tasks/done/2026-09/032-gip-26-non-rust-vectors.md)). |
-| **Testnet reset policy** | Simba **may reset once** before durable beta lock; tip hashes before a ceremony are not forever. | Publish pins + reset notices ([`../deploy/SIMBA.md`](../deploy/SIMBA.md)); wipe datadir on regenesis. |
+| **Breaking testnet change** | Incompatible protocol changes cannot rewrite Simba history. | **Simba tip is locked — no further resets.** Height-activate when possible ([spec 17](../specs/17-protocol-upgrades.md)); otherwise ship **[Mufasa](../MUFASA.md)** (named next testnet; not launched). |
 | **Wire / codec freeze incomplete** | HTTP stays JSON; P2P dual-wire JSON+BARE; datadir may still carry JSON artifacts while BARE lands. | Treat JSON as boundary convenience; consensus identities migrate to BARE ([GIP-4](../gips/gip-4.md)). |
 
 **Do not claim:** “Bitcoin-class security,” “peer L1 security class,” or rewrite cost comparable to BTC/ETH/SOL **hashrate**. Prefer: *Bitcoin-**parameter** PoW; security budget is an empirical market outcome.*
@@ -737,67 +671,68 @@ These are product and ops risks — not exhaustive threat models.
 
 ## 12. Roadmap
 
-Status snapshot (**2026-09-27**). Live **tx × API × UI** matrix: [`../specs/14-reference-ui.md`](../specs/14-reference-ui.md). GIP index: [`../gips/README.md`](../gips/README.md). Task queue: [`../tasks/README.md`](../tasks/README.md).
+Status snapshot (**2026-09-29**). Live **tx × API × UI** matrix: [`../specs/14-reference-ui.md`](../specs/14-reference-ui.md). GIP index: [`../gips/README.md`](../gips/README.md). Task queue: [`../tasks/README.md`](../tasks/README.md).
 
-### 12.1 Shipped — Simba public testnet
+**SoT:** Specs + this paper describe **mainnet**. **Simba** trails Accepted Core until one rule-bundle catch-up ([055](../tasks/open/055-simba-single-rule-bundle.md)).
 
-**Simba** (`chain_id` 2, bootstrap [guld.io](https://guld.io/)) runs the Rust L0 stack end-to-end:
+### 12.1 Shipped — Simba public testnet (snapshot)
+
+**Simba** (`chain_id` 2, bootstrap [guld.io](https://guld.io/)) runs the Rust L0 stack end-to-end. It is the **reference live net**, not the definition of mainnet protocol:
 
 | Layer | Today |
 |-------|--------|
-| **Consensus** | Single-lane SHA256d PoW (locked v1; retarget ~600 s; **GIP-23** schedule enforced on import); MTP + 2 h timestamps; **GIP-22** `RewardCommit` / `ClaimReward`; fixed tx vocabulary; weight fees + registration protocol fees (8-block vest) |
+| **Consensus** | Single-lane SHA256d PoW (locked v1; retarget ~600 s; **GIP-23** schedule enforced on import); MTP + 2 h timestamps; **GIP-22** `RewardCommit` / `ClaimReward`; fixed tx vocabulary; weight fees + registration protocol fees (8-block vest); **interim** `tx_root`/`receipt_root` until Merkle activates in [055](../tasks/open/055-simba-single-rule-bundle.md) |
 | **State** | fjall KV — accounts, balances, tips, names; **10** decimal GULD |
 | **Genesis** | Committed artifacts ([`../data/genesis/simba/`](../data/genesis/simba/)); keyless `guld` shell; `isysd` genesis-claim; 1.0 balances **legacy-locked** until `ClaimLegacy` |
 | **P2P** ([GIP-15](../gips/gip-15.md)) | libp2p Hello, tx gossip, block/header sync, CAS objects, ban scoring; **heavier-tip reorg** via `chain_reorg` (max depth 2016); dual-miner adversarial reorg covered ([019](../tasks/done/2026-09/019-dual-miner-reorg-integration-test.md)) |
 | **Node** | `guld-node`: JSON-RPC + HTTP `/api/v1`; continuous miner with `--miner`; testnet faucet |
 | **Wire** | Dual-wire JSON + BARE; BARE `TxId` goldens ([009](../tasks/done/2026-09/009-bare-wire-implementation.md)); GIP-26 vectors **Final** (Rust + JS) |
-| **Reference UI** | PWA wallet (register individual/group/sub, send + contacts/typeahead ([GIP-20](../gips/gip-20.md)), cosign workstation for UpdateMaster/RotateKeys/**Transfer**, claim, ConvertAccountKind), explorer (blocks, txs, hash lookup, mempool SSE), docs browser, software catalog, optional Paymento registrar ([GIP-8](../gips/gip-8.md)); extension site-login ([030](../tasks/done/2026-09/030-extension-site-login.md)); leaf demo (`/demo/ttt/`); landing citizen/operator split (task [005](../tasks/open/005-human-first-ux.md) P0) |
+| **Reference UI** | PWA wallet (register individual/group/sub, send + contacts/typeahead ([GIP-20](../gips/gip-20.md)), cosign workstation for UpdateMaster/RotateKeys/**Transfer**, claim, ConvertAccountKind), explorer (blocks, txs, hash lookup, mempool SSE), docs browser, software catalog, optional Paymento registrar ([GIP-8](../gips/gip-8.md)); extension site-login ([030](../tasks/done/2026-09/030-extension-site-login.md)); leaf demo (`/demo/ttt/`); landing citizen/operator split (task [005](../tasks/open/005-human-first-ux.md) P0); Contacts / `guld-web-ui` pair ([GIP-31](../gips/gip-31.md)/[GIP-32](../gips/gip-32.md) Accepted — finishing [038](../tasks/open/038-contacts-private-invite.md)/[039](../tasks/open/039-guld-web-ui-extension-pair.md)) |
 
-Implemented GIPs (see [index](../gips/README.md)): **5–17**, **19**, **22–24**, **26–29** (statuses Accepted/Final as indexed; **2, 7, 9, 10, 15, 16, 26, 27** Final among the shipped set). Operator runbook: [`../deploy/SIMBA.md`](../deploy/SIMBA.md).
+Implemented GIPs (see [index](../gips/README.md)): **5–17**, **19**, **22–24**, **26–29**, plus Application **31–32** (Accepted; UI tasks open). Operator runbook: [`../deploy/SIMBA.md`](../deploy/SIMBA.md).
 
 **Filled since prior snapshots (not gaps):** dual-miner reorg ([013](../tasks/done/2026-09/013-chain-reorg-implementation.md)/[019](../tasks/done/2026-09/019-dual-miner-reorg-integration-test.md)); sync hygiene ([029](../tasks/done/2026-09/029-sync-fork-catchup.md)); explorer hash lookup; BARE `TxId` + dual-wire; MTP timestamps; mempool persistence; GIP-22/23; Simba beta readiness ([007](../tasks/done/2026-09/007-simba-beta-public-readiness.md)); GIP-27 settle parity; threshold Transfer cosign ([028](../tasks/done/2026-09/028-threshold-transfer-cosign.md) / [GIP-29](../gips/gip-29.md)); ConvertAccountKind ([034](../tasks/done/2026-09/034-convert-account-kind.md) / [GIP-28](../gips/gip-28.md)); extension site-login ([030](../tasks/done/2026-09/030-extension-site-login.md)); JS SDK + ttt ([036](../tasks/done/2026-09/036-guld-js-sdk.md)/[037](../tasks/done/2026-09/037-guld-tic-tac-toe.md)/[033](../tasks/done/2026-09/033-leaf-host-materialize.md)); GIP-26 Final ([032](../tasks/done/2026-09/032-gip-26-non-rust-vectors.md)).
 
-### 12.2 Open gaps (specs vs software)
+### 12.2 Open gaps (mainnet SoT vs Simba code)
 
 | Area | Still open | Task / SoT |
 |------|------------|------------|
+| **Core catch-up bundle** | Merkle roots ([GIP-35](../gips/gip-35.md)); `UnregisterAccount`; bio/`UpdateBio`; `attestation_quorum_v1` wire | **[055](../tasks/open/055-simba-single-rule-bundle.md)** (after [042](../tasks/done/2026-09/042-rule-bundle-upgrade-e2e.md)) |
 | **Human-first UX** | Citizen/operator chrome beyond landing; cosign Share/QR sessions; backup framing (P1/P4 deferred/cancelled) | [005](../tasks/open/005-human-first-ux.md) |
-| **1.0 → mainnet** | Import manifest audit + locked mainnet genesis | **[031](../tasks/open/031-mainnet-genesis-ceremony.md)**; [GIP-14](../gips/gip-14.md) |
+| **1.0 → mainnet** | Import manifest audit + locked mainnet genesis; ≥ some attestation cosigners | **[031](../tasks/open/031-mainnet-genesis-ceremony.md)**; [GIP-14](../gips/gip-14.md); [045](../tasks/open/045-gip-25-attestation-cosigners.md) |
 | **Foreign / cross-chain** | Dapp-layer only in v1 (A11); optional SPV/light proof kinds = future GIP | spec 13 informative; §12.5 |
 
-Account schema, `threshold_cosign_v1` (tips/rotate/**spend**), weight table, and **10 decimals** are **largely frozen** in specs — formal height-activated bundles per [spec 17](../specs/17-protocol-upgrades.md) remain for mainnet.
+Account schema (incl. **bio**), `UnregisterAccount`, `threshold_cosign_v1` (tips/rotate/**spend**), weight table, and **10 decimals** are **specified for mainnet** — Simba activates Core deltas via [spec 17](../specs/17-protocol-upgrades.md) in **one** bundle ([055](../tasks/open/055-simba-single-rule-bundle.md)).
 
-### 12.3 Near term (testnet hardening)
+### 12.3 Near term (docs → e2e → single Simba upgrade)
 
-1. **Wallet UX** — human-first paths ([005](../tasks/open/005-human-first-ux.md)); contacts/typeahead shipped ([GIP-20](../gips/gip-20.md) Accepted).  
-2. **Peer QA** — multi-node Simba soaks (sync hygiene shipped in [029](../tasks/done/2026-09/029-sync-fork-catchup.md)).  
-3. **ConvertAccountKind PWA polish** — protocol shipped ([034](../tasks/done/2026-09/034-convert-account-kind.md) / [GIP-28](../gips/gip-28.md)); settings UX follow-on only.
+1. **Specs / GIPs** — Accepted set folded (GIP-25, 31–34); whitepaper mainnet SoT (**this revision**).  
+2. **Rule-bundle e2e** — disposable mesh publish → miner split → activate → resync ([042](../tasks/open/042-rule-bundle-upgrade-e2e.md)).  
+3. **Implement Core deltas** (working branch OK) — Merkle roots, UnregisterAccount, UpdateBio, attestation_quorum wire.  
+4. **One Simba rule bundle** — miners approve a single `H` ([055](../tasks/open/055-simba-single-rule-bundle.md)).  
+5. **Wallet UX** — Contacts ([038](../tasks/open/038-contacts-private-invite.md)); `guld-web-ui` pair ([039](../tasks/open/039-guld-web-ui-extension-pair.md)); human-first ([005](../tasks/open/005-human-first-ux.md)).
 
 ### 12.4 Before mainnet
 
 1. Audit 1.0 import manifest + genesis ceremony ([031](../tasks/open/031-mainnet-genesis-ceremony.md), [GIP-14](../gips/gip-14.md)).  
 2. Lock mainnet genesis; disable faucet; production miner / nginx ops.  
-3. Security pass: registrar webhooks, P2P DoS limits, registration vesting edge cases; optional [GIP-25](../gips/gip-25.md) attestation diversification when out of Draft.  
-4. Formal height-activated rule bundles ([spec 17](../specs/17-protocol-upgrades.md)) for mainnet activation.
+3. Security pass: registrar webhooks, P2P DoS limits, registration vesting edge cases ([054](../tasks/done/2026-09/054-faucet-registrar-hardening.md) **done** — [hardening checklist](../fragments/faucet-registrar-hardening.md)); **GIP-25** cosigner roster filled (**≥ some** — [045](../tasks/open/045-gip-25-attestation-cosigners.md)); launch copy keeps **parameter class vs security budget** ([security-budget blurb](../fragments/security-budget.md) — [053](../tasks/done/2026-09/053-mainnet-security-budget-messaging.md) **done**).  
+4. Formal height-activated rule bundles ([spec 17](../specs/17-protocol-upgrades.md)) — Simba catch-up ([055](../tasks/open/055-simba-single-rule-bundle.md)) rehearses mainnet ops.
 
 ### 12.5 Later
 
-1. **DAG-PoW** / multi-parent headers (research; Simba stays single-lane until activated).  
+1. **DAG-PoW** / multi-parent headers (research; single-lane until activated).  
 2. **Optional foreign proof kinds** (spec 13) if ecosystem needs consensus-enumerated SPV/light verify; settlement dapps as leaves today.  
 3. **`guld` leaf** hosting of reference site bytes + miner-governed gateway roster ([GIP-21](../gips/gip-21.md) draft).  
 4. Leaf materialize path — JS SDK + tic-tac-toe reference dapp ([033](../tasks/done/2026-09/033-leaf-host-materialize.md) **done**); Rust `--leaf-host` / full spec 11 HTTP later. Optional git remotes, off-consensus indexers.  
 5. Post-quantum signature migration.  
-6. Extension site-login polish (multi-account picker, PWA session via extension) — core path shipped ([030](../tasks/done/2026-09/030-extension-site-login.md)).
+6. Extension site-login polish (multi-account picker) — core path shipped ([030](../tasks/done/2026-09/030-extension-site-login.md)); pairing [GIP-32](../gips/gip-32.md).
 
 ---
 
 ## 13. Conclusion
 
-**Address people by name.** Identity is the product; **leaves are unlimited**. Guld 2.0 is an **L0** PoW-anchored namespace for people and groups, with **dapps that can literally do anything**—including **theoretical** cross-chain indexers, guldex-style settlement, and lightning-/personal-chain hash commits—while the network remains a **witness for registered Guld identities**, not a VM that re-executes leaf politics or mandatory foreign-chain verification. Named-account settlement uses a **Bitcoin-style weight fee** market (not a general DeFi VM). Legacy supply **x ≈ 9.6×10⁵ GULD** is a disclosed pre-mine from the 1.0 ledger (ERC20 bucket omitted), unlocked per user by **key upgrade** ([GIP-14](../gips/gip-14.md); disclosure [GIP-24](../gips/gip-24.md)); PoW issuance follows **`i(y) = max(0.04, (2/3)^(y−1))`** at **10-minute** blocks under Bitcoin-**parameter** retarget; **registration fees** (§8.7) go to miners over an 8-block vest. Scalability follows from keeping validators on keys and hashes; content retention and app logic stay in **leaves**; incentives follow from attributable cosign, fee-rate bidding, registration lottery, and PoW — with security budget treated honestly ([§11](#11-security-notes-and-risks)).
-
-Users join via **sponsored registration**; any funded peer can onboard the next — free (friend) or paid (third-party gateway). The everyday path is whitepaper **§1.4**: PWA wallet on device → extension → many dapps, one name.
-
-Invariants: **name-addressable accounts**, **hash-referenced tips**, **leaf-sovereign process (unbounded dapps)**, **lean witness nodes**, **fixed tx vocabulary**, **priced inclusion**, **respected 1.0 balances**, and **tip ≠ DA** (CAS retention off the witness hub except mandatory `guld` rule bytes when fetched). Cross-chain bridging is **optional dapp design**, not a genesis foreign-name slot.
+**Address people by name.** Guld 2.0 is an **L0** PoW-anchored namespace: named settlement, hash tips, and enumerated proofs under a fixed tx vocabulary — not a general VM. Leaves and dapps are unbounded; cross-chain bridging is optional dapp design ([§3.4](#34-addressing-referencing-and-cross-chain-dapp-patterns)). Economics: disclosed 1.0 pre-mine unlock via key upgrade, Bitcoin-parameter PoW issuance with a **4%** tail, weight-priced inclusion, and registration fees to miners ([§8](#8-tokenomics-and-fees)). Join via sponsored registration ([§1.4](#14-target-user-story)); tip ≠ DA ([§8.8](#88-content-retention-leaf-not-l0)). Security budget treated honestly ([§11](#11-security-notes-and-risks)).
 
 ---
 
@@ -807,7 +742,7 @@ Terms are defined for this whitepaper. Normative detail lives in [`../specs/READ
 
 | Term | Definition |
 |------|------------|
-| **Account** | On-chain record for a registered name: keys, threshold, nonce, `master_hash`, GULD balance, and flags. Validators store this; they do not store leaf bytes. |
+| **Account** | On-chain record for a registered name: keys, threshold, nonce, `master_hash`, GULD balance, optional `bio` (≤128 B), and flags. Validators store this; they do not store leaf bytes. |
 | **Account id** | Stable internal identifier (hash of the registration commitment). Used in signed messages and proofs. |
 | **Bootstrap URL** | A convenient HTTP mirror of the reference static wallet or docs (e.g. guld.io). Not a consensus authority. |
 | **CAS** | **Content-addressed store**: objects keyed by `SHA256(bytes)`. Home trees reference CAS ids; bytes may live on leaf hosts, forges, or P2P—not necessarily on every validator. |
@@ -818,8 +753,8 @@ Terms are defined for this whitepaper. Normative detail lives in [`../specs/READ
 | **DAG-PoW** | Optional variant where headers may reference multiple parents; still PoW-anchored, not proof-of-stake. |
 | **Dapp** | Any application built as a **leaf** (or composition of leaves) under one or more names. No on-chain VM required. |
 | **Endowment** | Minimum GULD balance required at registration (anti-spam); distinct from the annual registration fee. |
-| **Cross-chain dapp (informative)** | A leaf under a **registered** name that MAY coordinate with foreign chains off-L0. Not a built-in `foreign_chain` account kind in Simba v1 (A11). |
-| **Full node** | Validates blocks and txs, maintains state (+ mandatory `guld` rule bundle), participates in **P2P**, exposes **HTTP** and **JSON-RPC** client surfaces. |
+| **Cross-chain dapp (informative)** | A leaf under a **registered** name that MAY coordinate with foreign chains off-L0. Not a built-in `foreign_chain` account kind in L0 v1 (A11). |
+| **Full node** | Validates blocks and txs, maintains state, knows the active **`guld` rule-bundle digest**, participates in **P2P**, exposes **HTTP** and **JSON-RPC**. Does **not** owe the network ordinary account home bytes. |
 | **`F_group(L, n)`** | Group registration fee per year: `F_user(L) × (2 + n)` GULD, where `L` = letters in root name, `n` = initial signer count (§8.7). |
 | **`F_sub`** | Subaccount registration fee: **0.1 GULD**/year for `parent.label` (§8.7). |
 | **`F_user(L)`** | Individual registration fee per year from letter count `L` (1-letter premium; ≥6 letters → **1 GULD** floor) (§8.7). |

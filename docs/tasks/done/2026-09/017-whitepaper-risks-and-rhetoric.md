@@ -4,7 +4,7 @@ Status: done
 Priority: normal
 GIP:
 Spec:
-Whitepaper: ../whitepaper/guld-2.0-draft.md
+Whitepaper: ../whitepaper/guld-2.0.md
 
 ## Problem
 

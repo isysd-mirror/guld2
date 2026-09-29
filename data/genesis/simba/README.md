@@ -58,9 +58,9 @@ Source: `archives/ledger-guld/guld/1496275200.dat` (2016-06-01 pre-founding). Cl
 
 ## Reset policy (G4)
 
-**Simba may reset once before durable beta lock.** After that announcement, treat tip hash above as frozen unless a signed regenesis notice is published.
+**Simba tip is locked — no further resets.** Treat the tip hash above as frozen. Incompatible protocol changes MUST use a **new** named testnet (new `chain_id` / genesis), not a Simba wipe.
 
-Operators who already ran the prior tip (`0xc4a017…`) **must wipe** their Simba datadir and resync from these artifacts.
+Operators who already ran the prior tip (`0xc4a017…` / pre–GIP-27) **must wipe** their Simba datadir and resync from these artifacts (historical cutover only).
 
 ## Ceremony (once)
 
@@ -107,4 +107,4 @@ cargo run -p guld-legacy --bin guld-genesis -- preprocess \
   --out data/genesis/simba/import-manifest.json
 ```
 
-Then re-run the ceremony from step 6, update `GENESIS_X_QUANTA` / specs if the row sum changed, and publish a reset notice.
+Then re-run the ceremony from step 6, update `GENESIS_X_QUANTA` / specs if the row sum changed. **Do not** publish a Simba reset — a new import for a breaking change belongs on a **new** testnet.

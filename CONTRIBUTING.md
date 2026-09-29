@@ -1,6 +1,6 @@
 # Contributing to Guld
 
-Guld is a decentralized protocol. This repository is both the open-source tree and the static reference site. Canonical remotes are served from peers via `guld-node --http` (`/repos/…`); GitHub, if used, is a mirror only.
+Guld is a decentralized protocol. This repository is both the open-source tree and the static reference site. Canonical remotes are served from peers via `guld-node --http` (`/repos/…`); GitHub, if used, is a mirror only. Full trust story (source ecosystem, CI, CD, signed releases, optional forge signals): [`docs/SOURCE_AND_RELEASE.md`](docs/SOURCE_AND_RELEASE.md).
 
 ## Propose a change
 
@@ -20,7 +20,7 @@ Consensus rule changes also need a height-activated rule bundle — see [spec 17
 
 ## Local CI (git hooks)
 
-There is no hosted CI. After clone / submodule update:
+Canonical CI is **local pre-commit** — not a forge pipeline ([`docs/SOURCE_AND_RELEASE.md`](docs/SOURCE_AND_RELEASE.md)). After clone / submodule update:
 
 ```bash
 ./scripts/install-dev-hooks.sh

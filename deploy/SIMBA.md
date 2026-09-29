@@ -2,7 +2,8 @@
 
 **Network name:** `simba` · **`chain_id`:** `2` · **Bootstrap peer:** guld.io  
 
-**Public beta page:** [`docs/SIMBA_BETA.md`](../docs/SIMBA_BETA.md) (pins, how to join, peers).
+**Public beta page:** [`docs/SIMBA_BETA.md`](../docs/SIMBA_BETA.md) (pins, how to join, peers).  
+**Next named testnet (if tip-incompatible break):** [`docs/MUFASA.md`](../docs/MUFASA.md) — planning only; not launched.
 
 Config SoT: [`data/networks/simba.json`](../data/networks/simba.json)  
 Genesis SoT: [`data/genesis/simba/`](../data/genesis/simba/) (committed manifest + params + `isysd-claim.asc`)
@@ -51,7 +52,14 @@ cargo run -p guld-node -- \
   --faucet-name isysd
 ```
 
-The faucet account must exist on-chain with spendable balance (Simba `isysd` after genesis claim). Cooldown default: 1 hour per name. On mainnet the faucet routes stay off.
+`--http-static` serves the checkout; sensitive paths (`archives/`, `.guld-data/`, `target/`, …) return **404** even if present ([HOSTING.md](../docs/HOSTING.md)). CORS is permissive so wallets can use this peer as an API base from another origin.
+
+The faucet account must exist on-chain with spendable balance (Simba `isysd` after genesis claim). Cooldown default: 1 hour per name. On mainnet the faucet routes stay off. Hardening checklist (keys, HMAC, rate limits, desk mutate token): [`docs/fragments/faucet-registrar-hardening.md`](../docs/fragments/faucet-registrar-hardening.md).
+
+```bash
+# Recommended on public peers with a paid desk
+export GULD_REGISTRAR_MUTATE_TOKEN='…'   # Settings → peer desk publish token
+```
 
 Faucet txs are **mempool-queued** then included by the continuous miner. Simba uses the **same block-production model as mainnet**: a peer with `--miner` runs unbroken PoW (empty blocks allowed); difficulty retargets toward **600 s**. Initial PoW bits are **1** (see `data/networks/simba.json`; difficulty **0** is genesis-only). With `--mine-cpu-percent 1`, early blocks are cheap and bits climb. The faucet peer **must** run with `--miner <faucet-account>` or grants stay pending until some miner seals them.
 
@@ -77,7 +85,7 @@ Do **not** pass `--import-ledger` or `--dev` on Simba — the manifest and block
 
 ### Reset policy (G4)
 
-**Simba may reset once before durable beta lock.** Peers should expect at most one breaking regenesis notice before tip hash is treated as frozen.
+**Simba tip is locked — no further resets.** Incompatible protocol changes MUST ship as a **new** named testnet (new `chain_id` / genesis), not a Simba wipe. Community feedback on Simba is expected to drive that when needed.
 
 ### Wire codec (task 009)
 
@@ -102,9 +110,9 @@ Do **not** pass `--import-ledger` or `--dev` on Simba — the manifest and block
 
 **Rule:** every imported header with `height ≥ 1` MUST claim `difficulty == next_difficulty(...)` ([GIP-23](../gips/gip-23.md), spec 06 §3).
 
-**Activation on Simba:** prefer **regenesis** at the next ceremony ([task 012](../tasks/done/2026-09/012-simba-genesis-ceremony.md)) so historical tips mined under soft policy do not need a height-activated soft fork. Until that reset, peers running this binary will **reject** off-schedule headers — wipe datadir and resync from artifact genesis if the public tip was mined off-schedule.
+**Activation on Simba:** GIP-23 shipped with the artifact tip (see [task 012](../tasks/done/2026-09/012-simba-genesis-ceremony.md) / [014](../tasks/done/2026-09/014-enforce-difficulty-on-import.md)). Peers running this binary **reject** off-schedule headers. **No further Simba regenesis** — further consensus breaks need a new named testnet.
 
-**`--dev` / `--difficulty`:** seal always follows `next_difficulty` (post-genesis starts at **1** from a difficulty-0 genesis). The CLI `--difficulty` flag is status/legacy only and MUST NOT under-claim the schedule. Rapid `--dev-empty-blocks` may raise bits at retarget boundaries (Bitcoin-class); that is consensus-correct.
+**`--dev` / `--difficulty`:** seal always follows `next_difficulty` (post-genesis starts at **1** from a difficulty-0 genesis). The CLI `--difficulty` flag is status/legacy only and MUST NOT under-claim the schedule. Rapid `--dev-empty-blocks` may raise bits at retarget boundaries (Bitcoin-**parameter** 4× clamps); that is consensus-correct.
 
 ### Known issue — first retarget skew ([task 040](../docs/tasks/open/040-simba-genesis-timestamp-retarget.md))
 
@@ -112,17 +120,21 @@ Simba height-0 was **post-dated** (`timestamp` **1770000000** / 2026-02-02T02:40
 
 ## Paths (conventions)
 
+User units use systemd **`%h/guld`** (= `$HOME/guld`). Clone or symlink the umbrella there, or edit the unit paths.
+
 | Host | Checkout | Datadir | Notes |
 |------|----------|---------|-------|
-| **guld.io (this host)** | `/home/isysd/Projects/guld2` | `./.guld-data/simba` | **isysd user unit** [`guld-node-simba.user.service`](guld-node-simba.user.service) → `~/.config/systemd/user/guld-node-simba.service`; HTTP `:8088` (nginx) |
-| **guld.io (prod user)** | `/home/guld/guld` | `/home/guld/guld-data/simba` | system unit [`guld-node-simba.service`](guld-node-simba.service) |
-| **dev laptop** | checkout path | `./.guld-data/simba` | validating peer; omit `--miner` — unit [`guld-node-simba-peer.user.service`](guld-node-simba-peer.user.service) |
+| **Bootstrap (user unit)** | `~/guld` (`%h/guld`) | `./.guld-data/simba` | [`guld-node-simba.user.service`](guld-node-simba.user.service) → `~/.config/systemd/user/`; HTTP `:8088` (nginx) |
+| **Prod service user** | `/home/guld/guld` | `/home/guld/guld-data/simba` | system unit [`guld-node-simba.service`](guld-node-simba.service) (`User=guld`) |
+| **dev laptop** | any checkout (`~/guld` default) | `./.guld-data/simba` | validating peer; omit `--miner` — Linux: [`guld-node-simba-peer.user.service`](guld-node-simba-peer.user.service); **macOS:** [`docs/help/mac-peer.md`](../docs/help/mac-peer.md) |
 
-### Enable Simba on this host (isysd bootstrap / miner)
+`--miner isysd` / faucet name `isysd` are **network account** names on Simba — unrelated to the Linux login that runs the unit.
+
+### Enable Simba on the bootstrap host (user-unit miner)
 
 ```bash
-cd /home/isysd/Projects/guld2
-cargo build -p guld-node
+cd ~/guld   # or: export to your umbrella checkout
+cargo build -p guld-node --release
 install -m 0644 deploy/guld-node-simba.user.service ~/.config/systemd/user/guld-node-simba.service
 systemctl --user daemon-reload
 systemctl --user disable --now guld-node.service   # --dev playground; frees ports
@@ -134,7 +146,7 @@ systemctl --user enable --now guld-node-simba.service
 ### Enable Simba validating peer (laptop — sync only)
 
 ```bash
-cd /home/isysd/Projects/guld   # or your checkout
+cd ~/guld   # or your umbrella checkout
 cargo build -p guld-node --release
 # After GIP-27 regenesis, wipe any pre-regenesis tip:
 #   rm -rf ./.guld-data/simba
@@ -198,7 +210,7 @@ Peers that check out the same repo already share `data/genesis/simba/`. Empty da
 ## 3. Laptop peer (live, not `--dev`)
 
 ```bash
-cd /home/isysd/Projects/guld
+cd ~/guld   # or your umbrella checkout
 cargo build -p guld-node --release
 
 ./target/release/guld-node \
@@ -222,6 +234,8 @@ curl -s http://127.0.0.1:8545/ -H 'content-type: application/json' \
 ```
 
 ## 4. Mining policy (simba)
+
+**Security budget (honest):** solo SHA256d with Bitcoin-**parameter** retarget — **not** a Bitcoin-class security claim. Early bits climb from a low start; rewrite cost tracks **this** chain’s hashrate. AuxPoW is not part of Simba/mainnet launch. Copy SoT: [`docs/fragments/security-budget.md`](../docs/fragments/security-budget.md).
 
 - **Same as mainnet:** `--miner <name>` starts a **continuous PoW loop** (empty blocks OK). Difficulty retargets toward `TARGET_BLOCK_INTERVAL` (**600 s**).
 - Validating peers omit `--miner` and never seal.
@@ -280,7 +294,21 @@ Point nginx `proxy_pass` at **`127.0.0.1:8080`** (node `--http`), not `:8004`. S
 
 No Discord (or other chat) is required to join the mesh. Default: dial **guld.io** via compiled / published bootnodes. Extra multiaddrs in [`data/p2p-bootnodes.json`](../data/p2p-bootnodes.json) are optional fallbacks, not consensus authority. Informal community: [discord.gg/PMCEGjGCQ](https://discord.gg/PMCEGjGCQ). Short public pins + join steps: [`docs/SIMBA_BETA.md`](../docs/SIMBA_BETA.md).
 
+## Rule-bundle upgrade notice (template)
+
+Fill when publishing the Core catch-up bundle ([055](../docs/tasks/open/055-simba-single-rule-bundle.md) / [GIP-35](../docs/gips/gip-35.md) Merkle roots). Post to Discord + update [SIMBA_BETA](../docs/SIMBA_BETA.md) pins.
+
+```text
+Simba rule-bundle upgrade
+- Binary: guld-node ≥ <version> (upgrade before height H)
+- Activation height H: <N>
+- Previous guld_rules_hash: 0x…
+- New guld_rules_hash: 0x…
+- Observable deltas: root_scheme → merkle_v1; letter fee bump; Unregister/UpdateBio; attestation_quorum wire (empty roster OK)
+- Action: pull tip, rebuild node, restart peer before H; lagging peers stall safely until upgrade
+```
+
 ## Next engineering
 
-- Stable bootnode multiaddr with `/p2p/<peer-id>` once guld.io identity is fixed under `guld-data/simba/keys/p2p.key`  
-- Optional: one more regenesis before durable beta lock (G4)
+- Breaking protocol experiments that cannot height-activate: **[Mufasa](../docs/MUFASA.md)** (named successor; not launched) — Simba tip stays locked  
+- Stable bootnode multiaddr with `/p2p/<peer-id>` once guld.io identity is fixed under `guld-data/simba/keys/p2p.key`

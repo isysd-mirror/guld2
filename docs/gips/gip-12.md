@@ -36,7 +36,7 @@ Each subaccount is a first-class on-chain account (own keys, nonce, balance, `ma
 | Nesting | One level only (`parent.label`) |
 | Group parents | **No** — only `individual` roots may open subs |
 | Fees | Subaccount **flat** `F_sub`; parent individual uses letter **`F_user(L)`** ([GIP-9](gip-9.md)) |
-| Close | [GIP-33](gip-33.md) `UnregisterAccount` (draft) |
+| Close | [GIP-33](gip-33.md) `UnregisterAccount` (**Accepted**) |
 
 ### Registration fees (→ miners, 8-block vest)
 

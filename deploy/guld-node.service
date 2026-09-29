@@ -1,23 +1,26 @@
-# User unit for isysd local / soft-launch node.
-# Install:
+# User unit for local / soft-launch node (runs as the installing login user).
+# Paths use systemd %h (= $HOME). Clone/checkout the umbrella at ~/guld, or edit
+# WorkingDirectory / ExecStart if your tree lives elsewhere.
+#
+# Install (from the umbrella checkout):
 #   install -m 0644 deploy/guld-node.service ~/.config/systemd/user/guld-node.service
 #   systemctl --user daemon-reload
 #   systemctl --user enable --now guld-node.service
 #
-# Optional (survive logout): sudo loginctl enable-linger isysd
+# Optional (survive logout): sudo loginctl enable-linger "$USER"
 # Public JSON-RPC: sudo ufw allow 8545/tcp comment 'guld-node rpc'
 #
-# Prod multi-user template (User=guld) is separate — prefer this while developing as isysd.
+# Prod multi-user template (User=guld) is separate — see guld-node-simba.service.
 
 [Unit]
-Description=Guld node (isysd Projects/guld2) HTTP :8088, public RPC :8545
-Documentation=file:///home/isysd/Projects/guld2/docs/HOSTING.md
+Description=Guld node (dev / soft-launch) HTTP :8088, public RPC :8545
+Documentation=https://guld.io/docs/?doc=HOSTING.md
 After=network.target
 
 [Service]
 Type=simple
-WorkingDirectory=/home/isysd/Projects/guld2
-ExecStart=/home/isysd/Projects/guld2/target/debug/guld-node \
+WorkingDirectory=%h/guld
+ExecStart=%h/guld/target/debug/guld-node \
   --datadir ./.guld-data \
   --rpc 0.0.0.0:8545 \
   --http 127.0.0.1:8088 \

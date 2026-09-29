@@ -1,6 +1,6 @@
 # Simba beta
 
-**Address people by name.** Public **testnet** for Guld 2.0. Not mainnet — balances and tip may reset once more before durable lock.
+**Address people by name.** Public **testnet** for Guld 2.0. Not mainnet — but **Simba will not reset again**. Breaking protocol changes that cannot height-activate ship as **[Mufasa](MUFASA.md)** (named successor; `chain_id` 3 planned — **not launched**).
 
 | | |
 |--|--|
@@ -10,7 +10,7 @@
 | **Bootstrap peer** | [guld.io](https://guld.io/) — HTTP/API + P2P |
 | **P2P listen** | TCP `4001` (`/dns4/guld.io/tcp/4001`) |
 | **Bootnode list** | [`data/p2p-bootnodes.json`](../data/p2p-bootnodes.json) → `https://guld.io/data/p2p-bootnodes.json` |
-| **Reset policy** | **One more reset OK** before durable beta lock (G4) |
+| **Reset policy** | **Locked** — no further Simba resets; incompatible changes → **[Mufasa](MUFASA.md)** (named next testnet; not launched) |
 
 Genesis artifacts: [`data/genesis/simba/`](../data/genesis/simba/). Operator runbook: [`deploy/SIMBA.md`](../deploy/SIMBA.md).
 
@@ -18,9 +18,15 @@ Genesis artifacts: [`data/genesis/simba/`](../data/genesis/simba/). Operator run
 
 Site chrome shows **Simba testnet** via `GET /api/v1/chain/status` (`mode=testnet`, `network=simba`). Wallet / explorer / register use the same peer API.
 
+**PoW / security budget:** Simba seals with **solo SHA256d** (Bitcoin-**parameter** timing). That is a parameter class, **not** Bitcoin-class rewrite resistance — early hashrate is low by design. AuxPoW / merged mining is out of scope for launch. Operator wording: [`fragments/security-budget.md`](fragments/security-budget.md) · whitepaper [§11](whitepaper/guld-2.0.md#11-security-notes-and-risks).
+
 ---
 
 ## How to join
+
+**macOS (easy path):** [help/mac-peer.md](help/mac-peer.md) — one Terminal paste installs a validating peer, with `update` / `start` / `stop` helpers.
+
+**Any platform (manual):**
 
 1. Clone this umbrella (and submodules), build `guld-node`.
 2. Start a validating peer with an empty datadir — it loads committed genesis, then syncs the tip over P2P:
@@ -56,3 +62,12 @@ There is **no** required Discord for mesh membership. v1 expectation:
 ## Faucet (testnet)
 
 On guld.io when enabled: `GET /api/v1/faucet`, `POST /api/v1/faucet/drip`, `POST /api/v1/faucet/register`. Key lives on the host only (`GULD_FAUCET_KEY` or datadir key file) — never in git. Details: [`deploy/SIMBA.md`](../deploy/SIMBA.md) § Faucet.
+
+---
+
+## Rule-bundle upgrades
+
+Simba tip stays locked; Core catch-up activates by **height** (spec 17), not regenesis. When a bundle is published, operators get binary version, `H`, and old/new `guld_rules_hash` via the notice template in [`deploy/SIMBA.md`](../deploy/SIMBA.md) § Rule-bundle upgrade notice. Tracking: [055](../tasks/open/055-simba-single-rule-bundle.md).
+
+Tip-incompatible work (e.g. account-leaf **codec rewrite**) is **not** Simba — see **[Mufasa](MUFASA.md)** and checklist [052](../tasks/open/052-next-testnet-checklist.md).
+

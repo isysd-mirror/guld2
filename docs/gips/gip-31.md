@@ -4,7 +4,7 @@ title: Contacts address book and private invites
 description: Local address book with off-chain fields and non-binding private registration invites.
 author: Guld contributors
 discussions-to: ./README.md
-status: Draft
+status: Accepted
 type: Standards
 category: Application
 created: 2026-09-28
@@ -60,4 +60,5 @@ Normative UI detail: [`../specs/14-reference-ui.md`](../specs/14-reference-ui.md
 
 ## History
 
-Extends [GIP-20](gip-20.md). Reframes human-first P1 “share-first friend invite” ([`../design/human-first-ux.md`](../design/human-first-ux.md)) as Contacts private invite.
+- Extends [GIP-20](gip-20.md). Reframes human-first P1 “share-first friend invite” ([`../design/human-first-ux.md`](../design/human-first-ux.md)) as Contacts private invite.
+- 2026-09-29: **Accepted** — reference UI / Application; no consensus change.

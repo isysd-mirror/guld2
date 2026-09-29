@@ -1,7 +1,7 @@
 # Reference dapp sketch
 
 **Status:** **live proof of concept** on Simba — play [/demo/ttt/](/demo/ttt/); tips under [`ttt-demo`](/explorer/#/account/ttt-demo). Packages: [037](../tasks/done/2026-09/037-guld-tic-tac-toe.md); materialize [033](../tasks/done/2026-09/033-leaf-host-materialize.md) (**done**).  
-**Landing:** [/#developers](/#developers) · **Related:** [`polyglot-sdk-packages.md`](polyglot-sdk-packages.md) (**Accepted**), [036](../tasks/done/2026-09/036-guld-js-sdk.md), [spec 11](../specs/11-leaf-host.md), [whitepaper §4](../whitepaper/guld-2.0-draft.md), `/demo/login/` (extension auth).
+**Landing:** [/#developers](/#developers) · **Related:** [`polyglot-sdk-packages.md`](polyglot-sdk-packages.md) (**Accepted**), [036](../tasks/done/2026-09/036-guld-js-sdk.md), [spec 11](../specs/11-leaf-host.md), [whitepaper §4](../whitepaper/guld-2.0.md), `/demo/login/` (extension auth).
 
 ## Goal
 

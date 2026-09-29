@@ -1,10 +1,17 @@
+# Bind-mount the umbrella checkout into /var/www/guld.io for ACME / legacy static.
+# Edit What= to your checkout before enabling (do not commit machine-local paths).
+#
+# Example:
+#   What=/home/guld/guld
+# or a dedicated publish tree under /srv.
+
 [Unit]
 Description=Bind mount guld.io static site to /var/www/guld.io
 Before=nginx.service
 After=local-fs.target
 
 [Mount]
-What=/home/isysd/Projects/guld.io
+What=/srv/guld/checkout
 Where=/var/www/guld.io
 Type=none
 Options=bind

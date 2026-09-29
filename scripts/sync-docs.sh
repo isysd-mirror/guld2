@@ -4,5 +4,5 @@
 set -euo pipefail
 ROOT="$(cd "$(dirname "$0")/.." && pwd)"
 echo "noop: site reads ${ROOT}/docs/ directly (no mirror)."
-test -f "${ROOT}/docs/whitepaper/guld-2.0-draft.md"
+test -f "${ROOT}/docs/whitepaper/guld-2.0.md"
 test -f "${ROOT}/docs/specs/00-overview.md"

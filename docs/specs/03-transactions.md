@@ -128,6 +128,7 @@ RegisterUsername {
   name: Name,
   keys, threshold, initial_master_hash,
   endowment: Amount,
+  bio: optional bytes,          // ≤128 B; [GIP-34](../gips/gip-34.md)
   payer_signature: Signature,
   registrant_signature: Signature,
   inclusion_fee: Amount,
@@ -165,6 +166,7 @@ RegisterSubaccount {
   threshold: u16,
   initial_master_hash: Hash32,
   endowment: Amount,
+  bio: optional bytes,          // ≤128 B; [GIP-34](../gips/gip-34.md)
   parent_signature: Signature,  // over guld/register_sub/v1
   sub_signature: Signature,     // keys[0] over guld/register_sub/intent/v1
   inclusion_fee: Amount,
@@ -236,7 +238,7 @@ ConvertAccountKind {
 - Protocol fee = registration fee for **target** kind: `F_user(L)` or `F_group(L, n)` (`n = new_keys.len()`). No rebate of prior kind fees.  
 - `balance >= protocol_fee + inclusion_fee`.
 
-**Effects:** set `kind = new_kind`; replace `keys` / `threshold`; debit fees (protocol → 8-block vest); `nonce++`. Preserve `name`, `account_id`, `master_hash`, `expires_at_height`, `legacy`, balance after fees.
+**Effects:** set `kind = new_kind`; replace `keys` / `threshold`; debit fees (protocol → 8-block vest); `nonce++`. Preserve `name`, `account_id`, `master_hash`, `expires_at_height`, `legacy`, `bio`, balance after fees.
 
 ### 3.4a `SettleRegistration`
 
@@ -327,6 +329,67 @@ ClaimLegacy {
 **Effects:** verify legacy ownership for **`name`**; set keys/threshold/`master_hash`; set `legacy.status = claimed`; **`name` and `account_id` unchanged**; balance unchanged aside from `inclusion_fee`.
 
 **MUST** reject if: account missing; not legacy-locked; `name` was never imported; or proof/`message` names disagree.
+
+### 3.8 `UnregisterAccount`
+
+Voluntary early release of a name before expiry ([GIP-33](../gips/gip-33.md)).
+
+```text
+UnregisterAccount {
+  name: Name,
+  cosignatures: Vec<CosignProof>,   // threshold policy on `name`
+  inclusion_fee: Amount,
+  memo: optional bytes,
+}
+```
+
+**Auth** (`guld/unregister_account/v1`): cosignatures under current keys/threshold binding at minimum:
+
+```text
+name ‖ nonce ‖ chain_id ‖ expires_at_height ‖ inclusion_fee ‖ memo?
+```
+
+(`nonce` = account value before apply.)
+
+**Eligibility:**
+
+| Kind | MAY? | Preconditions |
+|------|------|---------------|
+| `subaccount` | Yes | Parent exists; sub threshold signs |
+| `individual` / `group` | Yes | No live subs (individuals); `balance == inclusion_fee` |
+| `network` / `foreign_chain` / legacy-locked | No | — |
+| Lapsed (`height >= expires_at_height`) | No | Use `SettleRegistration` |
+
+**Effects:**
+
+- **Sub:** debit `inclusion_fee`; credit remaining balance to parent; delete sub; parent live-sub count decreases.
+- **Root:** debit `inclusion_fee`; delete account. Name becomes registrable. `account_id` is not reused.
+
+### 3.9 `UpdateBio`
+
+Set or clear the optional 128-byte account bio ([GIP-34](../gips/gip-34.md)).
+
+```text
+UpdateBio {
+  name: Name,
+  bio: Option<Bytes>,           // empty / omit = clear; else 1..=128 bytes
+  cosignatures: Vec<CosignProof>,
+  inclusion_fee: Amount,
+  memo: optional bytes,         // GIP-16; unrelated to account bio
+}
+```
+
+**Auth** (`guld/update_bio/v1`): cosignatures under current keys/threshold binding:
+
+```text
+name ‖ nonce ‖ chain_id ‖ bio_bytes ‖ inclusion_fee ‖ memo?
+```
+
+**Checks:** account exists; not legacy-locked; not `network` (`guld`) unless a future rule allows; `len(bio) ≤ 128` when present.
+
+**Effects:** `account.bio ← bio` (or clear); `nonce++`; inclusion fee → miner.
+
+Registration bodies (`RegisterUsername` / `RegisterGroup` / `RegisterSubaccount`) MAY include optional `bio` with the same size rules; `SettleRegistration` MUST NOT change `bio`.
 
 ## 4. Validation pipeline (node)
 

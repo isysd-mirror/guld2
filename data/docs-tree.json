@@ -1,5 +1,5 @@
 {
-  "generated": "2026-09-27",
+  "generated": "2026-09-29",
   "extras": [
     {
       "name": "README.md",
@@ -12,12 +12,24 @@
       "name": "design",
       "children": [
         {
+          "name": "contacts-and-private-invite.md",
+          "path": "design/contacts-and-private-invite.md"
+        },
+        {
+          "name": "cosign-sessions.md",
+          "path": "design/cosign-sessions.md"
+        },
+        {
           "name": "feedback-ux-2026-09.md",
           "path": "design/feedback-ux-2026-09.md"
         },
         {
           "name": "human-first-ux.md",
           "path": "design/human-first-ux.md"
+        },
+        {
+          "name": "pwa-extension-shared-ui.md",
+          "path": "design/pwa-extension-shared-ui.md"
         },
         {
           "name": "README.md",
@@ -46,8 +58,16 @@
           "path": "fragments/chain-comparison.md"
         },
         {
+          "name": "faucet-registrar-hardening.md",
+          "path": "fragments/faucet-registrar-hardening.md"
+        },
+        {
           "name": "legacy-distribution.md",
           "path": "fragments/legacy-distribution.md"
+        },
+        {
+          "name": "security-budget.md",
+          "path": "fragments/security-budget.md"
         }
       ]
     },
@@ -147,6 +167,30 @@
           "path": "gips/gip-3.md"
         },
         {
+          "name": "gip-30.md",
+          "path": "gips/gip-30.md"
+        },
+        {
+          "name": "gip-31.md",
+          "path": "gips/gip-31.md"
+        },
+        {
+          "name": "gip-32.md",
+          "path": "gips/gip-32.md"
+        },
+        {
+          "name": "gip-33.md",
+          "path": "gips/gip-33.md"
+        },
+        {
+          "name": "gip-34.md",
+          "path": "gips/gip-34.md"
+        },
+        {
+          "name": "gip-35.md",
+          "path": "gips/gip-35.md"
+        },
+        {
           "name": "gip-4.md",
           "path": "gips/gip-4.md"
         },
@@ -184,6 +228,14 @@
       "name": "help",
       "children": [
         {
+          "name": "extension-pairing.md",
+          "path": "help/extension-pairing.md"
+        },
+        {
+          "name": "mac-peer.md",
+          "path": "help/mac-peer.md"
+        },
+        {
           "name": "paymento.md",
           "path": "help/paymento.md"
         },
@@ -214,8 +266,24 @@
           "path": "research/block-window-consensus.md"
         },
         {
+          "name": "external-code-review-beta.md",
+          "path": "research/external-code-review-beta.md"
+        },
+        {
           "name": "jsonrpc-vs-http-api.md",
           "path": "research/jsonrpc-vs-http-api.md"
+        },
+        {
+          "name": "l0-leaf-trust-boundary.md",
+          "path": "research/l0-leaf-trust-boundary.md"
+        },
+        {
+          "name": "memo-sidechannel.md",
+          "path": "research/memo-sidechannel.md"
+        },
+        {
+          "name": "merged-mining-bitcoin.md",
+          "path": "research/merged-mining-bitcoin.md"
         },
         {
           "name": "modern-l1-direction.md",
@@ -472,6 +540,38 @@
                 {
                   "name": "037-guld-tic-tac-toe.md",
                   "path": "tasks/done/2026-09/037-guld-tic-tac-toe.md"
+                },
+                {
+                  "name": "038-contacts-private-invite.md",
+                  "path": "tasks/done/2026-09/038-contacts-private-invite.md"
+                },
+                {
+                  "name": "042-rule-bundle-upgrade-e2e.md",
+                  "path": "tasks/done/2026-09/042-rule-bundle-upgrade-e2e.md"
+                },
+                {
+                  "name": "043-merkle-tx-receipt-roots-gip.md",
+                  "path": "tasks/done/2026-09/043-merkle-tx-receipt-roots-gip.md"
+                },
+                {
+                  "name": "046-http-static-deny-cors-audit.md",
+                  "path": "tasks/done/2026-09/046-http-static-deny-cors-audit.md"
+                },
+                {
+                  "name": "049-fuzz-apply-import.md",
+                  "path": "tasks/done/2026-09/049-fuzz-apply-import.md"
+                },
+                {
+                  "name": "050-reproducible-lifecycle-ci.md",
+                  "path": "tasks/done/2026-09/050-reproducible-lifecycle-ci.md"
+                },
+                {
+                  "name": "053-mainnet-security-budget-messaging.md",
+                  "path": "tasks/done/2026-09/053-mainnet-security-budget-messaging.md"
+                },
+                {
+                  "name": "054-faucet-registrar-hardening.md",
+                  "path": "tasks/done/2026-09/054-faucet-registrar-hardening.md"
                 }
               ]
             },
@@ -491,6 +591,50 @@
             {
               "name": "031-mainnet-genesis-ceremony.md",
               "path": "tasks/open/031-mainnet-genesis-ceremony.md"
+            },
+            {
+              "name": "032-p2p-mesh-robustness-phase-b.md",
+              "path": "tasks/open/032-p2p-mesh-robustness-phase-b.md"
+            },
+            {
+              "name": "039-guld-web-ui-extension-pair.md",
+              "path": "tasks/open/039-guld-web-ui-extension-pair.md"
+            },
+            {
+              "name": "040-simba-genesis-timestamp-retarget.md",
+              "path": "tasks/open/040-simba-genesis-timestamp-retarget.md"
+            },
+            {
+              "name": "041-voluntary-unregister.md",
+              "path": "tasks/open/041-voluntary-unregister.md"
+            },
+            {
+              "name": "044-merkle-roots-implement-simba-activate.md",
+              "path": "tasks/open/044-merkle-roots-implement-simba-activate.md"
+            },
+            {
+              "name": "045-gip-25-attestation-cosigners.md",
+              "path": "tasks/open/045-gip-25-attestation-cosigners.md"
+            },
+            {
+              "name": "047-cas-tip-da-ux.md",
+              "path": "tasks/open/047-cas-tip-da-ux.md"
+            },
+            {
+              "name": "048-lift-locked-spec-draft-banners.md",
+              "path": "tasks/open/048-lift-locked-spec-draft-banners.md"
+            },
+            {
+              "name": "051-account-leaf-datadir-bare.md",
+              "path": "tasks/open/051-account-leaf-datadir-bare.md"
+            },
+            {
+              "name": "052-next-testnet-checklist.md",
+              "path": "tasks/open/052-next-testnet-checklist.md"
+            },
+            {
+              "name": "055-simba-single-rule-bundle.md",
+              "path": "tasks/open/055-simba-single-rule-bundle.md"
             }
           ]
         },
@@ -513,8 +657,8 @@
       "name": "whitepaper",
       "children": [
         {
-          "name": "guld-2.0-draft.md",
-          "path": "whitepaper/guld-2.0-draft.md"
+          "name": "guld-2.0.md",
+          "path": "whitepaper/guld-2.0.md"
         }
       ]
     },
@@ -539,6 +683,10 @@
       "path": "LATER.md"
     },
     {
+      "name": "MUFASA.md",
+      "path": "MUFASA.md"
+    },
+    {
       "name": "PACKAGES.md",
       "path": "PACKAGES.md"
     },
@@ -553,6 +701,10 @@
     {
       "name": "SOFTWARE_FLOW.md",
       "path": "SOFTWARE_FLOW.md"
+    },
+    {
+      "name": "SOURCE_AND_RELEASE.md",
+      "path": "SOURCE_AND_RELEASE.md"
     },
     {
       "name": "UPGRADE_FROM_1.md",

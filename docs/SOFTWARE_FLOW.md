@@ -4,7 +4,7 @@ Guld is a **standalone** platform. This document is guld’s own loop. It does *
 
 **Canonical HTTP server:** `guld-node --http` + `--http-static .` (API, site, `/repos/`). nginx is optional and only for guld.io TLS/extras — see [`HOSTING.md`](HOSTING.md).
 
-Software remotes: [`REPO_LAYOUT.md`](REPO_LAYOUT.md).
+Software remotes: [`REPO_LAYOUT.md`](REPO_LAYOUT.md). Source trust, CI, CD, releases, and optional GitHub mirrors: [`SOURCE_AND_RELEASE.md`](SOURCE_AND_RELEASE.md).
 
 Proposals: [`gips/`](gips/) ([GIP-1](gips/gip-1.md)). Entry point: [`../CONTRIBUTING.md`](../CONTRIBUTING.md).
 
@@ -22,7 +22,7 @@ Proposals: [`gips/`](gips/) ([GIP-1](gips/gip-1.md)). Entry point: [`../CONTRIBU
 
 Consensus activation (when a Core GIP changes validity): ship matching software first, then publish the next `guld` rule bundle with `activation_height` — [spec 17](specs/17-protocol-upgrades.md).
 
-**Local CI:** `./scripts/install-dev-hooks.sh` once per clone. Pre-commit on `guld-state` / `guld-node` / `guld-p2p` / `guld-legacy` (and umbrella when those paths change) runs lifecycle Phase 1–5 + Simba genesis pin smoke — see [task 006](tasks/done/2026-09/006-chain-lifecycle-tests.md) / [012](tasks/done/2026-09/012-simba-genesis-ceremony.md). No hosted pipeline.
+**Local CI:** `./scripts/install-dev-hooks.sh` once per clone. Pre-commit on `guld-state` / `guld-node` / `guld-p2p` / `guld-legacy` (and umbrella when those paths change) runs lifecycle Phase 1–5 + Simba genesis pin smoke — see [task 006](tasks/done/2026-09/006-chain-lifecycle-tests.md) / [012](tasks/done/2026-09/012-simba-genesis-ceremony.md). No hosted pipeline required; forge Actions are optional signals only — [`SOURCE_AND_RELEASE.md`](SOURCE_AND_RELEASE.md).
 
 ## Consumers
 
@@ -31,4 +31,4 @@ Consensus activation (when a Core GIP changes validity): ship matching software 
 - depend on crates / future `guld-js`
 - call `guld-node --http` (`/api/v1/…`)
 
-GitHub, if used, is a mirror only.
+GitHub, if used, is a mirror only — see [`SOURCE_AND_RELEASE.md`](SOURCE_AND_RELEASE.md) §5.

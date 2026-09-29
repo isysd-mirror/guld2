@@ -54,7 +54,7 @@ The key words "MUST", "MUST NOT", "REQUIRED", "SHALL", "SHALL NOT", "SHOULD", "S
 
 6. **Spec 15 §5.3.** After a legacy name is **released** by settle, fresh registration of that string MUST be allowed (existence check only). The “reject any import-manifest name forever” rule is **RETIRED**.
 
-7. **Activation.** On Simba, ship via **regenesis** (one more reset OK — task 007 D1). On any live tip that already imported `NEVER_EXPIRES` locked rows, activate via height-activated rule bundle ([spec 17](../specs/17-protocol-upgrades.md)): at `activation_height`, rewrite locked accounts with `expires_at_height = activation_height + REGISTRATION_PERIOD` (or `max(expires, …)` if already finite).
+7. **Activation.** On Simba, shipped via **regenesis** (task 007 D1 / [026](../tasks/done/2026-09/026-simba-regenesis-gip-27.md)). **Simba tip is now locked — no further resets**; later incompatible changes MUST use a new named testnet or a height-activated rule bundle ([spec 17](../specs/17-protocol-upgrades.md)). On any live tip that already imported `NEVER_EXPIRES` locked rows without regenesis, activate via rule bundle: at `activation_height`, rewrite locked accounts with `expires_at_height = activation_height + REGISTRATION_PERIOD` (or `max(expires, …)` if already finite).
 
 ### Explicit non-goals
 

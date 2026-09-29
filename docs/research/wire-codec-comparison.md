@@ -236,7 +236,7 @@ Canonical JSON everywhere for `TxId`; defer binary to post-Simba.
 
 1. Pick codec (**A2 decision**); document in spec 01 §4 + spec 09 §3.
 2. Publish byte test vectors for every `Tx` variant (including GIP-22 `RewardCommit` / `ClaimReward` when added).
-3. Implement dual-decode window **or** clean break at `activation_height` (spec 17) — Simba may reset once.
+3. Implement dual-decode window **or** clean break at `activation_height` (spec 17) — **not** a Simba wipe (tip locked; breaking changes → new testnet).
 4. Bump P2P protocol id: e.g. `/guld/tx/2.0.0` (binary) vs `/guld/tx/1.0.0` (JSON legacy).
 5. Pin genesis / block-0 with binary-encoded body when **G2** ceremony runs.
 

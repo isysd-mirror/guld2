@@ -1,8 +1,8 @@
 # Task: Contacts page + private registration invite
 
-Status: open  
+Status: **done**  
 Priority: high  
-GIP: ../gips/gip-31.md  
+GIP: ../gips/gip-31.md (**Accepted**)  
 Design: ../design/contacts-and-private-invite.md  
 Spec: ../specs/14-reference-ui.md §8.3  
 
@@ -16,7 +16,7 @@ Contacts are a Settings fieldset + Send typeahead (GIP-20). Inviting a friend is
 
 - [x] Design SoT: [`../design/contacts-and-private-invite.md`](../design/contacts-and-private-invite.md)
 - [x] Spec 14 §8.3 / §8.3.2 + `/contacts/` surface
-- [x] GIP-31 Draft
+- [x] GIP-31 Draft → **Accepted**
 - [x] Human-first P1 retarget; Spec 16 / FAQ pointers
 
 ### Implementation (after docs review)
@@ -34,3 +34,9 @@ Contacts are a Settings fieldset + Send typeahead (GIP-20). Inviting a friend is
 - On-chain invite codes or name holds  
 - Cross-device contact sync  
 - Public invite landing / referral rewards  
+
+## Notes
+
+```
+2026-09-29: Closed — implementation complete; GIP-31 Accepted.
+```

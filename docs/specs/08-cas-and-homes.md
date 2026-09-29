@@ -38,34 +38,38 @@ trait Cas {
 
 Storage backend: filesystem or KV under the node data dir.
 
-## 4. Mandatory `guld` rule bundle
+## 4. Active `guld` rule-bundle digest (not content DA)
 
 On tip update affecting account `guld`, or on node startup, a **full validating node** MUST:
 
-1. Materialize the CAS objects reachable from account `guld`’s current `master_hash` home tree.  
-2. Verify header `guld_rules_hash` matches the digest of that **rule bundle** (schemas, fee tables, proof kinds — whitepaper §3.5).
+1. Obtain the **rule bundle** bytes needed to interpret `guld_rules_hash` (schemas, fee tables, proof kinds — whitepaper §3.5)—typically a **small** CAS tree under `guld`, or an equivalent local copy shipped with software.  
+2. Verify header `guld_rules_hash` matches the digest of that **active** rule bundle.
 
 ```text
-cas.materialize_tree(account("guld").home_tree_root)  // small rule bundle only
+// small rule bundle only — not “clone all guld content / source”
+cas.materialize_tree(account("guld").home_tree_root)  // when rules live in CAS
 assert header.guld_rules_hash == hash(active_rule_bundle)
 ```
 
-**NOT required:** materializing node/wallet/website **source code** from CAS. Those ship from ordinary git; engineers’ checkouts are off-chain.
+This is **rules knowledge for validation**, not a content-availability market and not stake/slash for retaining blobs.
 
-Failure to materialize the rule bundle or rules-hash mismatch ⇒ node MUST NOT advertise as a full validating peer.
+**NOT required:** materializing node/wallet/website **source code** from CAS. Those ship from ordinary git; engineers’ checkouts are off-chain.  
+**NOT required:** storing ordinary user/group home trees.
+
+Failure to know the active rules digest or rules-hash mismatch ⇒ node MUST NOT advertise as a full validating peer.
 
 **Upgrades:** publishing a new rule bundle under `guld` does not instantly change validation — see [`17-protocol-upgrades.md`](17-protocol-upgrades.md) (`activation_height`).
 
 ## 5. Other accounts — tip ≠ DA
 
-**Locked:** consensus has **no** `PinClaim` / `PinRelease` / on-chain data-availability market.
+**Locked:** consensus has **no** `PinClaim` / `PinRelease` / on-chain data-availability market / stake-or-slash for blob retention.
 
 - Validators MUST store account tips (`master_hash`, keys, balances).  
 - Validators MUST NOT be required to store ordinary account home bytes.  
 - Clients and leaf hosts fetch objects via P2P, `remotes[]` hints, or local import.  
-- Retention agreements (payment, escrow, punishment) live in **private leaves** or ordinary `Transfer`s—not fixed L0 storage txs.
+- Retention agreements (payment, escrow, private leaf policy) live in **leaves** or ordinary `Transfer`s—not fixed L0 storage txs. **No L0 slash for missing CAS.**
 
-Optional future storage markets are **apps**, not required protocol surface.
+Optional future storage markets are **apps/leaves only**, not required protocol surface.
 
 ## 6. Sync
 

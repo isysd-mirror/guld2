@@ -1,0 +1,407 @@
+#!/usr/bin/env bash
+# guld-peer — Simba peer helper (macOS first). Validate-only or optional miner.
+# Usage:
+#   ./scripts/peer/guld-peer install [--mine NAME]
+#   ./scripts/peer/guld-peer update | start | stop | restart | status | logs | open
+#   ./scripts/peer/guld-peer mine-setup NAME
+#   ./scripts/peer/guld-peer mine on NAME | mine off | mine status
+set -euo pipefail
+
+LABEL="com.guld.simba-peer"
+GULD_HOME="${GULD_HOME:-$HOME/guld}"
+CONF="$GULD_HOME/.guld-peer.conf"
+PLIST_DST="$HOME/Library/LaunchAgents/${LABEL}.plist"
+LOG_DIR="$HOME/Library/Logs/guld"
+BIN="$GULD_HOME/target/release/guld-node"
+CLI_BIN="$GULD_HOME/target/release/guld-cli"
+DATADIR_REL="./.guld-data/simba"
+DEFAULT_MINE_CPU="${GULD_MINE_CPU_PERCENT:-1}"
+
+die() { echo "error: $*" >&2; exit 1; }
+need() { command -v "$1" >/dev/null 2>&1 || die "missing `$1` — run: $0 install"; }
+
+ensure_dirs() {
+  mkdir -p "$LOG_DIR" "$(dirname "$PLIST_DST")"
+}
+
+have_brew() { command -v brew >/dev/null 2>&1; }
+
+load_conf() {
+  MINER="${GULD_MINER:-}"
+  MINE_CPU_PERCENT="$DEFAULT_MINE_CPU"
+  if [[ -f "$CONF" ]]; then
+    # shellcheck disable=SC1090
+    source "$CONF"
+  fi
+  MINER="${MINER:-}"
+  MINE_CPU_PERCENT="${MINE_CPU_PERCENT:-$DEFAULT_MINE_CPU}"
+}
+
+save_conf() {
+  mkdir -p "$GULD_HOME"
+  cat >"$CONF" <<EOF
+# Managed by scripts/peer/guld-peer — local only; do not commit.
+MINER=${MINER:-}
+MINE_CPU_PERCENT=${MINE_CPU_PERCENT:-$DEFAULT_MINE_CPU}
+EOF
+  echo "→ config: $CONF"
+}
+
+install_deps_mac() {
+  if ! have_brew; then
+    echo "Homebrew not found. Install it from https://brew.sh (paste their one-liner), then re-run:"
+    echo "  $0 install"
+    exit 1
+  fi
+  echo "→ brew: git + rust"
+  brew list git >/dev/null 2>&1 || brew install git
+  brew list rust >/dev/null 2>&1 || brew install rust
+}
+
+clone_or_update_tree() {
+  if [[ -d "$GULD_HOME/.git" ]]; then
+    echo "→ checkout exists: $GULD_HOME"
+    return
+  fi
+  if [[ -e "$GULD_HOME" ]]; then
+    die "$GULD_HOME exists but is not a git checkout — move it aside or set GULD_HOME="
+  fi
+  echo "→ clone https://guld.io/repos/guld.git → $GULD_HOME"
+  git clone --recurse-submodules https://guld.io/repos/guld.git "$GULD_HOME"
+}
+
+pull_tree() {
+  need git
+  [[ -d "$GULD_HOME/.git" ]] || die "no checkout at $GULD_HOME — run: $0 install"
+  echo "→ git pull + submodules ($GULD_HOME)"
+  git -C "$GULD_HOME" pull --ff-only
+  git -C "$GULD_HOME" submodule update --init --recursive
+}
+
+build_node() {
+  need cargo
+  [[ -d "$GULD_HOME" ]] || die "no checkout at $GULD_HOME"
+  echo "→ cargo build -p guld-node -p guld-cli --release (a few minutes the first time)"
+  (cd "$GULD_HOME" && cargo build -p guld-node -p guld-cli --release)
+  [[ -x "$BIN" ]] || die "build finished but missing $BIN"
+}
+
+sk_path() {
+  local name="$1"
+  echo "$GULD_HOME/.guld-data/simba/keys/${name}.sk"
+}
+
+write_plist() {
+  load_conf
+  ensure_dirs
+  local args=(
+    "$BIN"
+    --network simba
+    --datadir "$DATADIR_REL"
+    --rpc 127.0.0.1:8546
+    --http 127.0.0.1:8081
+    --http-static .
+    --p2p 0.0.0.0:4001
+    --auto-mine false
+    --keys-pgp archives/keys-pgp
+  )
+  if [[ -n "${MINER:-}" ]]; then
+    args+=(--miner "$MINER" --mine-cpu-percent "$MINE_CPU_PERCENT")
+  fi
+
+  {
+    cat <<EOF
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
+<plist version="1.0">
+<dict>
+  <key>Label</key>
+  <string>${LABEL}</string>
+  <key>WorkingDirectory</key>
+  <string>${GULD_HOME}</string>
+  <key>ProgramArguments</key>
+  <array>
+EOF
+    local a
+    for a in "${args[@]}"; do
+      printf '    <string>%s</string>\n' "$a"
+    done
+    cat <<EOF
+  </array>
+  <key>RunAtLoad</key>
+  <true/>
+  <key>KeepAlive</key>
+  <true/>
+  <key>StandardOutPath</key>
+  <string>${LOG_DIR}/simba-peer.out.log</string>
+  <key>StandardErrorPath</key>
+  <string>${LOG_DIR}/simba-peer.err.log</string>
+  <key>ProcessType</key>
+  <string>Background</string>
+</dict>
+</plist>
+EOF
+  } >"$PLIST_DST"
+  if [[ -n "${MINER:-}" ]]; then
+    echo "→ launchd plist: $PLIST_DST (mining as ${MINER}, cpu ${MINE_CPU_PERCENT}%)"
+  else
+    echo "→ launchd plist: $PLIST_DST (validate-only)"
+  fi
+}
+
+launch_load() {
+  ensure_dirs
+  launchctl bootout "gui/$(id -u)/${LABEL}" 2>/dev/null || true
+  launchctl bootstrap "gui/$(id -u)" "$PLIST_DST"
+  launchctl enable "gui/$(id -u)/${LABEL}"
+  launchctl kickstart -k "gui/$(id -u)/${LABEL}"
+  echo "→ started ${LABEL}"
+}
+
+launch_unload() {
+  launchctl bootout "gui/$(id -u)/${LABEL}" 2>/dev/null || true
+  echo "→ stopped ${LABEL}"
+}
+
+parse_install_args() {
+  WANT_MINER=""
+  while [[ $# -gt 0 ]]; do
+    case "$1" in
+      --mine)
+        shift
+        WANT_MINER="${1:-}"
+        [[ -n "$WANT_MINER" ]] || die "usage: install --mine <name>"
+        shift
+        ;;
+      *)
+        die "unknown install option: $1"
+        ;;
+    esac
+  done
+}
+
+cmd_install() {
+  if [[ "$(uname -s)" != "Darwin" ]]; then
+    die "this helper targets macOS today; on Linux see deploy/SIMBA.md (systemd peer unit)"
+  fi
+  parse_install_args "$@"
+  install_deps_mac
+  clone_or_update_tree
+  pull_tree
+  build_node
+  if [[ -n "$WANT_MINER" ]]; then
+    MINER="$WANT_MINER"
+    MINE_CPU_PERCENT="$DEFAULT_MINE_CPU"
+    save_conf
+    cmd_mine_setup "$MINER"
+  else
+    load_conf
+    save_conf
+  fi
+  write_plist
+  launch_load
+  echo
+  echo "Done. Wallet (local peer):  http://127.0.0.1:8081/wallet/"
+  if [[ -n "${MINER:-}" ]]; then
+    echo "Mining as:                  $MINER (cpu ${MINE_CPU_PERCENT}%)"
+    echo "If the name is not on-chain yet, register it (faucet) with the pubkey from mine-setup."
+  else
+    echo "Mining:                     off — later: $0 mine-setup <name> && $0 mine on <name>"
+  fi
+  echo "Upgrade later:              $0 update"
+  echo "Status:                     $0 status"
+}
+
+cmd_update() {
+  load_conf
+  pull_tree
+  build_node
+  write_plist
+  launch_load
+  echo "Updated."
+}
+
+cmd_start() {
+  [[ -f "$PLIST_DST" ]] || die "not installed — run: $0 install"
+  write_plist
+  launch_load
+}
+
+cmd_stop() {
+  launch_unload
+}
+
+cmd_restart() {
+  cmd_stop
+  cmd_start
+}
+
+cmd_mine_setup() {
+  local name="${1:-}"
+  name="$(echo "$name" | tr '[:upper:]' '[:lower:]' | tr -d '[:space:]')"
+  [[ -n "$name" ]] || die "usage: $0 mine-setup <name>"
+  [[ -x "$BIN" ]] || build_node
+  [[ -x "$CLI_BIN" ]] || build_node
+
+  mkdir -p "$GULD_HOME/.guld-data/simba/keys"
+  local sk
+  sk="$(sk_path "$name")"
+
+  echo "→ ensure local key for miner name “$name”"
+  if ! "$CLI_BIN" accounts 2>/dev/null | awk -F'\t' '{print $2}' | grep -qx "$name"; then
+    "$CLI_BIN" keygen "$name" --active
+  else
+    echo "  (keyring already has $name)"
+  fi
+
+  local secret pub
+  secret="$("$CLI_BIN" privkey "$name")"
+  pub="$("$CLI_BIN" pubkey "$name")"
+  printf '%s\n' "$secret" >"$sk"
+  chmod 600 "$sk"
+  echo "→ wrote $sk"
+
+  cat <<EOF
+
+Miner key ready for “$name”.
+
+  pubkey:  ${pub}
+  secret:  $sk   (stays on this Mac — never share)
+
+Next:
+  1. Open http://127.0.0.1:8081/wallet/ (or guld.io) and register “$name”
+     with this pubkey — Simba faucet on guld.io can sponsor free names.
+  2. Import the same secret into the browser wallet if you want UI control
+     (key manager — paste hex from: $CLI_BIN privkey $name).
+  3. Enable mining (if not already):
+       $0 mine on $name
+
+EOF
+}
+
+cmd_mine_on() {
+  local name="${1:-}"
+  name="$(echo "$name" | tr '[:upper:]' '[:lower:]' | tr -d '[:space:]')"
+  [[ -n "$name" ]] || die "usage: $0 mine on <name>"
+  local sk
+  sk="$(sk_path "$name")"
+  if [[ ! -f "$sk" ]]; then
+    echo "No miner key at $sk"
+    echo "Run: $0 mine-setup $name"
+    exit 1
+  fi
+  MINER="$name"
+  MINE_CPU_PERCENT="$DEFAULT_MINE_CPU"
+  save_conf
+  write_plist
+  launch_load
+  echo "Mining enabled as $name (cpu ${MINE_CPU_PERCENT}% of one core)."
+}
+
+cmd_mine_off() {
+  load_conf
+  MINER=""
+  save_conf
+  write_plist
+  launch_load
+  echo "Mining disabled (validate-only)."
+}
+
+cmd_mine_status() {
+  load_conf
+  if [[ -n "${MINER:-}" ]]; then
+    local sk
+    sk="$(sk_path "$MINER")"
+    echo "mining:  on"
+    echo "miner:   $MINER"
+    echo "cpu:     ${MINE_CPU_PERCENT}% of one core"
+    echo "key:     $sk$([ -f "$sk" ] && echo ' (ok)' || echo ' (MISSING — mine-setup)')"
+  else
+    echo "mining:  off (validate-only)"
+    echo "enable:  $0 mine-setup <name> && $0 mine on <name>"
+  fi
+}
+
+cmd_status() {
+  load_conf
+  echo "checkout: $GULD_HOME"
+  echo "binary:   $BIN$([ -x "$BIN" ] && echo ' (ok)' || echo ' (missing)')"
+  echo "plist:    $PLIST_DST$([ -f "$PLIST_DST" ] && echo ' (ok)' || echo ' (missing)')"
+  if [[ -n "${MINER:-}" ]]; then
+    echo "mining:   on as $MINER (cpu ${MINE_CPU_PERCENT}%)"
+  else
+    echo "mining:   off"
+  fi
+  echo
+  launchctl print "gui/$(id -u)/${LABEL}" 2>/dev/null | head -40 || echo "(not loaded)"
+  echo
+  if curl -fsS -m 2 http://127.0.0.1:8546/ \
+    -H 'content-type: application/json' \
+    -d '{"jsonrpc":"2.0","id":1,"method":"guld_chainId","params":[]}' 2>/dev/null; then
+    echo
+  else
+    echo "RPC :8546 not answering yet (still syncing or not started)."
+  fi
+}
+
+cmd_logs() {
+  ensure_dirs
+  echo "stdout: $LOG_DIR/simba-peer.out.log"
+  echo "stderr: $LOG_DIR/simba-peer.err.log"
+  tail -n 80 -F "$LOG_DIR/simba-peer.out.log" "$LOG_DIR/simba-peer.err.log"
+}
+
+cmd_open() {
+  if [[ "$(uname -s)" == "Darwin" ]]; then
+    open "http://127.0.0.1:8081/wallet/"
+  else
+    echo "http://127.0.0.1:8081/wallet/"
+  fi
+}
+
+usage() {
+  cat <<EOF
+guld-peer — Simba peer (validate-only or optional miner)
+
+  GULD_HOME=$GULD_HOME
+
+  install [--mine NAME]   deps + clone + build + start (macOS)
+  update                  git pull + rebuild + restart
+  start | stop | restart | status | logs | open
+
+  mine-setup NAME         create miner key → datadir/keys/NAME.sk
+  mine on NAME            enable mining (cpu ${DEFAULT_MINE_CPU}% of one core)
+  mine off                disable mining
+  mine status             show mining config
+
+Friend card: docs/help/mac-peer.md
+EOF
+}
+
+main() {
+  local cmd="${1:-}"
+  shift || true
+  case "$cmd" in
+    install) cmd_install "$@" ;;
+    update) cmd_update ;;
+    start) cmd_start ;;
+    stop) cmd_stop ;;
+    restart) cmd_restart ;;
+    status) cmd_status ;;
+    logs) cmd_logs ;;
+    open) cmd_open ;;
+    mine-setup) cmd_mine_setup "${1:-}" ;;
+    mine)
+      case "${1:-}" in
+        on) cmd_mine_on "${2:-}" ;;
+        off) cmd_mine_off ;;
+        status|"") cmd_mine_status ;;
+        *) die "usage: $0 mine on <name> | mine off | mine status" ;;
+      esac
+      ;;
+    -h|--help|help|"") usage ;;
+    *) die "unknown command: $cmd (try: help)" ;;
+  esac
+}
+
+main "$@"

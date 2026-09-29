@@ -1,7 +1,7 @@
 # Spec 00 — System overview
 
 **Status:** draft  
-**Depends on:** whitepaper v0.18+ ([`../whitepaper/guld-2.0-draft.md`](../whitepaper/guld-2.0-draft.md) — wins all disputes)
+**Depends on:** whitepaper v0.29+ ([`../whitepaper/guld-2.0.md`](../whitepaper/guld-2.0.md) — wins all disputes; mainnet SoT)
 
 ## 1. Purpose
 

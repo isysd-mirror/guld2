@@ -107,6 +107,8 @@ Replace “paste `guld1cosignreq` JSON” as primary with a **session**:
 
 Same pattern as friend registration invites.
 
+**Detail (as-shipped walkthrough + redesign):** [`cosign-sessions.md`](cosign-sessions.md).
+
 ### 4.8 Explorer (out of scope for “soften”)
 
 Explorers are **supposed** to drill into technical detail — hex, heights, mempool, SSE, RPC. That is appropriate here; do not citizen-wash it.

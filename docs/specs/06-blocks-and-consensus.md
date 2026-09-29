@@ -69,6 +69,17 @@ block_hash = SHA256( SHA256( header_pow_preimage ) )
 
 Implementation: `guld-consensus` (`header_pow_hash`, `check_header_pow`, `block_hash`).
 
+### 2.1a `tx_root` / `receipt_root` ([GIP-35](../gips/gip-35.md))
+
+Header slots are unchanged. The **digest algorithm** is height-activated via rule-bundle `root_scheme`:
+
+| Scheme | When | Algorithm |
+|--------|------|-----------|
+| **interim** (historical) | until activation of `merkle_v1` | tagged concat of JSON leaves — `guld/tx_root/interim/v1`, `guld/receipt_root/interim/v1` |
+| **`merkle_v1`** | from activating bundle’s `activation_height` | binary Merkle over `guld/tx_leaf/v1` (BARE tx; RewardCommit claim sig empty) / `guld/receipt_leaf/v1` (JSON receipt); empty → tagged empty; odd layer duplicates last; nodes `guld/merkle_node/v1` |
+
+Seal and import MUST use the scheme required at the block height. Wrong-scheme roots → `BadRoots`. Normative detail: [GIP-35](../gips/gip-35.md).
+
 ### 2.2 Difficulty and valid PoW
 
 - `difficulty` is the minimum count of **leading zero bits** in `block_hash` (big-endian byte order).
@@ -119,9 +130,9 @@ Implementation: `guld-consensus::next_difficulty`. Miners MUST load the period-s
 
 Reference: Bitcoin Core `GetNextWorkRequired` / `CalculateNextWorkRequired` (`src/pow.cpp`).
 
-### 2.5 Merged mining (future — not v1)
+### 2.5 Merged mining (future — not v1 / not mainnet-launch)
 
-v1 does **not** require merged mining. The design keeps the door open the same way Bitcoin auxiliary chains do:
+v1 and **mainnet launch** do **not** require merged mining. Solo SHA256d is sufficient; AuxPoW is an optional later **miner bonus** / hashrate pathway ([research](../research/merged-mining-bitcoin.md)). The design keeps the door open the same way Bitcoin auxiliary chains do:
 
 - **`version`** and/or coinbase-adjacent witness data MAY later commit an **auxiliary block hash** (another chain’s work) without redefining `block_hash`.
 - A future GIP MAY specify: miners prove simultaneous work on Bitcoin (or another parent chain) by embedding that chain’s block hash in a Guld coinbase witness or `guld` home leaf; Guld still validates the Guld header PoW above.

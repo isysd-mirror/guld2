@@ -73,13 +73,18 @@ Layout / clone URLs: [`REPO_LAYOUT.md`](REPO_LAYOUT.md).
 
 - Serve `--http-static` root including `repos/`
 - No SPA fallback for missing `/repos/…` (or any missing static object)
-- Deny or refuse to serve `archives/`, `.guld-data/`, `target/`, `.env` even if present under the static root
-- Optional later: smart git, READMEs for `/software/`, etc.
+- **Deny** (404) even if present under the static root:
+  - path components: `archives/`, `.guld-data/`, `target/`, `.git/`, `.cursor/`
+  - `.env` / `.env.*`, any `*.sk` / `*.pem`
+  - path traversal (`..`)
+  - `repos/<name>.git/…` remains allowed (component is `name.git`, not `.git`)
+- **CORS:** default `CorsLayer::permissive()` so wallets can use a peer as Settings API base from another origin. Same-origin `--http` + `--http-static` does not need cross-origin for the colocated PWA. Operators who want lock-down SHOULD terminate TLS at nginx and/or restrict `Access-Control-Allow-Origin` there — do not invent product routes in nginx.
 
 ### Operator checklist
 
 - [ ] Node runs with `--http` + `--http-static <repo-root>` and `repos/*.git` present
 - [ ] Smoke: `curl -sI http://127.0.0.1:8080/repos/guld-types.git/HEAD` and `git ls-remote …`
+- [ ] Smoke deny: `curl -sI http://127.0.0.1:8080/archives/` → **404** (even if the directory exists)
 - [ ] After each push to a bare: `update-server-info`
 - [ ] guld.io (if used): nginx only proxies to that node; TLS/extras only
 - [ ] `.gitmodules` public URLs match the peer’s HTTP origin (bootstrap may still use absolute file paths)
@@ -108,6 +113,6 @@ Not published under `/repos/`. Separate from software remotes.
 
 ## Related
 
-- [`REPO_LAYOUT.md`](REPO_LAYOUT.md) · [`SOFTWARE_FLOW.md`](SOFTWARE_FLOW.md)  
+- [`REPO_LAYOUT.md`](REPO_LAYOUT.md) · [`SOFTWARE_FLOW.md`](SOFTWARE_FLOW.md) · [`SOURCE_AND_RELEASE.md`](SOURCE_AND_RELEASE.md)  
 - [`../deploy/README.md`](../deploy/README.md) — optional nginx for guld.io only  
 - Node HTTP: `src/guld-node/src/http_api.rs`

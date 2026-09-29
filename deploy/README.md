@@ -20,7 +20,7 @@ Do **not** add new product routes or git/SPA rules in nginx. Implement them in [
 | File | Role |
 |------|------|
 | `nginx.conf` / `nginx-http-bootstrap.conf` | TLS vhost; HTTPS proxies all traffic to guld-node `:8088` |
-| `snippets/` | Headers + catch-all `proxy_pass` (static-locations* are transitional leftovers) |
+| `snippets/` | Headers + `proxy_pass`; optional faucet/webhook `limit_req` ([hardening](../docs/fragments/faucet-registrar-hardening.md)) |
 | `guld-node.service` | **isysd --dev** playground (optional; disable when running Simba) |
 | `guld-node-simba.user.service` | **isysd Simba bootstrap** (mines) — `systemctl --user enable --now guld-node-simba` |
 | `guld-node-simba-peer.user.service` | **Simba validating peer** (no miner) — `systemctl --user enable --now guld-node-simba-peer` |

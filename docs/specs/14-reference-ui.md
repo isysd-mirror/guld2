@@ -92,6 +92,9 @@ Status: **shipped** | **partial** | **missing** | **out of UI** (node/miner/ops 
 | `RotateKeys` | Change keys/threshold (hygiene, not resale) | Broadcast + dual auth | Account → RotateKeys + cosign workstation | **shipped** |
 | `SettleRegistration` | Pay-or-release yearly name | Permissionless; miners enqueue | Wallet “Keep name funded” / renew hint (§8.9) | **partial** (expiry display TBD; no user settle button required — miners settle) |
 | `ClaimLegacy` | Unlock 1.0 balance with PGP / attestation | Broadcast | `/claim/` | **shipped** |
+| `ConvertAccountKind` | Flip individual ↔ group without releasing name | Broadcast + dual auth | Settings / account tools | **shipped** |
+| `UnregisterAccount` | Voluntary early name release ([GIP-33](../gips/gip-33.md)) | Broadcast + threshold | Sub close / advanced release | **missing** (activate [055](../tasks/open/055-simba-single-rule-bundle.md)) |
+| `UpdateBio` | Set/clear ≤128 B name profile ([GIP-34](../gips/gip-34.md)) | Broadcast | Account tools | **missing** (activate [055](../tasks/open/055-simba-single-rule-bundle.md)) |
 
 ### 3.2 Identity & proofs (whitepaper §3 / specs 02, 04)
 
@@ -104,7 +107,8 @@ Status: **shipped** | **partial** | **missing** | **out of UI** (node/miner/ops 
 | **Cosign workstation** (collect ≥`threshold` sigs) | Client-side; broadcast when complete | Shared partial-cosign import/export (§9) | **shipped** |
 | Find accounts by pubkey | `guld_findAccountsByPubkey` / `GET /chain/accounts?pubkey=` | Key manager + explorer `#/key/<0x…>` | **shipped** |
 | Prefix name search | `guld_searchAccounts` | Explorer / wallet Send typeahead | **shipped** |
-| Local contacts / recent / favorites | — (local storage) | Send typeahead + **`/contacts/`** ([GIP-31](../gips/gip-31.md) Draft) | **partial** — v1 shipped; address book + private invite planned |
+| Local contacts / recent / favorites | — (local storage) | Send typeahead + **`/contacts/`** ([GIP-31](../gips/gip-31.md) Accepted) | **partial** — v1 shipped; address book + private invite [038](../tasks/open/038-contacts-private-invite.md) |
+| Account bio display | account JSON `bio` | Explorer + wallet + contacts | **missing** ([GIP-34](../gips/gip-34.md)) |
 | Cross-chain / bridge dapps (no L0 reserved names — A11) | Spec 13 informative | N/A for Simba wallet | **later** (dapp layer) |
 | Leaf / CAS put-get in wallet | `guld_putObject` / `getObject` | Not required for L0 wallet; leaf host | **later** / ops |
 
@@ -677,7 +681,9 @@ The page MUST NOT send plaintext private keys. The user MUST unlock the extensio
 11. Account card: kind, threshold, keys, expiry hint; wallet friend-sponsor form  
 12. Extension site-login (`guld1loginreq` / `guld1login` §10.1) + `/demo/login/`  
 13. Contacts / recent / favorites + Send prefix typeahead (`guld_searchAccounts`) + `guld1contact:` QR  
-13b. Contacts address book + private invite (`/contacts/`, GIP-31) — **docs**; implementation task [038](../tasks/open/038-contacts-private-invite.md)  
+13b. Contacts address book + private invite (`/contacts/`, GIP-31 Accepted) — task [038](../tasks/open/038-contacts-private-invite.md)  
+13c. Shared `guld-web-ui` + extension pair (GIP-32 Accepted) — task [039](../tasks/open/039-guld-web-ui-extension-pair.md)  
+13d. `UnregisterAccount` + `UpdateBio` (GIP-33/34 Accepted) — Core bundle [055](../tasks/open/055-simba-single-rule-bundle.md) + tasks [041](../tasks/open/041-voluntary-unregister.md)  
 
 **Next:**
 

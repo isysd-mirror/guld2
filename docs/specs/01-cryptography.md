@@ -130,6 +130,7 @@ JSON-RPC conventions until clients ship BARE:
 | `TxId` | 32 bytes | `SHA256("guld/tx_id/v1" ‖ 0x00 ‖ canonical_tx)` |
 | `ObjectId` | 32 bytes | SHA-256 of object bytes (raw content hash) |
 | `BlockHash` | 32 bytes | PoW-defined header hash |
+| `tx_root` / `receipt_root` | 32 bytes | Interim concat or Merkle v1 — [GIP-35](../gips/gip-35.md) / [spec 06](06-blocks-and-consensus.md) §2.1a |
 
 ## 6. Component API — `guld-crypto`
 

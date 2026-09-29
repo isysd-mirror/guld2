@@ -10,10 +10,11 @@ Throwaway fixture keys only (`0x` + repeating `ab` / `11` / `22` / `33`). Never 
 
 | File | Coverage |
 |------|----------|
-| `tx_id.jsonl` | BARE bytes → `TxId` for every L0 tx type (10) |
+| `tx_id.jsonl` | BARE bytes → `TxId` for every L0 tx type (13) |
 | `header_pow.jsonl` | Genesis + mined height-1 → `block_hash` / PoW |
 | `difficulty.jsonl` | Retarget up/down, unchanged mid-window, `BadDifficulty` reject |
 | `timestamp.jsonl` | MTP reject + accept; future-drift reject |
+| `merkle_roots.jsonl` | Interim vs Merkle v1 `tx_root` / `receipt_root` (GIP-35); empty/single/even/odd |
 | `*-v1.hex` | Legacy comment-style goldens (Transfer / RewardCommit / ClaimReward / SettleRegistration) — same bytes as matching `tx_id.jsonl` rows |
 
 ## Regenerate (Rust reference)

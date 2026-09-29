@@ -43,8 +43,8 @@ test("resolveMarkdownLink and curated routes", () => {
   const rel = resolveMarkdownLink("../HOSTING.md", "/docs/specs/00-overview.md");
   assert.equal(rel?.fetch, "/docs/HOSTING.md");
 
-  const wp = resolveMarkdownLink("guld-2.0-draft.md", "/docs/whitepaper/guld-2.0-draft.md");
-  assert.equal(curatedDocHref(wp.fetch), "/docs/?doc=whitepaper%2Fguld-2.0-draft.md");
+  const wp = resolveMarkdownLink("guld-2.0.md", "/docs/whitepaper/guld-2.0.md");
+  assert.equal(curatedDocHref(wp.fetch), "/docs/?doc=whitepaper%2Fguld-2.0.md");
 
   const spec = resolveMarkdownLink("15-ledger-import.md", "/docs/specs/00-overview.md");
   assert.equal(curatedDocHref(spec.fetch), "/specs/?doc=15-ledger-import");
